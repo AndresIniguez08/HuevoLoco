@@ -1,0 +1,104 @@
+export const ROLES = {
+  DUENO: 'dueno',
+  ADMINISTRATIVO: 'administrativo',
+  DEPOSITO: 'deposito',
+  VENDEDOR: 'vendedor',
+  CHOFER: 'chofer',
+}
+
+export const RUTA_RAIZ_POR_ROL = {
+  [ROLES.DUENO]: '/dueno',
+  [ROLES.ADMINISTRATIVO]: '/admin',
+  [ROLES.DEPOSITO]: '/deposito',
+  [ROLES.VENDEDOR]: '/vendedor',
+  [ROLES.CHOFER]: '/chofer',
+}
+
+export const ETIQUETA_ROL = {
+  [ROLES.DUENO]: 'Dueño',
+  [ROLES.ADMINISTRATIVO]: 'Administrativo',
+  [ROLES.DEPOSITO]: 'Depósito',
+  [ROLES.VENDEDOR]: 'Vendedor',
+  [ROLES.CHOFER]: 'Chofer',
+}
+
+export const ROLES_ASIGNABLES = [
+  ROLES.DUENO,
+  ROLES.ADMINISTRATIVO,
+  ROLES.DEPOSITO,
+  ROLES.VENDEDOR,
+  ROLES.CHOFER,
+].map((value) => ({ value, label: ETIQUETA_ROL[value] }))
+
+export const MEDIOS_PAGO = [
+  { value: 'efectivo', label: 'Efectivo' },
+  { value: 'transferencia', label: 'Transferencia' },
+  { value: 'mercado_pago', label: 'Mercado Pago' },
+  { value: 'cuenta_corriente', label: 'Cuenta corriente' },
+]
+
+// Denominaciones de billetes para el conteo del arqueo de caja, de mayor a
+// menor — define tanto el orden de la tabla en pantalla como en la impresión.
+export const DENOMINACIONES_BILLETE = [20000, 10000, 2000, 1000, 500, 200, 100, 50, 20, 10]
+
+export const UNIDADES = {
+  MAPLE: 'maple',
+  CAJA: 'caja',
+  CAJON: 'cajon',
+}
+
+export const ETIQUETA_UNIDAD = {
+  [UNIDADES.MAPLE]: { singular: 'maple', plural: 'maples' },
+  [UNIDADES.CAJA]: { singular: 'caja', plural: 'cajas' },
+  [UNIDADES.CAJON]: { singular: 'cajón', plural: 'cajones' },
+}
+
+// pedidos.estado: pendiente | confirmado | entregado | cancelado
+export const ETIQUETA_ESTADO_PEDIDO = {
+  pendiente: 'Pendiente',
+  confirmado: 'Confirmado',
+  entregado: 'Entregado',
+  cancelado: 'Cancelado',
+}
+
+export const TONO_ESTADO_PEDIDO = {
+  pendiente: 'neutro',
+  confirmado: 'exito',
+  entregado: 'exito',
+  cancelado: 'error',
+}
+
+// pedidos.estado_pago: pendiente | parcial | pagado
+export const ETIQUETA_ESTADO_PAGO = {
+  pendiente: 'Sin pagar',
+  parcial: 'Pago parcial',
+  pagado: 'Pagado',
+}
+
+export const TONO_ESTADO_PAGO = {
+  pendiente: 'neutro',
+  parcial: 'neutro',
+  pagado: 'exito',
+}
+
+export const TIPOS_CLIENTE = [
+  { value: 'mayorista', label: 'Mayorista' },
+  { value: 'minorista', label: 'Minorista' },
+  { value: 'otro', label: 'Otro' },
+]
+
+// productos.categoria_huevo — solo aplica cuando es_huevo = true
+export const CATEGORIAS_HUEVO = [
+  { value: '4', label: 'Categoría 4' },
+  { value: '3', label: 'Categoría 3' },
+  { value: '2', label: 'Categoría 2' },
+  { value: '1', label: 'Categoría 1' },
+  { value: 'jumbo', label: 'Jumbo' },
+  { value: 'manchado', label: 'Manchado' },
+  { value: 'crack', label: 'Crack' },
+]
+
+export const ETIQUETA_CATEGORIA_HUEVO = Object.fromEntries(CATEGORIAS_HUEVO.map((c) => [c.value, c.label]))
+
+// Regla de negocio: solo estas categorías admiten venta por caja
+export const CATEGORIAS_HUEVO_ADMITEN_CAJA = ['3', '2', '1']
