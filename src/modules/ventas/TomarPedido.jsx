@@ -3,12 +3,14 @@ import { Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { obtenerProductosConStock } from '../../lib/productos'
 import { obtenerPreciosLista } from '../../lib/precios'
-import { buscarClientes } from '../../lib/clientes'
+import { buscarClientes, obtenerFechaInicioSaldoPendiente } from '../../lib/clientes'
+import { obtenerSaldoCliente } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD } from '../../lib/constantes'
 import { usePedidoStore } from '../../stores/pedidoStore'
 import { useAuthStore } from '../../stores/authStore'
 import SelectorUnidad from '../../components/SelectorUnidad'
+import AvisoSaldoCliente from '../../components/AvisoSaldoCliente'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 
@@ -25,6 +27,8 @@ export default function TomarPedido() {
 
   const [busquedaCliente, setBusquedaCliente] = useState('')
   const [resultadosCliente, setResultadosCliente] = useState([])
+  const [saldoCliente, setSaldoCliente] = useState(0)
+  const [saldoClienteDesde, setSaldoClienteDesde] = useState(null)
 
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
@@ -44,6 +48,20 @@ export default function TomarPedido() {
       .then(setPreciosLista)
       .catch((e) => setError(traducirError(e)))
       .finally(() => setCargandoPrecios(false))
+  }, [cliente])
+
+  useEffect(() => {
+    if (!cliente) {
+      setSaldoCliente(0)
+      setSaldoClienteDesde(null)
+      return
+    }
+    Promise.all([obtenerSaldoCliente(cliente.id), obtenerFechaInicioSaldoPendiente(cliente.id)])
+      .then(([saldo, desde]) => {
+        setSaldoCliente(saldo)
+        setSaldoClienteDesde(desde)
+      })
+      .catch(() => {})
   }, [cliente])
 
   useEffect(() => {
@@ -162,6 +180,12 @@ export default function TomarPedido() {
                 Este cliente no tiene una lista de precios asignada. Ingresá el precio manualmente para cada producto.
               </p>
             )}
+            <AvisoSaldoCliente
+              nombre={cliente.nombre}
+              saldo={saldoCliente}
+              desde={saldoClienteDesde}
+              className="mt-2"
+            />
           </div>
         ) : (
           <div>

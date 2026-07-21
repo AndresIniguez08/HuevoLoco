@@ -57,6 +57,40 @@ export async function obtenerPedidosCliente(clienteId) {
   return data
 }
 
+// Aproximación de "desde cuándo arrastra saldo": el pedido más antiguo que
+// todavía no está pagado. No hay conciliación por factura, así que esto es
+// solo para dar contexto al vendedor, no un dato contable exacto.
+export async function obtenerFechaInicioSaldoPendiente(clienteId) {
+  const { data, error } = await supabase
+    .from('pedidos')
+    .select('creado_at')
+    .eq('cliente_id', clienteId)
+    .neq('estado_pago', 'pagado')
+    .order('creado_at', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return data?.creado_at || null
+}
+
+// Misma aproximación que obtenerFechaInicioSaldoPendiente, pero para varios
+// clientes a la vez (ej. cada fila de la lista de pedidos del día).
+export async function obtenerFechasInicioSaldoPendiente(clienteIds) {
+  if (clienteIds.length === 0) return new Map()
+  const { data, error } = await supabase
+    .from('pedidos')
+    .select('cliente_id, creado_at')
+    .in('cliente_id', clienteIds)
+    .neq('estado_pago', 'pagado')
+    .order('creado_at', { ascending: true })
+  if (error) throw error
+  const fechas = new Map()
+  for (const p of data) {
+    if (!fechas.has(p.cliente_id)) fechas.set(p.cliente_id, p.creado_at)
+  }
+  return fechas
+}
+
 export async function obtenerMovimientosCuentaCorriente(clienteId, { desde, hasta } = {}) {
   let query = supabase
     .from('cuenta_corriente_movimientos')
