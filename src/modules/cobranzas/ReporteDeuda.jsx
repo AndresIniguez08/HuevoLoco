@@ -44,47 +44,80 @@ export default function ReporteDeuda() {
       {clientes.length === 0 ? (
         <p className="text-sm text-marca/50">Ningún cliente tiene saldo pendiente.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-marca/10 text-marca/50">
-                <th className="p-3 font-medium">Cliente</th>
-                <th className="p-3 font-medium">Saldo</th>
-                <th className="p-3 font-medium">Teléfono</th>
-                <th className="p-3 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-marca/10">
-              {clientes.map((c) => (
-                <tr key={c.cliente_id}>
-                  <td className="p-3 font-medium text-marca">{c.nombre}</td>
-                  <td className="p-3 font-mono text-perdida">${Number(c.saldo).toFixed(2)}</td>
-                  <td className="p-3 text-marca/70">{c.telefono || '—'}</td>
-                  <td className="p-3">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        tamano="sm"
-                        variante="confirmar"
-                        disabled={!c.telefono}
-                        title={!c.telefono ? 'Sin teléfono cargado' : undefined}
-                        onClick={() => window.open(mensajeWhatsapp(c), '_blank')}
-                      >
-                        Enviar WhatsApp
-                      </Button>
-                      <Link
-                        to={`/${rutaBase}/cuenta-corriente`}
-                        state={{ clienteId: c.cliente_id }}
-                        className="inline-flex items-center justify-center rounded-lg border border-marca/30 px-3 py-1.5 text-sm font-medium text-marca hover:bg-marca/5"
-                      >
-                        Ver cuenta corriente
-                      </Link>
-                    </div>
-                  </td>
+        <>
+          {/* Mobile: una tarjeta apilada por cliente, en vez de columnas que no entran en pantallas angostas. */}
+          <ul className="flex flex-col gap-3 md:hidden">
+            {clientes.map((c) => (
+              <li key={c.cliente_id} className="rounded-xl bg-white p-4 shadow-sm">
+                <p className="font-medium text-marca">{c.nombre}</p>
+                <p className="mt-1 text-sm text-marca/70">
+                  Saldo: <span className="font-mono text-perdida">${Number(c.saldo).toFixed(2)}</span>
+                </p>
+                <p className="text-sm text-marca/70">Teléfono: {c.telefono || '—'}</p>
+                <div className="mt-3 flex flex-col gap-2">
+                  <Button
+                    tamano="sm"
+                    variante="confirmar"
+                    disabled={!c.telefono}
+                    title={!c.telefono ? 'Sin teléfono cargado' : undefined}
+                    onClick={() => window.open(mensajeWhatsapp(c), '_blank')}
+                  >
+                    Enviar WhatsApp
+                  </Button>
+                  <Link
+                    to={`/${rutaBase}/cuenta-corriente`}
+                    state={{ clienteId: c.cliente_id }}
+                    className="inline-flex items-center justify-center rounded-lg border border-marca/30 px-3 py-1.5 text-sm font-medium text-marca hover:bg-marca/5"
+                  >
+                    Ver cuenta corriente
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden overflow-x-auto rounded-xl bg-white shadow-sm md:block">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-marca/10 text-marca/50">
+                  <th className="p-3 font-medium">Cliente</th>
+                  <th className="p-3 font-medium">Saldo</th>
+                  <th className="p-3 font-medium">Teléfono</th>
+                  <th className="p-3 font-medium"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-marca/10">
+                {clientes.map((c) => (
+                  <tr key={c.cliente_id}>
+                    <td className="p-3 font-medium text-marca">{c.nombre}</td>
+                    <td className="p-3 font-mono text-perdida">${Number(c.saldo).toFixed(2)}</td>
+                    <td className="p-3 text-marca/70">{c.telefono || '—'}</td>
+                    <td className="p-3">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          tamano="sm"
+                          variante="confirmar"
+                          disabled={!c.telefono}
+                          title={!c.telefono ? 'Sin teléfono cargado' : undefined}
+                          onClick={() => window.open(mensajeWhatsapp(c), '_blank')}
+                        >
+                          Enviar WhatsApp
+                        </Button>
+                        <Link
+                          to={`/${rutaBase}/cuenta-corriente`}
+                          state={{ clienteId: c.cliente_id }}
+                          className="inline-flex items-center justify-center rounded-lg border border-marca/30 px-3 py-1.5 text-sm font-medium text-marca hover:bg-marca/5"
+                        >
+                          Ver cuenta corriente
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )

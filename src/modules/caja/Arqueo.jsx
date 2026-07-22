@@ -108,36 +108,38 @@ export default function Arqueo() {
 
         <div>
           <p className="mb-2 text-sm font-medium text-marca">Conteo de billetes</p>
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="text-marca/50">
-                <th className="pb-1 font-medium">Denominación</th>
-                <th className="pb-1 font-medium">Cantidad</th>
-                <th className="pb-1 text-right font-medium">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-marca/10">
-              {DENOMINACIONES_BILLETE.map((denom) => (
-                <tr key={denom}>
-                  <td className="py-1.5 font-mono text-marca">${denom}</td>
-                  <td className="py-1.5">
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      inputMode="numeric"
-                      value={cantidadesBilletes[denom] ?? ''}
-                      onChange={(e) => actualizarCantidad(denom, e.target.value)}
-                      className="w-20 rounded-lg border border-marca/20 px-2 py-1 font-mono outline-none focus:border-marca-claro"
-                    />
-                  </td>
-                  <td className="py-1.5 text-right font-mono text-marca/70">
-                    ${(denom * (Number(cantidadesBilletes[denom]) || 0)).toFixed(2)}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="text-marca/50">
+                  <th className="pb-1 font-medium">Denominación</th>
+                  <th className="pb-1 font-medium">Cantidad</th>
+                  <th className="pb-1 text-right font-medium">Subtotal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-marca/10">
+                {DENOMINACIONES_BILLETE.map((denom) => (
+                  <tr key={denom}>
+                    <td className="py-1.5 font-mono text-marca">${denom}</td>
+                    <td className="py-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        inputMode="numeric"
+                        value={cantidadesBilletes[denom] ?? ''}
+                        onChange={(e) => actualizarCantidad(denom, e.target.value)}
+                        className="w-20 rounded-lg border border-marca/20 px-2 py-1 font-mono outline-none focus:border-marca-claro"
+                      />
+                    </td>
+                    <td className="py-1.5 text-right font-mono text-marca/70">
+                      ${(denom * (Number(cantidadesBilletes[denom]) || 0)).toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <p className="mt-2 text-right font-mono text-2xl text-marca">${totalEfectivoContado.toFixed(2)}</p>
         </div>
 
