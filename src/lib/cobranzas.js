@@ -1,5 +1,7 @@
 import { supabase } from './supabase'
 
+// saldo_clientes es una vista (cliente_id, nombre, saldo) que no expone
+// teléfono — hay que traerlo aparte de clientes y mezclarlo acá.
 export async function listarSaldosClientes() {
   const { data, error } = await supabase
     .from('saldo_clientes')
@@ -7,7 +9,14 @@ export async function listarSaldosClientes() {
     .gt('saldo', 0)
     .order('saldo', { ascending: false })
   if (error) throw error
-  return data
+  if (data.length === 0) return data
+
+  const ids = data.map((c) => c.cliente_id)
+  const { data: clientes, error: errorClientes } = await supabase.from('clientes').select('id, telefono').in('id', ids)
+  if (errorClientes) throw errorClientes
+  const telefonoPorId = Object.fromEntries(clientes.map((c) => [c.id, c.telefono]))
+
+  return data.map((c) => ({ ...c, telefono: telefonoPorId[c.cliente_id] || null }))
 }
 
 // Saldo real del cliente (débitos - créditos, sin importar ningún filtro de
