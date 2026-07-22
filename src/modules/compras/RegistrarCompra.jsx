@@ -3,7 +3,8 @@ import { Trash2 } from 'lucide-react'
 import { obtenerProductosConStock } from '../../lib/productos'
 import { registrarCompra as registrarCompraRpc } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
-import SelectorUnidad from '../../components/SelectorUnidad'
+import { ETIQUETA_UNIDAD } from '../../lib/constantes'
+import SelectorUnidad, { convertirAMaple } from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
 import ProveedorSelector from './ProveedorSelector'
 
@@ -28,6 +29,12 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
 
   function agregarItem() {
     if (!productoSeleccionado || cantidadSeleccion.cantidad_maple <= 0 || costoManual === '') return
+    // fn_registrar_compra espera costo_unitario por maple (mezcla el costo
+    // promedio ponderado con compras previas, que también están en costo
+    // por maple), así que si el usuario cargó el costo por caja o cajón hay
+    // que convertirlo acá antes de guardarlo/enviarlo.
+    const equivalenciaUnidad = convertirAMaple(1, cantidadSeleccion.unidad, productoSeleccionado) || 1
+    const costoUnitarioMaple = Number(costoManual) / equivalenciaUnidad
     setItems([
       ...items,
       {
@@ -38,6 +45,7 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
         cantidad: cantidadSeleccion.cantidad,
         cantidad_maple: cantidadSeleccion.cantidad_maple,
         costo_unitario: Number(costoManual),
+        costo_unitario_maple: costoUnitarioMaple,
       },
     ])
     setProductoId('')
@@ -61,7 +69,7 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
         items.map((it) => ({
           producto_id: it.producto_id,
           cantidad_maple: it.cantidad_maple,
-          costo_unitario: it.costo_unitario,
+          costo_unitario: it.costo_unitario_maple,
           unidad_transaccion: it.unidad,
           cantidad_unidad_transaccion: it.cantidad,
         }))
@@ -77,7 +85,7 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
     }
   }
 
-  const totalCompra = items.reduce((acc, it) => acc + it.costo_unitario * it.cantidad_maple, 0)
+  const totalCompra = items.reduce((acc, it) => acc + it.costo_unitario_maple * it.cantidad_maple, 0)
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -110,7 +118,9 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
             <>
               <SelectorUnidad producto={productoSeleccionado} onCambio={setCantidadSeleccion} />
               <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium text-marca">Costo x maple</span>
+                <span className="font-medium text-marca">
+                  Costo x {ETIQUETA_UNIDAD[cantidadSeleccion.unidad].singular}
+                </span>
                 <input
                   type="number"
                   min="0"
@@ -137,11 +147,12 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
                 <div>
                   <p className="font-medium text-marca">{it.nombre}</p>
                   <p className="text-marca/50">
-                    {it.cantidad} {it.unidad} ({it.cantidad_maple} maples) · ${it.costo_unitario} c/maple
+                    {it.cantidad} {it.unidad} ({it.cantidad_maple} maples) · ${it.costo_unitario} c/
+                    {ETIQUETA_UNIDAD[it.unidad].singular}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono">${(it.costo_unitario * it.cantidad_maple).toFixed(2)}</span>
+                  <span className="font-mono">${(it.costo_unitario_maple * it.cantidad_maple).toFixed(2)}</span>
                   <button onClick={() => quitarItem(it.id)} className="text-perdida">
                     <Trash2 size={16} />
                   </button>
