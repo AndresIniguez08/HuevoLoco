@@ -4,6 +4,10 @@ const VARIANTES = {
   peligro: 'bg-perdida text-white hover:bg-perdida/90 disabled:bg-perdida/40',
   confirmar: 'bg-fresco text-white hover:bg-fresco/90 disabled:bg-fresco/40',
   fantasma: 'text-marca hover:bg-marca/5 disabled:text-marca/30',
+  // Para botones de acción positiva apoyados sobre una tarjeta bg-marca (ej.
+  // saldo adeudado): "secundario" se funde con ese fondo en hover porque su
+  // tono es el mismo navy. Este variant pasa a un acento sólido en hover.
+  claro: 'bg-white text-marca hover:bg-fresco hover:text-white disabled:text-marca/30',
 }
 
 const TAMANOS = {

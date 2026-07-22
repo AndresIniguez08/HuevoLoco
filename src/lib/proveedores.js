@@ -3,10 +3,11 @@ import { supabase } from './supabase'
 // Por defecto excluye proveedores inactivos: esta función alimenta tanto el
 // listado de gestión (con incluirInactivos) como selectores de otras
 // pantallas (RegistrarCompra vía ProveedorSelector).
-export async function listarProveedores({ texto = '', incluirInactivos = false } = {}) {
+export async function listarProveedores({ texto = '', incluirInactivos = false, limite } = {}) {
   let query = supabase.from('proveedores').select('*').order('nombre')
   if (!incluirInactivos) query = query.eq('activo', true)
   if (texto) query = query.ilike('nombre', `%${texto}%`)
+  if (limite) query = query.limit(limite)
   const { data, error } = await query
   if (error) throw error
   return data

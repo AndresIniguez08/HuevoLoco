@@ -129,7 +129,7 @@ export default function CuentaCorrienteProveedores() {
                   ${saldoTotal.toFixed(2)}
                 </p>
               </div>
-              <Button variante="secundario" tamano="sm" onClick={() => setModalPago(true)}>
+              <Button variante="claro" tamano="sm" onClick={() => setModalPago(true)}>
                 Registrar pago a proveedor
               </Button>
             </div>

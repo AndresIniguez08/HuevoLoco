@@ -5,13 +5,11 @@ export default function BuscadorProveedor({ onSeleccionar }) {
   const [texto, setTexto] = useState('')
   const [resultados, setResultados] = useState([])
 
+  // Sin texto trae los primeros 10 por nombre: así la lista no arranca
+  // vacía, y a medida que se escribe se va filtrando igual.
   useEffect(() => {
-    if (!texto) {
-      setResultados([])
-      return
-    }
     const timeout = setTimeout(() => {
-      listarProveedores({ texto }).then(setResultados).catch(() => {})
+      listarProveedores({ texto, limite: 10 }).then(setResultados).catch(() => {})
     }, 250)
     return () => clearTimeout(timeout)
   }, [texto])

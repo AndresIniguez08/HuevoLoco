@@ -8,11 +8,9 @@ export default function BuscadorCliente({ onSeleccionar, mostrarFiltroInactivos 
   const [incluirInactivos, setIncluirInactivos] = useState(false)
   const [resultados, setResultados] = useState([])
 
+  // Sin texto trae los primeros 20 por nombre (ver buscarClientes): así la
+  // lista no arranca vacía, y a medida que se escribe se va filtrando igual.
   useEffect(() => {
-    if (!texto) {
-      setResultados([])
-      return
-    }
     const timeout = setTimeout(() => {
       buscarClientes(texto, { incluirInactivos }).then(setResultados).catch(() => {})
     }, 250)
