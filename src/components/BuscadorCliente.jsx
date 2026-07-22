@@ -3,7 +3,9 @@ import { buscarClientes } from '../lib/clientes'
 
 // mostrarFiltroInactivos: solo lo usan pantallas de gestión (ej. edición de
 // clientes) que necesitan poder encontrar y reactivar un cliente inactivo.
-export default function BuscadorCliente({ onSeleccionar, mostrarFiltroInactivos = false }) {
+// refrescar: token opcional (ej. un contador) para forzar un refetch — p.ej.
+// tras dar de alta un cliente nuevo — sin tocar ni resetear texto/filtro.
+export default function BuscadorCliente({ onSeleccionar, mostrarFiltroInactivos = false, refrescar }) {
   const [texto, setTexto] = useState('')
   const [incluirInactivos, setIncluirInactivos] = useState(false)
   const [resultados, setResultados] = useState([])
@@ -15,7 +17,7 @@ export default function BuscadorCliente({ onSeleccionar, mostrarFiltroInactivos 
       buscarClientes(texto, { incluirInactivos }).then(setResultados).catch(() => {})
     }, 250)
     return () => clearTimeout(timeout)
-  }, [texto, incluirInactivos])
+  }, [texto, incluirInactivos, refrescar])
 
   return (
     <div>

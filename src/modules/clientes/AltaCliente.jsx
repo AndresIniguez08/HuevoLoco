@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { CheckCircle } from 'lucide-react'
 import { crearCliente } from '../../lib/clientes'
 import { listarListasPrecio } from '../../lib/listasPrecio'
 import { traducirError } from '../../lib/errores'
@@ -22,6 +23,7 @@ export default function AltaCliente({ onCreado, onCancelar }) {
   const [listasPrecio, setListasPrecio] = useState([])
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
+  const [creado, setCreado] = useState(null)
   const {
     register,
     handleSubmit,
@@ -47,12 +49,24 @@ export default function AltaCliente({ onCreado, onCancelar }) {
         direccion: datos.direccion || null,
         email: datos.email || null,
       })
-      onCreado()
+      setCreado({ nombre: datos.nombre })
     } catch (e) {
       setError(traducirError(e))
     } finally {
       setEnviando(false)
     }
+  }
+
+  if (creado) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-4 text-center">
+        <CheckCircle size={40} className="text-fresco" />
+        <p className="text-sm text-marca">{creado.nombre} se cargó con éxito</p>
+        <Button onClick={onCreado} className="w-full">
+          Aceptar
+        </Button>
+      </div>
+    )
   }
 
   return (

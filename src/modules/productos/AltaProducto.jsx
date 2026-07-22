@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { CheckCircle } from 'lucide-react'
 import { crearProducto } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
 import { CATEGORIAS_HUEVO, CATEGORIAS_HUEVO_ADMITEN_CAJA } from '../../lib/constantes'
@@ -27,6 +28,7 @@ const esquema = z
 export default function AltaProducto({ onCreado, onCancelar }) {
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
+  const [creado, setCreado] = useState(null)
   const {
     register,
     handleSubmit,
@@ -72,12 +74,24 @@ export default function AltaProducto({ onCreado, onCancelar }) {
         stock_minimo_maple: datos.stock_minimo_maple !== '' ? Number(datos.stock_minimo_maple) : null,
         activo: true,
       })
-      onCreado()
+      setCreado({ nombre: datos.nombre })
     } catch (e) {
       setError(traducirError(e))
     } finally {
       setEnviando(false)
     }
+  }
+
+  if (creado) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-4 text-center">
+        <CheckCircle size={40} className="text-fresco" />
+        <p className="text-sm text-marca">{creado.nombre} se cargó con éxito</p>
+        <Button onClick={onCreado} className="w-full">
+          Aceptar
+        </Button>
+      </div>
+    )
   }
 
   return (

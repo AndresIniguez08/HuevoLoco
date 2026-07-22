@@ -12,6 +12,7 @@ import EditarCliente from './EditarCliente'
 export default function GestionClientes() {
   const [cliente, setCliente] = useState(null)
   const [modalAbierto, setModalAbierto] = useState(false)
+  const [refrescarBuscador, setRefrescarBuscador] = useState(0)
   const [pedidos, setPedidos] = useState([])
   const [cargandoPedidos, setCargandoPedidos] = useState(false)
   const [errorPedidos, setErrorPedidos] = useState(null)
@@ -28,6 +29,11 @@ export default function GestionClientes() {
       .finally(() => setCargandoPedidos(false))
   }, [cliente])
 
+  function altaOk() {
+    setModalAbierto(false)
+    setRefrescarBuscador((n) => n + 1)
+  }
+
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between">
@@ -36,7 +42,7 @@ export default function GestionClientes() {
       </div>
 
       <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
-        <BuscadorCliente onSeleccionar={setCliente} mostrarFiltroInactivos />
+        <BuscadorCliente onSeleccionar={setCliente} mostrarFiltroInactivos refrescar={refrescarBuscador} />
       </div>
 
       {cliente && (
@@ -72,7 +78,7 @@ export default function GestionClientes() {
       )}
 
       <Modal abierto={modalAbierto} onCerrar={() => setModalAbierto(false)} titulo="Nuevo cliente">
-        <AltaCliente onCreado={() => setModalAbierto(false)} onCancelar={() => setModalAbierto(false)} />
+        <AltaCliente onCreado={altaOk} onCancelar={() => setModalAbierto(false)} />
       </Modal>
     </div>
   )
