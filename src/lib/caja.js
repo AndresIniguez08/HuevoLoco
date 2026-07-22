@@ -10,7 +10,37 @@ export async function obtenerMovimientosCaja({ desde, hasta } = {}) {
   if (hasta) query = query.lte('creado_at', `${hasta}T23:59:59`)
   const { data, error } = await query
   if (error) throw error
-  return data
+
+  const idsPago = data.filter((m) => m.concepto === 'cobro_venta').map((m) => m.referencia_id)
+  const idsPagoProveedor = data.filter((m) => m.concepto === 'pago_proveedor').map((m) => m.referencia_id)
+
+  const [pagosPorId, pagosProveedorPorId] = await Promise.all([
+    obtenerMapaPorId('pagos', 'id, clientes(nombre)', idsPago),
+    obtenerMapaPorId('pagos_proveedor', 'id, proveedores(nombre)', idsPagoProveedor),
+  ])
+
+  return data.map((m) => ({ ...m, descripcion: describirMovimiento(m, pagosPorId, pagosProveedorPorId) }))
+}
+
+// Fallback intencional: un concepto que todavía no mapeamos se muestra tal
+// cual viene de la base en vez de romper la pantalla.
+function describirMovimiento(m, pagosPorId, pagosProveedorPorId) {
+  if (m.concepto === 'cobro_venta') {
+    const nombreCliente = pagosPorId.get(m.referencia_id)?.clientes?.nombre
+    return `Cobranza${nombreCliente ? ` — ${nombreCliente}` : ''}`
+  }
+  if (m.concepto === 'pago_proveedor') {
+    const nombreProveedor = pagosProveedorPorId.get(m.referencia_id)?.proveedores?.nombre
+    return `Pago a proveedor${nombreProveedor ? ` — ${nombreProveedor}` : ''}`
+  }
+  return m.concepto || '—'
+}
+
+async function obtenerMapaPorId(tabla, columnas, ids) {
+  if (ids.length === 0) return new Map()
+  const { data, error } = await supabase.from(tabla).select(columnas).in('id', ids)
+  if (error) throw error
+  return new Map(data.map((fila) => [fila.id, fila]))
 }
 
 export function totalesPorMedio(movimientos) {

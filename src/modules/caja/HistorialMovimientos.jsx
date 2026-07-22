@@ -69,7 +69,7 @@ export default function HistorialMovimientos() {
               {movimientos.map((m) => (
                 <tr key={m.id}>
                   <td className="px-4 py-2 text-marca/70">{new Date(m.creado_at).toLocaleString('es-AR')}</td>
-                  <td className="px-4 py-2">{m.concepto || '—'}</td>
+                  <td className="px-4 py-2">{m.descripcion}</td>
                   <td className="px-4 py-2 capitalize">{m.medio}</td>
                   <td className="px-4 py-2">
                     <Badge tono={m.tipo === 'egreso' ? 'error' : 'exito'}>{m.tipo === 'egreso' ? 'Egreso' : 'Ingreso'}</Badge>
