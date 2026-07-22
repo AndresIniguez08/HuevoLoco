@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { obtenerCliente, obtenerMovimientosCuentaCorriente, obtenerItemsPedido } from '../../lib/clientes'
-import { obtenerSaldoCliente, obtenerDetallePago } from '../../lib/cobranzas'
+import {
+  obtenerSaldoProveedor,
+  obtenerMovimientosCCProveedor,
+  obtenerItemsCompra,
+  obtenerDetallePagoProveedor,
+} from '../../lib/proveedores'
 import { traducirError } from '../../lib/errores'
-import { MEDIOS_PAGO, ETIQUETA_UNIDAD } from '../../lib/constantes'
-import BuscadorCliente from '../../components/BuscadorCliente'
+import { MEDIOS_PAGO } from '../../lib/constantes'
+import BuscadorProveedor from '../../components/BuscadorProveedor'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
+import RegistrarPagoProveedor from './RegistrarPagoProveedor'
 
 const ETIQUETA_MEDIO = Object.fromEntries(MEDIOS_PAGO.map((m) => [m.value, m.label]))
-
-function etiquetaCantidadUnidad(cantidad, unidad) {
-  const et = ETIQUETA_UNIDAD[unidad]
-  if (!et) return `${cantidad} ${unidad}`
-  return `${cantidad} ${Number(cantidad) === 1 ? et.singular : et.plural}`
-}
 
 function hoyISO() {
   return new Date().toISOString().slice(0, 10)
@@ -32,9 +30,8 @@ function esteMes() {
   return { desde: desde.toISOString().slice(0, 10), hasta: hoyISO() }
 }
 
-export default function CuentaCorriente() {
-  const location = useLocation()
-  const [cliente, setCliente] = useState(null)
+export default function CuentaCorrienteProveedores() {
+  const [proveedor, setProveedor] = useState(null)
   const [movimientos, setMovimientos] = useState([])
   const [saldoTotal, setSaldoTotal] = useState(0)
   const [desde, setDesde] = useState('')
@@ -47,39 +44,49 @@ export default function CuentaCorriente() {
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
   const [errorDetalle, setErrorDetalle] = useState(null)
 
-  // Reporte de deuda navega acá pasando el cliente ya elegido, para no
-  // obligar a buscarlo de nuevo.
-  useEffect(() => {
-    const clienteId = location.state?.clienteId
-    if (clienteId) obtenerCliente(clienteId).then(setCliente).catch(() => {})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state])
+  const [modalPago, setModalPago] = useState(false)
 
-  useEffect(() => {
-    if (!cliente) return
-    obtenerSaldoCliente(cliente.id)
-      .then(setSaldoTotal)
-      .catch((e) => setError(traducirError(e)))
-  }, [cliente])
+  async function cargarSaldo(prov) {
+    try {
+      setSaldoTotal(await obtenerSaldoProveedor(prov.id))
+    } catch (e) {
+      setError(traducirError(e))
+    }
+  }
 
-  useEffect(() => {
-    if (!cliente) return
+  async function cargarMovimientos(prov, filtros) {
     setCargando(true)
-    obtenerMovimientosCuentaCorriente(cliente.id, { desde, hasta })
-      .then(setMovimientos)
-      .catch((e) => setError(traducirError(e)))
-      .finally(() => setCargando(false))
-  }, [cliente, desde, hasta])
+    try {
+      setMovimientos(await obtenerMovimientosCCProveedor(prov.id, filtros))
+      setError(null)
+    } catch (e) {
+      setError(traducirError(e))
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!proveedor) return
+    cargarSaldo(proveedor)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proveedor])
+
+  useEffect(() => {
+    if (!proveedor) return
+    cargarMovimientos(proveedor, { desde, hasta })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proveedor, desde, hasta])
 
   useEffect(() => {
     if (!movimientoActivo) return
     setCargandoDetalle(true)
     setErrorDetalle(null)
     const promesa =
-      movimientoActivo.referencia_tipo === 'venta'
-        ? obtenerItemsPedido(movimientoActivo.referencia_id)
+      movimientoActivo.referencia_tipo === 'compra'
+        ? obtenerItemsCompra(movimientoActivo.referencia_id)
         : movimientoActivo.referencia_tipo === 'pago'
-          ? obtenerDetallePago(movimientoActivo.referencia_id)
+          ? obtenerDetallePagoProveedor(movimientoActivo.referencia_id)
           : Promise.resolve(null)
     promesa
       .then(setDetalle)
@@ -93,23 +100,39 @@ export default function CuentaCorriente() {
     setErrorDetalle(null)
   }
 
+  function pagoRegistrado() {
+    setModalPago(false)
+    if (proveedor) {
+      cargarSaldo(proveedor)
+      cargarMovimientos(proveedor, { desde, hasta })
+    }
+  }
+
   const hayFiltro = !!(desde || hasta)
   const saldoPeriodo = movimientos.reduce((acc, m) => acc + (m.tipo === 'debito' ? Number(m.monto) : -Number(m.monto)), 0)
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-4 font-display text-xl text-marca">Cuenta corriente</h1>
+      <h1 className="mb-4 font-display text-xl text-marca">Cuenta corriente de proveedores</h1>
 
       <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
-        <BuscadorCliente onSeleccionar={setCliente} />
+        <BuscadorProveedor onSeleccionar={setProveedor} />
       </div>
 
-      {cliente && (
+      {proveedor && (
         <div className="flex flex-col gap-4">
           <div className="rounded-xl bg-marca p-4 text-white shadow-sm">
-            <p className="text-xs text-white/70">Saldo total actual de {cliente.nombre}</p>
-            <p className={`font-mono text-2xl ${saldoTotal > 0 ? 'text-yema' : 'text-white'}`}>${saldoTotal.toFixed(2)}</p>
-            {saldoTotal > 0 && <p className="mt-1 text-xs text-white/60">El cliente tiene deuda pendiente.</p>}
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs text-white/70">Saldo total adeudado a {proveedor.nombre}</p>
+                <p className={`font-mono text-2xl ${saldoTotal > 0 ? 'text-yema' : 'text-white'}`}>
+                  ${saldoTotal.toFixed(2)}
+                </p>
+              </div>
+              <Button variante="secundario" tamano="sm" onClick={() => setModalPago(true)}>
+                Registrar pago a proveedor
+              </Button>
+            </div>
           </div>
 
           <div className="rounded-xl bg-white p-4 shadow-sm">
@@ -202,7 +225,7 @@ export default function CuentaCorriente() {
                     onClick={() => setMovimientoActivo(m)}
                   >
                     <div>
-                      <p className="text-marca">{m.descripcion || (m.tipo === 'debito' ? 'Venta' : 'Pago')}</p>
+                      <p className="text-marca">{m.descripcion || (m.tipo === 'debito' ? 'Compra' : 'Pago')}</p>
                       <p className="text-xs text-marca/50">{new Date(m.creado_at).toLocaleDateString('es-AR')}</p>
                     </div>
                     <span className={`font-mono ${m.tipo === 'debito' ? 'text-perdida' : 'text-fresco'}`}>
@@ -219,26 +242,26 @@ export default function CuentaCorriente() {
       <Modal
         abierto={!!movimientoActivo}
         onCerrar={cerrarDetalle}
-        titulo={movimientoActivo?.referencia_tipo === 'venta' ? 'Detalle de la venta' : 'Detalle del pago'}
+        titulo={movimientoActivo?.referencia_tipo === 'compra' ? 'Detalle de la compra' : 'Detalle del pago'}
       >
         {cargandoDetalle ? (
           <p className="text-sm text-marca/60">Cargando detalle...</p>
         ) : errorDetalle ? (
           <p className="text-sm text-perdida">{errorDetalle}</p>
-        ) : movimientoActivo?.referencia_tipo === 'venta' && detalle ? (
+        ) : movimientoActivo?.referencia_tipo === 'compra' && detalle ? (
           <div className="flex flex-col gap-2 text-sm">
             {detalle.length === 0 ? (
-              <p className="text-marca/50">Este pedido no tiene líneas cargadas.</p>
+              <p className="text-marca/50">Esta compra no tiene líneas cargadas.</p>
             ) : (
               <ul className="divide-y divide-marca/10">
                 {detalle.map((item) => (
                   <li key={item.id} className="flex items-center justify-between py-2">
                     <span className="text-marca">
-                      {etiquetaCantidadUnidad(item.cantidad_unidad, item.unidad_vendida)} —{' '}
+                      {item.cantidad_maple} {Number(item.cantidad_maple) === 1 ? 'maple' : 'maples'} —{' '}
                       {item.productos?.nombre || 'Producto'}
                     </span>
                     <span className="font-mono text-marca">
-                      ${(Number(item.precio_aplicado) * Number(item.cantidad_unidad)).toFixed(2)}
+                      ${(Number(item.costo_unitario) * Number(item.cantidad_maple)).toFixed(2)}
                     </span>
                   </li>
                 ))}
@@ -249,7 +272,7 @@ export default function CuentaCorriente() {
               <span className="font-mono">
                 $
                 {detalle
-                  .reduce((acc, item) => acc + Number(item.precio_aplicado) * Number(item.cantidad_unidad), 0)
+                  .reduce((acc, item) => acc + Number(item.costo_unitario) * Number(item.cantidad_maple), 0)
                   .toFixed(2)}
               </span>
             </div>
@@ -274,6 +297,16 @@ export default function CuentaCorriente() {
             </div>
           </div>
         ) : null}
+      </Modal>
+
+      <Modal abierto={modalPago} onCerrar={() => setModalPago(false)} titulo="Registrar pago a proveedor">
+        {proveedor && (
+          <RegistrarPagoProveedor
+            proveedorId={proveedor.id}
+            onGuardado={pagoRegistrado}
+            onCancelar={() => setModalPago(false)}
+          />
+        )}
       </Modal>
     </div>
   )

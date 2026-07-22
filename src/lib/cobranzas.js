@@ -69,6 +69,19 @@ export async function obtenerPago(id) {
   return data
 }
 
+// Para el desplegable de un movimiento tipo "pago" en la cuenta corriente
+// del cliente: medio, fecha y quién lo registró. pagos solo tiene un FK a
+// perfiles (usuario_id), así que no hace falta alias explícito acá.
+export async function obtenerDetallePago(pagoId) {
+  const { data, error } = await supabase
+    .from('pagos')
+    .select('id, monto, medio, creado_at, perfiles(nombre)')
+    .eq('id', pagoId)
+    .single()
+  if (error) throw error
+  return data
+}
+
 export async function obtenerTotalCobradoUltimos30Dias() {
   const desde = new Date()
   desde.setDate(desde.getDate() - 30)

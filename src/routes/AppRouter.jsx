@@ -31,6 +31,7 @@ import AsignarReparto from '../modules/reparto/AsignarReparto'
 import VistaChofer from '../modules/reparto/VistaChofer'
 import ListaUsuarios from '../modules/usuarios/ListaUsuarios'
 import ListaProveedores from '../modules/proveedores/ListaProveedores'
+import CuentaCorrienteProveedores from '../modules/proveedores/CuentaCorrienteProveedores'
 import ListaProductos from '../modules/productos/ListaProductos'
 import ReporteDeuda from '../modules/cobranzas/ReporteDeuda'
 import InformeCobranzas from '../modules/cobranzas/InformeCobranzas'
@@ -85,6 +86,7 @@ function crearNavDueno(contadorDiferencias) {
     items: [
       { to: '/dueno/compras', label: 'Registrar compra' },
       { to: '/dueno/proveedores', label: 'Proveedores' },
+      { to: '/dueno/cuenta-corriente-proveedores', label: 'Cuenta corriente' },
     ],
   },
   { grupo: 'Precios', icono: Tag, items: [{ to: '/dueno/precios', label: 'Listas de precio' }] },
@@ -154,6 +156,7 @@ function crearNavAdmin(contadorDiferencias) {
     items: [
       { to: '/admin/compras', label: 'Registrar compra' },
       { to: '/admin/proveedores', label: 'Proveedores' },
+      { to: '/admin/cuenta-corriente-proveedores', label: 'Cuenta corriente' },
     ],
   },
   { grupo: 'Precios', icono: Tag, items: [{ to: '/admin/precios', label: 'Listas de precio' }] },
@@ -293,6 +296,7 @@ export default function AppRouter() {
           <Route path="rendicion-choferes" element={<RendicionChoferes />} />
           <Route path="diferencias-cobro" element={<DiferenciasCobro />} />
           <Route path="proveedores" element={<ListaProveedores />} />
+          <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
           <Route path="usuarios" element={<ListaUsuarios />} />
         </Route>
@@ -326,6 +330,7 @@ export default function AppRouter() {
           <Route path="rendicion-choferes" element={<RendicionChoferes />} />
           <Route path="diferencias-cobro" element={<DiferenciasCobro />} />
           <Route path="proveedores" element={<ListaProveedores />} />
+          <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
         </Route>
 

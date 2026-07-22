@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { listarProveedores, actualizarEstadoProveedor } from '../../lib/proveedores'
+import { listarProveedores, actualizarEstadoProveedor, obtenerSaldosProveedores } from '../../lib/proveedores'
 import { traducirError } from '../../lib/errores'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -11,6 +11,7 @@ export default function ListaProveedores() {
   const [texto, setTexto] = useState('')
   const [incluirInactivos, setIncluirInactivos] = useState(false)
   const [proveedores, setProveedores] = useState([])
+  const [saldos, setSaldos] = useState(new Map())
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [cambiandoId, setCambiandoId] = useState(null)
@@ -26,8 +27,12 @@ export default function ListaProveedores() {
   async function cargar() {
     setCargando(true)
     try {
-      const data = await listarProveedores({ texto, incluirInactivos })
+      const [data, mapaSaldos] = await Promise.all([
+        listarProveedores({ texto, incluirInactivos }),
+        obtenerSaldosProveedores(),
+      ])
       setProveedores(data)
+      setSaldos(mapaSaldos)
       setError(null)
     } catch (e) {
       setError(traducirError(e))
@@ -109,6 +114,12 @@ export default function ListaProveedores() {
                     <p className="text-marca/50">{detalle}</p>
                   </div>
                   <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-xs text-marca/50">Saldo adeudado</p>
+                      <p className={`font-mono ${saldos.get(p.id) > 0 ? 'text-perdida' : 'text-marca'}`}>
+                        ${(saldos.get(p.id) || 0).toFixed(2)}
+                      </p>
+                    </div>
                     <Badge tono={p.activo ? 'exito' : 'error'}>{p.activo ? 'Activo' : 'Inactivo'}</Badge>
                     <Button
                       tamano="sm"

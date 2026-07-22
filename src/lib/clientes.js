@@ -130,3 +130,14 @@ async function obtenerMapaPorId(tabla, columnas, ids) {
   if (error) throw error
   return new Map(data.map((fila) => [fila.id, fila]))
 }
+
+// Detalle de líneas de una venta, para el desplegable de un movimiento tipo
+// "venta" en la cuenta corriente del cliente.
+export async function obtenerItemsPedido(pedidoId) {
+  const { data, error } = await supabase
+    .from('pedido_items')
+    .select('id, cantidad_unidad, unidad_vendida, precio_aplicado, productos(nombre)')
+    .eq('pedido_id', pedidoId)
+  if (error) throw error
+  return data
+}
