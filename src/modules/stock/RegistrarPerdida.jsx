@@ -85,7 +85,7 @@ export default function RegistrarPerdida() {
         {mensaje && <p className="text-sm text-fresco">{mensaje}</p>}
 
         <Button
-          variante="peligro"
+          variante="primario"
           onClick={registrarPerdida}
           disabled={!productoSeleccionado || cantidadSeleccion.cantidad_maple <= 0 || !motivo.trim()}
           cargando={enviando}
