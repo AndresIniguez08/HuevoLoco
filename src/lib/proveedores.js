@@ -94,12 +94,12 @@ async function obtenerMapaPorId(tabla, columnas, ids) {
 }
 
 // Detalle de líneas de una compra, para el desplegable de un movimiento tipo
-// "compra" en la cuenta corriente del proveedor. compra_items no guarda la
-// unidad de venta original: siempre está en maples.
+// "compra" en la cuenta corriente del proveedor. unidad_transaccion y
+// cantidad_unidad son null en compras anteriores a esa migración.
 export async function obtenerItemsCompra(compraId) {
   const { data, error } = await supabase
     .from('compra_items')
-    .select('id, cantidad_maple, costo_unitario, productos(nombre)')
+    .select('id, cantidad_maple, unidad_transaccion, cantidad_unidad, costo_unitario, productos(nombre)')
     .eq('compra_id', compraId)
   if (error) throw error
   return data

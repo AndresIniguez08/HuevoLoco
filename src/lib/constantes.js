@@ -53,6 +53,25 @@ export const ETIQUETA_UNIDAD = {
   [UNIDADES.CAJON]: { singular: 'cajón', plural: 'cajones' },
 }
 
+// compra_items guarda la unidad/cantidad real de la transacción (unidad_transaccion,
+// cantidad_unidad) desde la migración que las agregó. Compras previas a esa
+// migración tienen esas columnas en null, así que se cae a cantidad_maple.
+export function formatearCantidadItemCompra(item) {
+  const cantidadUnidad = item.cantidad_unidad
+  const unidadTransaccion = item.unidad_transaccion
+  if (cantidadUnidad != null && unidadTransaccion) {
+    const etiqueta = ETIQUETA_UNIDAD[unidadTransaccion]
+    const nombreUnidad = etiqueta
+      ? Number(cantidadUnidad) === 1
+        ? etiqueta.singular
+        : etiqueta.plural
+      : unidadTransaccion
+    return `${cantidadUnidad} ${nombreUnidad}`
+  }
+  const cantidadMaple = item.cantidad_maple
+  return `${cantidadMaple} ${Number(cantidadMaple) === 1 ? 'maple' : 'maples'}`
+}
+
 // pedidos.estado: pendiente | confirmado | entregado | cancelado
 export const ETIQUETA_ESTADO_PEDIDO = {
   pendiente: 'Pendiente',

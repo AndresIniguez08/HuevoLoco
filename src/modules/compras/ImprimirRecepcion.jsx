@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { obtenerCompraParaImprimir } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
+import { formatearCantidadItemCompra } from '../../lib/constantes'
 
 const BORDE = 'border-[#333]'
 
@@ -62,9 +63,7 @@ export default function ImprimirRecepcion() {
           {(compra.compra_items || []).map((item) => (
             <tr key={item.id}>
               <td className={`${BORDE} border p-2.5`}>{item.productos?.nombre || 'Producto'}</td>
-              <td className={`${BORDE} border p-2.5`}>
-                {item.cantidad_maple} {Number(item.cantidad_maple) === 1 ? 'maple' : 'maples'}
-              </td>
+              <td className={`${BORDE} border p-2.5`}>{formatearCantidadItemCompra(item)}</td>
               <td className={`${BORDE} border p-2.5`}>${Number(item.costo_unitario).toFixed(2)}</td>
               <td className={`${BORDE} border p-2.5`}>
                 ${(Number(item.costo_unitario) * Number(item.cantidad_maple)).toFixed(2)}

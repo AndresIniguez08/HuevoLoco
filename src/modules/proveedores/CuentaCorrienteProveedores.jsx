@@ -6,7 +6,7 @@ import {
   obtenerDetallePagoProveedor,
 } from '../../lib/proveedores'
 import { traducirError } from '../../lib/errores'
-import { MEDIOS_PAGO } from '../../lib/constantes'
+import { MEDIOS_PAGO, formatearCantidadItemCompra } from '../../lib/constantes'
 import BuscadorProveedor from '../../components/BuscadorProveedor'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -258,8 +258,7 @@ export default function CuentaCorrienteProveedores() {
                 {detalle.map((item) => (
                   <li key={item.id} className="flex items-center justify-between py-2">
                     <span className="text-marca">
-                      {item.cantidad_maple} {Number(item.cantidad_maple) === 1 ? 'maple' : 'maples'} —{' '}
-                      {item.productos?.nombre || 'Producto'}
+                      {formatearCantidadItemCompra(item)} — {item.productos?.nombre || 'Producto'}
                     </span>
                     <span className="font-mono text-marca">
                       ${(Number(item.costo_unitario) * Number(item.cantidad_maple)).toFixed(2)}
