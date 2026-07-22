@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../../lib/supabase'
 import { obtenerProductosConStock } from '../../lib/productos'
+import { registrarPerdida as registrarPerdidaRpc } from '../../lib/perdidas'
 import { traducirError } from '../../lib/errores'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
@@ -13,6 +13,7 @@ export default function RegistrarPerdida() {
 
   const [enviando, setEnviando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
+  const [perdidaId, setPerdidaId] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -26,16 +27,17 @@ export default function RegistrarPerdida() {
     setEnviando(true)
     setError(null)
     setMensaje(null)
+    setPerdidaId(null)
     try {
-      const { error: errorRpc } = await supabase.rpc('fn_registrar_perdida', {
-        p_producto_id: productoSeleccionado.id,
-        p_cantidad_maple: cantidadSeleccion.cantidad_maple,
-        p_motivo: motivo.trim(),
-        p_unidad_transaccion: cantidadSeleccion.unidad,
-        p_cantidad_unidad_transaccion: cantidadSeleccion.cantidad,
+      const id = await registrarPerdidaRpc({
+        productoId: productoSeleccionado.id,
+        cantidadMaple: cantidadSeleccion.cantidad_maple,
+        motivo: motivo.trim(),
+        unidad: cantidadSeleccion.unidad,
+        cantidad: cantidadSeleccion.cantidad,
       })
-      if (errorRpc) throw errorRpc
       setMensaje('Pérdida registrada.')
+      setPerdidaId(id)
       setProductoId('')
       setMotivo('')
       setCantidadSeleccion({ unidad: 'maple', cantidad: 0, cantidad_maple: 0 })
@@ -91,6 +93,16 @@ export default function RegistrarPerdida() {
         >
           Registrar pérdida
         </Button>
+
+        {perdidaId && (
+          <Button
+            variante="secundario"
+            onClick={() => window.open(`/perdida/${perdidaId}/imprimir`, '_blank')}
+            className="w-full"
+          >
+            Imprimir comprobante
+          </Button>
+        )}
       </div>
     </div>
   )

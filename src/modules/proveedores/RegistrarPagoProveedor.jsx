@@ -38,8 +38,8 @@ export default function RegistrarPagoProveedor({ proveedorId, onGuardado, onCanc
     setEnviando(true)
     setError(null)
     try {
-      await registrarPagoProveedor(proveedorId, datos.compra_id || null, Number(datos.monto), datos.medio)
-      onGuardado()
+      const pagoId = await registrarPagoProveedor(proveedorId, datos.compra_id || null, Number(datos.monto), datos.medio)
+      onGuardado(pagoId)
     } catch (e) {
       setError(traducirError(e))
     } finally {

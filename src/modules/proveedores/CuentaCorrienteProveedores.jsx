@@ -100,12 +100,13 @@ export default function CuentaCorrienteProveedores() {
     setErrorDetalle(null)
   }
 
-  function pagoRegistrado() {
+  function pagoRegistrado(pagoId) {
     setModalPago(false)
     if (proveedor) {
       cargarSaldo(proveedor)
       cargarMovimientos(proveedor, { desde, hasta })
     }
+    if (pagoId) window.open(`/pago-proveedor/${pagoId}/imprimir`, '_blank')
   }
 
   const hayFiltro = !!(desde || hasta)

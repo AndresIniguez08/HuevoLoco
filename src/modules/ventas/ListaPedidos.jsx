@@ -163,6 +163,13 @@ export default function ListaPedidos({ soloPropios = false }) {
                     Imprimir último comprobante
                   </Button>
                 )}
+                <Button
+                  tamano="sm"
+                  variante="secundario"
+                  onClick={() => window.open(`/pedido/${p.id}/imprimir`, '_blank')}
+                >
+                  Imprimir remito
+                </Button>
               </div>
               <AvisoSaldoCliente
                 nombre={p.clientes?.nombre}
@@ -199,11 +206,13 @@ function ModalExcepcionConfirmar({ pedido, onCerrar, onConfirmado }) {
   const [motivo, setMotivo] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
+  const [excepcionId, setExcepcionId] = useState(null)
 
   useEffect(() => {
     if (pedido) {
       setMotivo('')
       setError(null)
+      setExcepcionId(null)
     }
   }, [pedido])
 
@@ -213,15 +222,36 @@ function ModalExcepcionConfirmar({ pedido, onCerrar, onConfirmado }) {
     setEnviando(true)
     setError(null)
     try {
-      await autorizarExcepcionCC(pedido.id, Number(pedido.total), motivo)
+      const id = await autorizarExcepcionCC(pedido.id, Number(pedido.total), motivo)
       const { error: errorRpc } = await supabase.rpc('fn_confirmar_pedido', { p_pedido_id: pedido.id })
       if (errorRpc) throw new Error(errorRpc.message)
-      onConfirmado()
+      setExcepcionId(id)
     } catch (e) {
       setError(e.message)
     } finally {
       setEnviando(false)
     }
+  }
+
+  if (excepcionId) {
+    return (
+      <Modal abierto={!!pedido} onCerrar={onConfirmado} titulo="Excepción cargada">
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-fresco">Excepción cargada y pedido confirmado.</p>
+          <Button
+            type="button"
+            variante="secundario"
+            onClick={() => window.open(`/excepcion/${excepcionId}/imprimir`, '_blank')}
+            className="w-full"
+          >
+            Imprimir autorización
+          </Button>
+          <Button type="button" onClick={onConfirmado} className="w-full">
+            Cerrar
+          </Button>
+        </div>
+      </Modal>
+    )
   }
 
   return (

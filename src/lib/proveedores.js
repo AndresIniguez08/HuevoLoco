@@ -129,11 +129,22 @@ export async function listarComprasProveedor(proveedorId) {
 }
 
 export async function registrarPagoProveedor(proveedorId, compraId, monto, medio) {
-  const { error } = await supabase.rpc('fn_registrar_pago_proveedor', {
+  const { data, error } = await supabase.rpc('fn_registrar_pago_proveedor', {
     p_proveedor_id: proveedorId,
     p_compra_id: compraId || null,
     p_monto: monto,
     p_medio: medio,
   })
   if (error) throw error
+  return data
+}
+
+export async function obtenerComprobantePagoProveedor(pagoId) {
+  const { data, error } = await supabase
+    .from('pagos_proveedor')
+    .select('*, proveedores(nombre)')
+    .eq('id', pagoId)
+    .single()
+  if (error) throw error
+  return data
 }

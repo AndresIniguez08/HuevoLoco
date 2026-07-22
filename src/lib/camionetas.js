@@ -12,6 +12,12 @@ export async function listarCamionetas({ texto = '', incluirInactivos = false } 
   return data
 }
 
+export async function obtenerCamioneta(id) {
+  const { data, error } = await supabase.from('camionetas').select('*').eq('id', id).single()
+  if (error) throw error
+  return data
+}
+
 export async function crearCamioneta(datos) {
   const { error } = await supabase.from('camionetas').insert(datos)
   if (error) throw error

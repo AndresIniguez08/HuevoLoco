@@ -40,6 +40,13 @@ import ComprobantePago from '../modules/cobranzas/ComprobantePago'
 import GestionCamionetas from '../modules/reparto/GestionCamionetas'
 import RendicionChoferes from '../modules/reparto/RendicionChoferes'
 import DiferenciasCobro from '../modules/reparto/DiferenciasCobro'
+import ImprimirPerdida from '../modules/stock/ImprimirPerdida'
+import ImprimirRemito from '../modules/ventas/ImprimirRemito'
+import ImprimirHojaRuta from '../modules/reparto/ImprimirHojaRuta'
+import ImprimirRecepcion from '../modules/compras/ImprimirRecepcion'
+import ImprimirPagoProveedor from '../modules/proveedores/ImprimirPagoProveedor'
+import ImprimirExcepcion from '../modules/cobranzas/ImprimirExcepcion'
+import ImprimirDiferencia from '../modules/reparto/ImprimirDiferencia'
 
 function crearNavDueno(contadorDiferencias) {
   return [
@@ -400,6 +407,69 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.VENDEDOR]}>
               <ComprobantePago />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/perdida/:id/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.DEPOSITO]}>
+              <ImprimirPerdida />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/pedido/:id/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.VENDEDOR]}>
+              <ImprimirRemito />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/hoja-ruta/:choferId/:camionetaId/:fecha/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.DEPOSITO]}>
+              <ImprimirHojaRuta />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/compra/:id/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.DEPOSITO]}>
+              <ImprimirRecepcion />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/pago-proveedor/:id/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO]}>
+              <ImprimirPagoProveedor />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/excepcion/:id/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO]}>
+              <ImprimirExcepcion />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/diferencia/:id/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO]}>
+              <ImprimirDiferencia />
             </RutaProtegida>
           }
         />

@@ -28,3 +28,18 @@ export async function marcarDiferenciaRevisada(id) {
   const { error } = await supabase.rpc('fn_revisar_diferencia_cobro', { p_diferencia_id: id })
   if (error) throw error
 }
+
+export async function obtenerDiferenciaCobro(id) {
+  const { data, error } = await supabase
+    .from('diferencias_cobro')
+    .select(`
+      *,
+      pedidos (cliente_id, clientes (nombre)),
+      chofer:perfiles!diferencias_cobro_chofer_id_fkey (nombre),
+      revisor:perfiles!diferencias_cobro_revisado_por_fkey (nombre)
+    `)
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return data
+}

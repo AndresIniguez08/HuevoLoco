@@ -27,16 +27,21 @@ function FilaDiferencia({ dif, onRevisar, revisando, onCargarExcepcion }) {
         <span className={clase}>{texto}</span>
       </div>
       {dif.motivo && <p className="text-marca/70">"{dif.motivo}"</p>}
-      {!dif.revisado && (
-        <div className="mt-1 flex flex-wrap gap-2">
-          <Button tamano="sm" variante="confirmar" cargando={revisando} onClick={() => onRevisar(dif.id)}>
-            Marcar como revisado
-          </Button>
-          <Button tamano="sm" variante="secundario" onClick={() => onCargarExcepcion(dif)}>
-            Cargar excepción de cuenta corriente
-          </Button>
-        </div>
-      )}
+      <div className="mt-1 flex flex-wrap gap-2">
+        {!dif.revisado && (
+          <>
+            <Button tamano="sm" variante="confirmar" cargando={revisando} onClick={() => onRevisar(dif.id)}>
+              Marcar como revisado
+            </Button>
+            <Button tamano="sm" variante="secundario" onClick={() => onCargarExcepcion(dif)}>
+              Cargar excepción de cuenta corriente
+            </Button>
+          </>
+        )}
+        <Button tamano="sm" variante="secundario" onClick={() => window.open(`/diferencia/${dif.id}/imprimir`, '_blank')}>
+          Imprimir
+        </Button>
+      </div>
     </li>
   )
 }
@@ -140,12 +145,14 @@ function ModalExcepcion({ dif, onCerrar, onCargada }) {
   const [motivo, setMotivo] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
+  const [excepcionId, setExcepcionId] = useState(null)
 
   useEffect(() => {
     if (dif) {
       setMonto(String(Number(dif.monto_esperado) - Number(dif.monto_cobrado)))
       setMotivo(dif.motivo || '')
       setError(null)
+      setExcepcionId(null)
     }
   }, [dif])
 
@@ -155,14 +162,39 @@ function ModalExcepcion({ dif, onCerrar, onCargada }) {
     setEnviando(true)
     setError(null)
     try {
-      await autorizarExcepcionCC(dif.pedido_id, Number(monto), motivo)
-      onCargada()
-      onCerrar()
+      const id = await autorizarExcepcionCC(dif.pedido_id, Number(monto), motivo)
+      setExcepcionId(id)
     } catch (e) {
       setError(traducirError(e))
     } finally {
       setEnviando(false)
     }
+  }
+
+  function cerrarYActualizar() {
+    onCargada()
+    onCerrar()
+  }
+
+  if (excepcionId) {
+    return (
+      <Modal abierto={!!dif} onCerrar={cerrarYActualizar} titulo="Excepción cargada">
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-fresco">Excepción cargada.</p>
+          <Button
+            type="button"
+            variante="secundario"
+            onClick={() => window.open(`/excepcion/${excepcionId}/imprimir`, '_blank')}
+            className="w-full"
+          >
+            Imprimir autorización
+          </Button>
+          <Button type="button" onClick={cerrarYActualizar} className="w-full">
+            Cerrar
+          </Button>
+        </div>
+      </Modal>
+    )
   }
 
   return (

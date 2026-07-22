@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
 import { obtenerProductosConStock } from '../../lib/productos'
+import { registrarCompra as registrarCompraRpc } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
@@ -17,6 +17,7 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
 
   const [enviando, setEnviando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
+  const [compraId, setCompraId] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -53,19 +54,20 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
     setEnviando(true)
     setError(null)
     setMensaje(null)
+    setCompraId(null)
     try {
-      const { error: errorRpc } = await supabase.rpc('fn_registrar_compra', {
-        p_proveedor_id: proveedorId,
-        p_items: items.map((it) => ({
+      const id = await registrarCompraRpc(
+        proveedorId,
+        items.map((it) => ({
           producto_id: it.producto_id,
           cantidad_maple: it.cantidad_maple,
           costo_unitario: it.costo_unitario,
           unidad_transaccion: it.unidad,
           cantidad_unidad_transaccion: it.cantidad,
-        })),
-      })
-      if (errorRpc) throw errorRpc
+        }))
+      )
       setMensaje('Compra registrada. El stock ya se actualizó.')
+      setCompraId(id)
       setItems([])
       setProveedorId('')
     } catch (e) {
@@ -166,6 +168,16 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
       >
         Registrar compra
       </Button>
+
+      {compraId && (
+        <Button
+          variante="secundario"
+          onClick={() => window.open(`/compra/${compraId}/imprimir`, '_blank')}
+          className="mt-3 w-full"
+        >
+          Imprimir comprobante
+        </Button>
+      )}
     </div>
   )
 }

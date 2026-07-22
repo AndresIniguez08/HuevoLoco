@@ -39,12 +39,23 @@ export async function obtenerTotalesPagadosPorPedidos(pedidoIds) {
 }
 
 export async function autorizarExcepcionCC(pedidoId, montoExcepcion, motivo) {
-  const { error } = await supabase.rpc('fn_autorizar_excepcion_cc', {
+  const { data, error } = await supabase.rpc('fn_autorizar_excepcion_cc', {
     p_pedido_id: pedidoId,
     p_monto_excepcion: montoExcepcion,
     p_motivo: motivo,
   })
   if (error) throw error
+  return data
+}
+
+export async function obtenerExcepcionCC(id) {
+  const { data, error } = await supabase
+    .from('excepciones_cuenta_corriente')
+    .select('*, pedidos(id, creado_at, clientes(nombre)), perfiles(nombre)')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return data
 }
 
 export async function obtenerUltimoPagoPedido(pedidoId) {
