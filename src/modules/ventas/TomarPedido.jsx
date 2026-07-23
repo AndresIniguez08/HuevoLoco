@@ -6,7 +6,7 @@ import { obtenerPreciosLista } from '../../lib/precios'
 import { buscarClientes, obtenerFechaInicioSaldoPendiente } from '../../lib/clientes'
 import { obtenerSaldoCliente } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
-import { ETIQUETA_UNIDAD } from '../../lib/constantes'
+import { ETIQUETA_UNIDAD, TIPOS_ENTREGA } from '../../lib/constantes'
 import { usePedidoStore } from '../../stores/pedidoStore'
 import { useAuthStore } from '../../stores/authStore'
 import SelectorUnidad from '../../components/SelectorUnidad'
@@ -25,6 +25,8 @@ export default function TomarPedido() {
   const [productoId, setProductoId] = useState('')
   const [precioManual, setPrecioManual] = useState('')
   const [cantidadSeleccion, setCantidadSeleccion] = useState({ unidad: 'maple', cantidad: 0, cantidad_maple: 0 })
+
+  const [tipoEntrega, setTipoEntrega] = useState('reparto')
 
   const [busquedaCliente, setBusquedaCliente] = useState('')
   const [resultadosCliente, setResultadosCliente] = useState([])
@@ -131,6 +133,7 @@ export default function TomarPedido() {
           sucursal_id: perfil.sucursal_id,
           estado: 'pendiente',
           total: total(),
+          tipo_entrega: tipoEntrega,
         })
         .select()
         .single()
@@ -156,6 +159,7 @@ export default function TomarPedido() {
       )
       limpiar()
       setBusquedaCliente('')
+      setTipoEntrega('reparto')
     } catch (e) {
       setError(traducirError(e))
     } finally {
@@ -308,6 +312,21 @@ export default function TomarPedido() {
             Total: ${total().toFixed(2)}
           </div>
         )}
+      </div>
+
+      <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
+        <h2 className="mb-2 text-sm font-medium text-marca">Entrega</h2>
+        <select
+          value={tipoEntrega}
+          onChange={(e) => setTipoEntrega(e.target.value)}
+          className="w-full rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+        >
+          {TIPOS_ENTREGA.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {requiereAprobacion && items.length > 0 && (

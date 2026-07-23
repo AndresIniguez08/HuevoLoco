@@ -100,6 +100,14 @@ export const TONO_ESTADO_PAGO = {
   pagado: 'exito',
 }
 
+// pedidos.tipo_entrega: reparto | retiro_local
+export const TIPOS_ENTREGA = [
+  { value: 'reparto', label: 'Reparto' },
+  { value: 'retiro_local', label: 'Retira en local' },
+]
+
+export const ETIQUETA_TIPO_ENTREGA = Object.fromEntries(TIPOS_ENTREGA.map((t) => [t.value, t.label]))
+
 export const TIPOS_CLIENTE = [
   { value: 'mayorista', label: 'Mayorista' },
   { value: 'minorista', label: 'Minorista' },

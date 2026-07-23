@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Check, Trash2 } from 'lucide-react'
+import { Check, Store, Trash2, Truck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
@@ -16,6 +16,7 @@ import {
   TONO_ESTADO_PEDIDO,
   ETIQUETA_ESTADO_PAGO,
   TONO_ESTADO_PAGO,
+  ETIQUETA_TIPO_ENTREGA,
   ROLES,
 } from '../../lib/constantes'
 import Badge from '../../components/ui/Badge'
@@ -100,6 +101,20 @@ export default function ListaPedidos({ soloPropios = false }) {
     }
   }
 
+  async function marcarRetirado(pedidoId) {
+    setAccionando(pedidoId)
+    setError(null)
+    try {
+      const { error: errorRpc } = await supabase.rpc('fn_marcar_retirado', { p_pedido_id: pedidoId })
+      if (errorRpc) throw new Error(errorRpc.message)
+      await cargar()
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setAccionando(null)
+    }
+  }
+
   function excepcionCargada() {
     setPedidoExcepcion(null)
     setBloqueoPedidoId(null)
@@ -136,6 +151,10 @@ export default function ListaPedidos({ soloPropios = false }) {
                 <p className="font-mono text-sm text-marca/60">${Number(p.total).toFixed(2)}</p>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
+                <Badge tono="neutro" className="inline-flex items-center gap-1">
+                  {p.tipo_entrega === 'retiro_local' ? <Store size={12} /> : <Truck size={12} />}
+                  {ETIQUETA_TIPO_ENTREGA[p.tipo_entrega] || p.tipo_entrega}
+                </Badge>
                 <Badge tono={TONO_ESTADO_PEDIDO[p.estado] || 'neutro'}>{ETIQUETA_ESTADO_PEDIDO[p.estado] || p.estado}</Badge>
                 <Badge tono={TONO_ESTADO_PAGO[p.estado_pago] || 'neutro'}>{ETIQUETA_ESTADO_PAGO[p.estado_pago] || p.estado_pago}</Badge>
                 {p.estado === 'pendiente' && (
@@ -146,6 +165,16 @@ export default function ListaPedidos({ soloPropios = false }) {
                     onClick={() => confirmarPedido(p.id)}
                   >
                     Confirmar pedido
+                  </Button>
+                )}
+                {p.estado === 'confirmado' && p.tipo_entrega === 'retiro_local' && (
+                  <Button
+                    tamano="sm"
+                    variante="confirmar"
+                    cargando={accionando === p.id}
+                    onClick={() => marcarRetirado(p.id)}
+                  >
+                    Marcar como retirado
                   </Button>
                 )}
                 {p.estado !== 'cancelado' && p.estado_pago !== 'pagado' && (

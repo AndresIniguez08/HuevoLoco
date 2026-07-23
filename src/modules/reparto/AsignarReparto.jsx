@@ -61,6 +61,7 @@ export default function AsignarReparto() {
           .from('pedidos')
           .select('*, clientes(nombre, direccion), reparto_asignaciones(id)')
           .eq('estado', 'confirmado')
+          .eq('tipo_entrega', 'reparto')
           .gte('creado_at', `${hoy}T00:00:00`)
           .order('creado_at'),
         supabase.from('perfiles').select('*').eq('rol', 'chofer'),
