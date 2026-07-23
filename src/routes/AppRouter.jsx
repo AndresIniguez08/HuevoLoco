@@ -425,7 +425,7 @@ export default function AppRouter() {
         <Route
           path="/pedido/:id/imprimir"
           element={
-            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.VENDEDOR]}>
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.VENDEDOR, ROLES.DEPOSITO]}>
               <ImprimirRemito />
             </RutaProtegida>
           }
