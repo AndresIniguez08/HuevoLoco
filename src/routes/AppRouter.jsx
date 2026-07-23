@@ -201,6 +201,7 @@ const NAV_DEPOSITO = [
       { to: '/deposito/perdidas', label: 'Pérdidas' },
     ],
   },
+  { grupo: 'Ventas', icono: ShoppingCart, items: [{ to: '/deposito/pedidos', label: 'Pedidos' }] },
   { grupo: 'Compras', icono: Truck, items: [{ to: '/deposito/recepcion-compra', label: 'Recepción de compra' }] },
   {
     grupo: 'Reparto',
@@ -356,6 +357,7 @@ export default function AppRouter() {
           <Route path="conteo/:id" element={<DetalleConteo />} />
           <Route path="auditorias" element={<AuditoriasConteo />} />
           <Route path="perdidas" element={<RegistrarPerdida />} />
+          <Route path="pedidos" element={<ListaPedidos />} />
           <Route path="recepcion-compra" element={<RecepcionCompra />} />
           <Route path="reparto" element={<AsignarReparto />} />
           <Route path="camionetas" element={<GestionCamionetas />} />
