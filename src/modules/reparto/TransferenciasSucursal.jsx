@@ -88,7 +88,7 @@ export default function TransferenciasSucursal() {
           producto_id: it.producto_id,
           cantidad_maple: it.cantidad_maple,
           unidad_transaccion: it.unidad,
-          cantidad_unidad_transaccion: it.cantidad,
+          cantidad_unidad: it.cantidad,
         }))
       )
       setMensaje('Remito enviado.')
