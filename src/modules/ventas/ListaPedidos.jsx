@@ -38,6 +38,10 @@ export default function ListaPedidos({ soloPropios = false }) {
   const usuario = useAuthStore((s) => s.usuario)
   const perfil = useAuthStore((s) => s.perfil)
   const puedeCargarExcepcion = perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO
+  // Comprobante de pago: documento financiero (medio de cobro, monto) — no le
+  // corresponde a depósito, que solo maneja logística de entrega/retiro.
+  const puedeVerComprobantePago =
+    perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO || perfil?.rol === ROLES.VENDEDOR
   const [pedidos, setPedidos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
@@ -126,6 +130,10 @@ export default function ListaPedidos({ soloPropios = false }) {
     setError(null)
     try {
       const pago = await obtenerUltimoPagoPedido(pedidoId)
+      if (!pago) {
+        setError('Este pedido no tiene ningún pago registrado todavía.')
+        return
+      }
       window.open(`/pago/${pago.id}/imprimir`, '_blank')
     } catch (e) {
       setError(traducirError(e))
@@ -182,7 +190,7 @@ export default function ListaPedidos({ soloPropios = false }) {
                     Registrar pago
                   </Button>
                 )}
-                {p.estado_pago !== 'pendiente' && (
+                {puedeVerComprobantePago && p.estado_pago !== 'pendiente' && (
                   <Button
                     tamano="sm"
                     variante="secundario"
