@@ -4,6 +4,7 @@ export const ROLES = {
   DEPOSITO: 'deposito',
   VENDEDOR: 'vendedor',
   CHOFER: 'chofer',
+  ENCARGADO_SUCURSAL: 'encargado_sucursal',
 }
 
 export const RUTA_RAIZ_POR_ROL = {
@@ -12,6 +13,7 @@ export const RUTA_RAIZ_POR_ROL = {
   [ROLES.DEPOSITO]: '/deposito',
   [ROLES.VENDEDOR]: '/vendedor',
   [ROLES.CHOFER]: '/chofer',
+  [ROLES.ENCARGADO_SUCURSAL]: '/sucursal',
 }
 
 export const ETIQUETA_ROL = {
@@ -20,6 +22,7 @@ export const ETIQUETA_ROL = {
   [ROLES.DEPOSITO]: 'Depósito',
   [ROLES.VENDEDOR]: 'Vendedor',
   [ROLES.CHOFER]: 'Chofer',
+  [ROLES.ENCARGADO_SUCURSAL]: 'Encargado de sucursal',
 }
 
 export const ROLES_ASIGNABLES = [
@@ -107,6 +110,19 @@ export const TIPOS_ENTREGA = [
 ]
 
 export const ETIQUETA_TIPO_ENTREGA = Object.fromEntries(TIPOS_ENTREGA.map((t) => [t.value, t.label]))
+
+// remitos_transferencia.estado: enviado | aceptado | con_diferencia
+export const ETIQUETA_ESTADO_REMITO = {
+  enviado: 'Enviado',
+  aceptado: 'Aceptado',
+  con_diferencia: 'Con diferencia',
+}
+
+export const TONO_ESTADO_REMITO = {
+  enviado: 'neutro',
+  aceptado: 'exito',
+  con_diferencia: 'error',
+}
 
 export const TIPOS_CLIENTE = [
   { value: 'mayorista', label: 'Mayorista' },

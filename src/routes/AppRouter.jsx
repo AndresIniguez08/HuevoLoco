@@ -47,6 +47,9 @@ import ImprimirRecepcion from '../modules/compras/ImprimirRecepcion'
 import ImprimirPagoProveedor from '../modules/proveedores/ImprimirPagoProveedor'
 import ImprimirExcepcion from '../modules/cobranzas/ImprimirExcepcion'
 import ImprimirDiferencia from '../modules/reparto/ImprimirDiferencia'
+import TransferenciasSucursal from '../modules/reparto/TransferenciasSucursal'
+import InicioSucursal from '../modules/sucursal/InicioSucursal'
+import AceptarMercaderia from '../modules/sucursal/AceptarMercaderia'
 
 function crearNavDueno(contadorDiferencias) {
   return [
@@ -114,6 +117,7 @@ function crearNavDueno(contadorDiferencias) {
       { to: '/dueno/camionetas', label: 'Camionetas' },
       { to: '/dueno/rendicion-choferes', label: 'Rendición de choferes' },
       { to: '/dueno/diferencias-cobro', label: 'Diferencias de cobro', contador: contadorDiferencias },
+      { to: '/dueno/transferencias', label: 'Transferencias a sucursal' },
     ],
   },
   { grupo: 'Catálogo', icono: Egg, items: [{ to: '/dueno/productos', label: 'Productos' }] },
@@ -183,6 +187,7 @@ function crearNavAdmin(contadorDiferencias) {
       { to: '/admin/camionetas', label: 'Camionetas' },
       { to: '/admin/rendicion-choferes', label: 'Rendición de choferes' },
       { to: '/admin/diferencias-cobro', label: 'Diferencias de cobro', contador: contadorDiferencias },
+      { to: '/admin/transferencias', label: 'Transferencias a sucursal' },
     ],
   },
   { grupo: 'Catálogo', icono: Egg, items: [{ to: '/admin/productos', label: 'Productos' }] },
@@ -209,6 +214,7 @@ const NAV_DEPOSITO = [
     items: [
       { to: '/deposito/reparto', label: 'Asignar reparto', end: true },
       { to: '/deposito/camionetas', label: 'Camionetas' },
+      { to: '/deposito/transferencias', label: 'Transferencias a sucursal' },
     ],
   },
 ]
@@ -303,6 +309,7 @@ export default function AppRouter() {
           <Route path="camionetas" element={<GestionCamionetas />} />
           <Route path="rendicion-choferes" element={<RendicionChoferes />} />
           <Route path="diferencias-cobro" element={<DiferenciasCobro />} />
+          <Route path="transferencias" element={<TransferenciasSucursal />} />
           <Route path="proveedores" element={<ListaProveedores />} />
           <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
@@ -337,6 +344,7 @@ export default function AppRouter() {
           <Route path="camionetas" element={<GestionCamionetas />} />
           <Route path="rendicion-choferes" element={<RendicionChoferes />} />
           <Route path="diferencias-cobro" element={<DiferenciasCobro />} />
+          <Route path="transferencias" element={<TransferenciasSucursal />} />
           <Route path="proveedores" element={<ListaProveedores />} />
           <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
@@ -361,6 +369,7 @@ export default function AppRouter() {
           <Route path="recepcion-compra" element={<RecepcionCompra />} />
           <Route path="reparto" element={<AsignarReparto />} />
           <Route path="camionetas" element={<GestionCamionetas />} />
+          <Route path="transferencias" element={<TransferenciasSucursal />} />
         </Route>
 
         <Route
@@ -481,6 +490,24 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.CHOFER]}>
               <VistaChofer />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/sucursal"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
+              <InicioSucursal />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/sucursal/aceptar-mercaderia"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
+              <AceptarMercaderia />
             </RutaProtegida>
           }
         />
