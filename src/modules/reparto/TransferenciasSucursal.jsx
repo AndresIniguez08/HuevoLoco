@@ -218,6 +218,8 @@ export default function TransferenciasSucursal() {
                 <div>
                   <p className="font-medium text-marca">{r.sucursales?.nombre || '—'}</p>
                   <p className="text-xs text-marca/50">{new Date(r.creado_at).toLocaleDateString('es-AR')}</p>
+                  <p className="text-xs text-marca/50">Enviado por {r.creador?.nombre || '—'}</p>
+                  {r.receptor?.nombre && <p className="text-xs text-marca/50">Recibido por {r.receptor.nombre}</p>}
                 </div>
                 <Badge tono={TONO_ESTADO_REMITO[r.estado] || 'neutro'}>
                   {ETIQUETA_ESTADO_REMITO[r.estado] || r.estado}
@@ -244,6 +246,10 @@ export default function TransferenciasSucursal() {
                 {ETIQUETA_ESTADO_REMITO[remitoDetalle.estado] || remitoDetalle.estado}
               </Badge>
             </div>
+            <p className="text-sm text-marca/70">Enviado por {remitoDetalle.creador?.nombre || '—'}</p>
+            {remitoDetalle.receptor?.nombre && (
+              <p className="text-sm text-marca/70">Recibido por {remitoDetalle.receptor.nombre}</p>
+            )}
             <ul className="divide-y divide-marca/10 text-sm">
               {(remitoDetalle.remito_transferencia_items || []).map((it) => (
                 <li key={it.id} className="py-2 text-marca">

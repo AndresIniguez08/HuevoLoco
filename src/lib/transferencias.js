@@ -15,10 +15,20 @@ export async function crearRemitoTransferencia(sucursalDestinoId, items) {
   return data
 }
 
+// remitos_transferencia tiene dos FKs hacia perfiles (usuario_id, aceptado_por)
+// y dos hacia sucursales (sucursal_origen_id, sucursal_destino_id) — sin el
+// hint !fk_constraint, PostgREST no puede resolver el embed y tira PGRST201.
+const SELECT_REMITO = `
+  *,
+  sucursales!remitos_transferencia_sucursal_destino_id_fkey (nombre),
+  creador:perfiles!remitos_transferencia_usuario_id_fkey (nombre),
+  receptor:perfiles!remitos_transferencia_aceptado_por_fkey (nombre)
+`
+
 export async function listarRemitosTransferencia() {
   const { data, error } = await supabase
     .from('remitos_transferencia')
-    .select('*, sucursales(nombre)')
+    .select(SELECT_REMITO)
     .order('creado_at', { ascending: false })
   if (error) throw error
   return data
@@ -28,7 +38,7 @@ export async function obtenerRemitoTransferencia(id) {
   const { data, error } = await supabase
     .from('remitos_transferencia')
     .select(
-      '*, sucursales(nombre), remito_transferencia_items(id, cantidad_maple, unidad_transaccion, cantidad_unidad, productos(nombre))'
+      `${SELECT_REMITO}, remito_transferencia_items(id, cantidad_maple, unidad_transaccion, cantidad_unidad, productos(nombre))`
     )
     .eq('id', id)
     .single()
