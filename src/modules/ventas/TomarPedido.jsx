@@ -17,6 +17,7 @@ import Badge from '../../components/ui/Badge'
 export default function TomarPedido() {
   const { cliente, items, setCliente, agregarItem, quitarItem, limpiar, total } = usePedidoStore()
   const usuario = useAuthStore((s) => s.usuario)
+  const perfil = useAuthStore((s) => s.perfil)
 
   const [productos, setProductos] = useState([])
   const [preciosLista, setPreciosLista] = useState({})
@@ -127,6 +128,7 @@ export default function TomarPedido() {
         .insert({
           cliente_id: cliente.id,
           vendedor_id: usuario.id,
+          sucursal_id: perfil.sucursal_id,
           estado: 'pendiente',
           total: total(),
         })

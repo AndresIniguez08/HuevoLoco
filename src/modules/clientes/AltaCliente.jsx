@@ -7,6 +7,7 @@ import { crearCliente } from '../../lib/clientes'
 import { listarListasPrecio } from '../../lib/listasPrecio'
 import { traducirError } from '../../lib/errores'
 import { TIPOS_CLIENTE } from '../../lib/constantes'
+import { useAuthStore } from '../../stores/authStore'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 
@@ -20,6 +21,7 @@ const esquema = z.object({
 })
 
 export default function AltaCliente({ onCreado, onCancelar }) {
+  const perfil = useAuthStore((s) => s.perfil)
   const [listasPrecio, setListasPrecio] = useState([])
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
@@ -48,6 +50,7 @@ export default function AltaCliente({ onCreado, onCancelar }) {
         telefono: datos.telefono || null,
         direccion: datos.direccion || null,
         email: datos.email || null,
+        sucursal_id: perfil.sucursal_id,
       })
       setCreado({ nombre: datos.nombre })
     } catch (e) {
