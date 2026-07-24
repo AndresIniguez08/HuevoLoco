@@ -258,6 +258,10 @@ export default function VentaSucursal() {
         <h1 className="mb-1 font-display text-2xl text-marca">Cobrar</h1>
         <p className="mb-4 text-lg text-marca/70">{cliente?.nombre}</p>
 
+        {error && (
+          <p className="mb-4 rounded-xl bg-perdida/10 p-4 text-center text-base font-medium text-perdida">{error}</p>
+        )}
+
         <div className="mb-4 rounded-2xl bg-marca p-5 text-center text-white">
           <p className="text-sm text-white/70">Total a cobrar</p>
           <p className="font-mono text-4xl leading-tight">${total.toFixed(2)}</p>
@@ -321,7 +325,6 @@ export default function VentaSucursal() {
               <Check size={18} /> Cubre el total
             </p>
           ))}
-        {error && <p className="mt-3 text-center text-base text-perdida">{error}</p>}
 
         <Button
           variante="confirmar"
