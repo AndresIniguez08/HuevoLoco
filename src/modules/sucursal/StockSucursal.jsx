@@ -6,8 +6,9 @@ import { obtenerStockDesgloseSucursal } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
 import GrillaCajon from '../../components/GrillaCajon'
 import Badge from '../../components/ui/Badge'
+import BadgeContador from '../../components/ui/BadgeContador'
 
-export default function StockSucursal() {
+export default function StockSucursal({ contadorConteo }) {
   const perfil = useAuthStore((s) => s.perfil)
   const navigate = useNavigate()
 
@@ -37,6 +38,7 @@ export default function StockSucursal() {
         >
           <ClipboardList size={22} />
           Control de stock
+          {contadorConteo > 0 && <BadgeContador valor={contadorConteo} />}
         </button>
         <button
           onClick={() => navigate('/sucursal/perdidas')}

@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ChevronRight, LogOut, Menu, User, X } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { ETIQUETA_ROL } from '../lib/constantes'
+import BadgeContador from './ui/BadgeContador'
 
 function coincideRuta(pathname, to, end) {
   return end ? pathname === to : pathname === to || pathname.startsWith(`${to}/`)
@@ -14,15 +15,6 @@ function grupoContieneRuta(grupo, pathname) {
 
 function sumaContadores(grupo) {
   return grupo.items.reduce((acc, item) => acc + (item.contador || 0), 0)
-}
-
-function BadgeContador({ valor }) {
-  if (!valor) return null
-  return (
-    <span className="rounded-full bg-perdida px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
-      {valor}
-    </span>
-  )
 }
 
 const CLASE_ITEM = ({ isActive }) =>

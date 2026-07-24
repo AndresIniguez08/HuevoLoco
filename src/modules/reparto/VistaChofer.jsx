@@ -22,7 +22,7 @@ function etiquetaItem(item) {
   return `${item.cantidad_unidad} ${etiquetaUnidad} — ${item.productos?.nombre || 'Producto'}`
 }
 
-export default function VistaChofer() {
+export default function VistaChofer({ contadorEntregasPendientes }) {
   const usuario = useAuthStore((s) => s.usuario)
   const perfil = useAuthStore((s) => s.perfil)
   const cerrarSesion = useAuthStore((s) => s.cerrarSesion)
@@ -124,6 +124,11 @@ export default function VistaChofer() {
       </header>
 
       <div className="p-4">
+        {!cargando && !error && contadorEntregasPendientes > 0 && (
+          <p className="mb-4 rounded-xl bg-yema/15 px-4 py-3 text-center text-lg font-medium text-marca">
+            Tenés {contadorEntregasPendientes} {contadorEntregasPendientes === 1 ? 'entrega pendiente' : 'entregas pendientes'}
+          </p>
+        )}
         {cargando ? (
           <p className="text-center text-marca/60">Cargando entregas...</p>
         ) : error ? (

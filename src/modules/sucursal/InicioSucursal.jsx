@@ -1,6 +1,7 @@
 import { LogOut, PackageCheck, PackageSearch, ShoppingCart, Wallet } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
+import BadgeContador from '../../components/ui/BadgeContador'
 
 const BOTONES = [
   { to: '/sucursal/vender', label: 'Vender', icono: ShoppingCart, clase: 'bg-marca' },
@@ -9,7 +10,7 @@ const BOTONES = [
   { to: '/sucursal/caja', label: 'Caja', icono: Wallet, clase: 'bg-marca-claro' },
 ]
 
-export default function InicioSucursal() {
+export default function InicioSucursal({ contadorAceptarMercaderia }) {
   const perfil = useAuthStore((s) => s.perfil)
   const cerrarSesion = useAuthStore((s) => s.cerrarSesion)
   const navigate = useNavigate()
@@ -27,16 +28,24 @@ export default function InicioSucursal() {
       </header>
 
       <div className="grid grid-cols-2 gap-4 p-4">
-        {BOTONES.map((b) => (
-          <button
-            key={b.to}
-            onClick={() => navigate(b.to)}
-            className={`flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl px-3 text-xl font-medium text-white shadow-sm active:opacity-90 ${b.clase}`}
-          >
-            <b.icono size={32} />
-            {b.label}
-          </button>
-        ))}
+        {BOTONES.map((b) => {
+          const contador = b.to === '/sucursal/aceptar-mercaderia' ? contadorAceptarMercaderia : null
+          return (
+            <button
+              key={b.to}
+              onClick={() => navigate(b.to)}
+              className={`relative flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl px-3 text-xl font-medium text-white shadow-sm active:opacity-90 ${b.clase}`}
+            >
+              {contador > 0 && (
+                <span className="absolute right-3 top-3">
+                  <BadgeContador valor={contador} />
+                </span>
+              )}
+              <b.icono size={32} />
+              {b.label}
+            </button>
+          )
+        })}
       </div>
     </div>
   )
