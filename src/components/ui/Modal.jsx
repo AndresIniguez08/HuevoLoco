@@ -5,8 +5,8 @@ export default function Modal({ abierto, onCerrar, titulo, children, ancho = 'ma
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-marca/40 p-4">
-      <div className={`w-full ${ancho} rounded-xl bg-white p-5 shadow-xl`}>
-        <div className="mb-4 flex items-center justify-between">
+      <div className={`flex max-h-[90dvh] w-full ${ancho} flex-col rounded-xl bg-white shadow-xl`}>
+        <div className="flex items-center justify-between p-5 pb-4">
           <h2 className="font-display text-lg text-marca">{titulo}</h2>
           <button
             onClick={onCerrar}
@@ -16,7 +16,7 @@ export default function Modal({ abierto, onCerrar, titulo, children, ancho = 'ma
             <X size={18} />
           </button>
         </div>
-        {children}
+        <div className="min-h-0 overflow-y-auto px-5 pb-5">{children}</div>
       </div>
     </div>
   )
