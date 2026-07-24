@@ -19,6 +19,19 @@ export async function listarSaldosClientes() {
   return data.map((c) => ({ ...c, telefono: telefonoPorId[c.cliente_id] || null }))
 }
 
+// fn_reporte_deuda trae saldo (siempre real, sin filtrar) + deuda_generada_periodo
+// (específica del rango p_desde/p_hasta) por cliente, ya cruzado con sucursal.
+// p_sucursal_id/p_desde/p_hasta en null = sin filtrar esa dimensión.
+export async function obtenerReporteDeuda(sucursalId = null, desde = null, hasta = null) {
+  const { data, error } = await supabase.rpc('fn_reporte_deuda', {
+    p_sucursal_id: sucursalId,
+    p_desde: desde,
+    p_hasta: hasta,
+  })
+  if (error) throw error
+  return data || []
+}
+
 // Saldo real del cliente (débitos - créditos, sin importar ningún filtro de
 // fecha que se esté aplicando al listado de movimientos en pantalla).
 export async function obtenerSaldoCliente(clienteId) {
