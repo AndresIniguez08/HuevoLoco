@@ -6,6 +6,7 @@ import {
   crearRemitoTransferencia,
   listarRemitosTransferencia,
   obtenerRemitoTransferencia,
+  revisarRemito,
 } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD, ETIQUETA_ESTADO_REMITO, TONO_ESTADO_REMITO, formatearCantidadItemCompra } from '../../lib/constantes'
@@ -13,6 +14,34 @@ import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
+
+function BloqueDiferencia({ remito, revisando, onRevisar }) {
+  if (remito.estado !== 'con_diferencia' || !remito.observacion_diferencia) return null
+  return (
+    <div className="mt-2">
+      <p className="rounded-lg bg-perdida/10 p-2 text-sm text-perdida">{remito.observacion_diferencia}</p>
+      {remito.revisado ? (
+        <p className="mt-2 text-xs text-marca/50">
+          Revisado por {remito.revisor?.nombre || '—'}
+          {remito.revisado_at && ` el ${new Date(remito.revisado_at).toLocaleDateString('es-AR')}`}
+        </p>
+      ) : (
+        <Button
+          tamano="sm"
+          variante="secundario"
+          className="mt-2"
+          cargando={revisando}
+          onClick={(e) => {
+            e.stopPropagation()
+            onRevisar(remito.id)
+          }}
+        >
+          Marcar como revisado
+        </Button>
+      )}
+    </div>
+  )
+}
 
 export default function TransferenciasSucursal() {
   const [sucursales, setSucursales] = useState([])
@@ -29,6 +58,7 @@ export default function TransferenciasSucursal() {
   const [cargandoRemitos, setCargandoRemitos] = useState(true)
   const [remitoDetalle, setRemitoDetalle] = useState(null)
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
+  const [revisandoId, setRevisandoId] = useState(null)
 
   useEffect(() => {
     Promise.all([listarSucursales(), obtenerProductosConStock()])
@@ -99,6 +129,20 @@ export default function TransferenciasSucursal() {
       setError(traducirError(e))
     } finally {
       setEnviando(false)
+    }
+  }
+
+  async function revisar(remitoId) {
+    setRevisandoId(remitoId)
+    setError(null)
+    try {
+      await revisarRemito(remitoId)
+      if (remitoDetalle?.id === remitoId) await verDetalle(remitoId)
+      await cargarRemitos()
+    } catch (e) {
+      setError(traducirError(e))
+    } finally {
+      setRevisandoId(null)
     }
   }
 
@@ -225,9 +269,7 @@ export default function TransferenciasSucursal() {
                   {ETIQUETA_ESTADO_REMITO[r.estado] || r.estado}
                 </Badge>
               </div>
-              {r.estado === 'con_diferencia' && r.observacion_diferencia && (
-                <p className="mt-2 rounded-lg bg-perdida/10 p-2 text-sm text-perdida">{r.observacion_diferencia}</p>
-              )}
+              <BloqueDiferencia remito={r} revisando={revisandoId === r.id} onRevisar={revisar} />
             </li>
           ))}
         </ul>
@@ -257,9 +299,11 @@ export default function TransferenciasSucursal() {
                 </li>
               ))}
             </ul>
-            {remitoDetalle.estado === 'con_diferencia' && remitoDetalle.observacion_diferencia && (
-              <p className="rounded-lg bg-perdida/10 p-3 text-sm text-perdida">{remitoDetalle.observacion_diferencia}</p>
-            )}
+            <BloqueDiferencia
+              remito={remitoDetalle}
+              revisando={revisandoId === remitoDetalle.id}
+              onRevisar={revisar}
+            />
           </div>
         ) : null}
       </Modal>

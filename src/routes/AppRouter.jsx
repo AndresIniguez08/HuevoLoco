@@ -4,6 +4,7 @@ import { Package, ShoppingCart, Users, Truck, PackageSearch, Tag, Wallet, Egg, S
 import { useAuthStore } from '../stores/authStore'
 import { ROLES, RUTA_RAIZ_POR_ROL } from '../lib/constantes'
 import { contarDiferenciasSinRevisar } from '../lib/diferenciasCobro'
+import { contarRemitosDiferenciaSinRevisar } from '../lib/transferencias'
 import RutaProtegida from '../components/RutaProtegida'
 import AppShell from '../components/AppShell'
 import Login from '../modules/auth/Login'
@@ -51,7 +52,7 @@ import TransferenciasSucursal from '../modules/reparto/TransferenciasSucursal'
 import InicioSucursal from '../modules/sucursal/InicioSucursal'
 import AceptarMercaderia from '../modules/sucursal/AceptarMercaderia'
 
-function crearNavDueno(contadorDiferencias) {
+function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia) {
   return [
   { to: '/dueno', label: 'Dashboard', end: true },
   {
@@ -117,7 +118,7 @@ function crearNavDueno(contadorDiferencias) {
       { to: '/dueno/camionetas', label: 'Camionetas' },
       { to: '/dueno/rendicion-choferes', label: 'Rendición de choferes' },
       { to: '/dueno/diferencias-cobro', label: 'Diferencias de cobro', contador: contadorDiferencias },
-      { to: '/dueno/transferencias', label: 'Transferencias a sucursal' },
+      { to: '/dueno/transferencias', label: 'Transferencias a sucursal', contador: contadorRemitosDiferencia },
     ],
   },
   { grupo: 'Catálogo', icono: Egg, items: [{ to: '/dueno/productos', label: 'Productos' }] },
@@ -125,7 +126,7 @@ function crearNavDueno(contadorDiferencias) {
   ]
 }
 
-function crearNavAdmin(contadorDiferencias) {
+function crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia) {
   return [
   {
     grupo: 'Stock',
@@ -187,37 +188,39 @@ function crearNavAdmin(contadorDiferencias) {
       { to: '/admin/camionetas', label: 'Camionetas' },
       { to: '/admin/rendicion-choferes', label: 'Rendición de choferes' },
       { to: '/admin/diferencias-cobro', label: 'Diferencias de cobro', contador: contadorDiferencias },
-      { to: '/admin/transferencias', label: 'Transferencias a sucursal' },
+      { to: '/admin/transferencias', label: 'Transferencias a sucursal', contador: contadorRemitosDiferencia },
     ],
   },
   { grupo: 'Catálogo', icono: Egg, items: [{ to: '/admin/productos', label: 'Productos' }] },
   ]
 }
 
-const NAV_DEPOSITO = [
-  {
-    grupo: 'Stock',
-    icono: Package,
-    items: [
-      { to: '/deposito/stock', label: 'Stock actual', end: true },
-      { to: '/deposito/reporte-stock', label: 'Reporte de stock' },
-      { to: '/deposito/conteo', label: 'Conteo de stock' },
-      { to: '/deposito/auditorias', label: 'Auditorías' },
-      { to: '/deposito/perdidas', label: 'Pérdidas' },
-    ],
-  },
-  { grupo: 'Ventas', icono: ShoppingCart, items: [{ to: '/deposito/pedidos', label: 'Pedidos' }] },
-  { grupo: 'Compras', icono: Truck, items: [{ to: '/deposito/recepcion-compra', label: 'Recepción de compra' }] },
-  {
-    grupo: 'Reparto',
-    icono: Truck,
-    items: [
-      { to: '/deposito/reparto', label: 'Asignar reparto', end: true },
-      { to: '/deposito/camionetas', label: 'Camionetas' },
-      { to: '/deposito/transferencias', label: 'Transferencias a sucursal' },
-    ],
-  },
-]
+function crearNavDeposito(contadorRemitosDiferencia) {
+  return [
+    {
+      grupo: 'Stock',
+      icono: Package,
+      items: [
+        { to: '/deposito/stock', label: 'Stock actual', end: true },
+        { to: '/deposito/reporte-stock', label: 'Reporte de stock' },
+        { to: '/deposito/conteo', label: 'Conteo de stock' },
+        { to: '/deposito/auditorias', label: 'Auditorías' },
+        { to: '/deposito/perdidas', label: 'Pérdidas' },
+      ],
+    },
+    { grupo: 'Ventas', icono: ShoppingCart, items: [{ to: '/deposito/pedidos', label: 'Pedidos' }] },
+    { grupo: 'Compras', icono: Truck, items: [{ to: '/deposito/recepcion-compra', label: 'Recepción de compra' }] },
+    {
+      grupo: 'Reparto',
+      icono: Truck,
+      items: [
+        { to: '/deposito/reparto', label: 'Asignar reparto', end: true },
+        { to: '/deposito/camionetas', label: 'Camionetas' },
+        { to: '/deposito/transferencias', label: 'Transferencias a sucursal', contador: contadorRemitosDiferencia },
+      ],
+    },
+  ]
+}
 
 const NAV_VENDEDOR = [
   {
@@ -236,9 +239,9 @@ function InicioSesionResuelto() {
   return <Navigate to={perfil ? RUTA_RAIZ_POR_ROL[perfil.rol] || '/login' : '/login'} replace />
 }
 
-// Refresca cada 30s mientras el dueño/administrativo tiene la sesión abierta,
+// Refresca cada 30s mientras el rol correspondiente tiene la sesión abierta,
 // para que el badge de la sidebar no quede desactualizado por mucho tiempo.
-function useContadorDiferenciasCobro(activo) {
+function useContadorPeriodico(activo, obtenerContador) {
   const [contador, setContador] = useState(0)
 
   useEffect(() => {
@@ -248,7 +251,7 @@ function useContadorDiferenciasCobro(activo) {
     }
     let vivo = true
     function refrescar() {
-      contarDiferenciasSinRevisar()
+      obtenerContador()
         .then((n) => {
           if (vivo) setContador(n)
         })
@@ -260,7 +263,7 @@ function useContadorDiferenciasCobro(activo) {
       vivo = false
       clearInterval(intervalo)
     }
-  }, [activo])
+  }, [activo, obtenerContador])
 
   return contador
 }
@@ -268,9 +271,19 @@ function useContadorDiferenciasCobro(activo) {
 export default function AppRouter() {
   const perfil = useAuthStore((s) => s.perfil)
   const puedeVerDiferencias = perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO
-  const contadorDiferencias = useContadorDiferenciasCobro(puedeVerDiferencias)
-  const navDueno = useMemo(() => crearNavDueno(contadorDiferencias), [contadorDiferencias])
-  const navAdmin = useMemo(() => crearNavAdmin(contadorDiferencias), [contadorDiferencias])
+  const puedeVerRemitosDiferencia =
+    perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO || perfil?.rol === ROLES.DEPOSITO
+  const contadorDiferencias = useContadorPeriodico(puedeVerDiferencias, contarDiferenciasSinRevisar)
+  const contadorRemitosDiferencia = useContadorPeriodico(puedeVerRemitosDiferencia, contarRemitosDiferenciaSinRevisar)
+  const navDueno = useMemo(
+    () => crearNavDueno(contadorDiferencias, contadorRemitosDiferencia),
+    [contadorDiferencias, contadorRemitosDiferencia]
+  )
+  const navAdmin = useMemo(
+    () => crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia),
+    [contadorDiferencias, contadorRemitosDiferencia]
+  )
+  const navDeposito = useMemo(() => crearNavDeposito(contadorRemitosDiferencia), [contadorRemitosDiferencia])
 
   return (
     <BrowserRouter>
@@ -354,7 +367,7 @@ export default function AppRouter() {
           path="/deposito"
           element={
             <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
-              <AppShell titulo="Depósito" navegacion={NAV_DEPOSITO} />
+              <AppShell titulo="Depósito" navegacion={navDeposito} />
             </RutaProtegida>
           }
         >

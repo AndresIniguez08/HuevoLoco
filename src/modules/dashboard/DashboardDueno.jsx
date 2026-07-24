@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { obtenerProductosConStock } from '../../lib/productos'
 import { obtenerMovimientosCaja, totalesPorMedio } from '../../lib/caja'
+import { contarRemitosDiferenciaSinRevisar } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
 
 export default function DashboardDueno() {
@@ -13,20 +14,21 @@ export default function DashboardDueno() {
     async function cargar() {
       try {
         const hoy = new Date().toISOString().slice(0, 10)
-        const [productos, movimientosCaja, { count: pedidosHoy }] = await Promise.all([
+        const [productos, movimientosCaja, { count: pedidosHoy }, remitosConDiferencia] = await Promise.all([
           obtenerProductosConStock(),
           obtenerMovimientosCaja(),
           supabase
             .from('pedidos')
             .select('*', { count: 'exact', head: true })
             .gte('creado_at', `${hoy}T00:00:00`),
+          contarRemitosDiferenciaSinRevisar(),
         ])
         const totales = totalesPorMedio(movimientosCaja)
         const totalCajaHoy = Object.values(totales).reduce((a, b) => a + b, 0)
         const productosBajoMinimo = productos.filter(
           (p) => p.stock_minimo_maple != null && p.stock_maple < p.stock_minimo_maple
         )
-        setKpis({ totalCajaHoy, pedidosHoy: pedidosHoy || 0, productosBajoMinimo })
+        setKpis({ totalCajaHoy, pedidosHoy: pedidosHoy || 0, productosBajoMinimo, remitosConDiferencia })
       } catch (e) {
         setError(traducirError(e))
       }
@@ -41,7 +43,7 @@ export default function DashboardDueno() {
     <div>
       <h1 className="mb-4 font-display text-xl text-marca">Dashboard</h1>
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl bg-marca p-4 text-white shadow-sm">
           <p className="text-xs text-white/70">Caja de hoy</p>
           <p className="font-mono text-2xl">${kpis.totalCajaHoy.toFixed(2)}</p>
@@ -54,6 +56,12 @@ export default function DashboardDueno() {
           <p className="text-xs text-marca/50">Productos con stock bajo</p>
           <p className="font-mono text-2xl text-perdida">{kpis.productosBajoMinimo.length}</p>
         </div>
+        <Link to="/dueno/transferencias" className="rounded-xl bg-white p-4 shadow-sm hover:bg-marca/5">
+          <p className="text-xs text-marca/50">Remitos con diferencia sin revisar</p>
+          <p className={`font-mono text-2xl ${kpis.remitosConDiferencia > 0 ? 'text-perdida' : 'text-marca'}`}>
+            {kpis.remitosConDiferencia}
+          </p>
+        </Link>
       </div>
 
       {kpis.productosBajoMinimo.length > 0 && (
