@@ -24,7 +24,7 @@ export default function AceptarMercaderia() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Refresco silencioso cada 30s + al volver a la pestaña: si Central manda
+  // Refresco silencioso cada 20s + al volver a la pestaña: si Central manda
   // un remito nuevo mientras el encargado tiene esta pantalla abierta, tiene
   // que aparecer solo, sin recargar la página (mismo criterio que VistaChofer).
   useRefrescoPeriodico(() => cargar({ silencioso: true }), { inicial: false })

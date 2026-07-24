@@ -9,6 +9,7 @@ import {
   revisarRemito,
 } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
+import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import { ETIQUETA_UNIDAD, ETIQUETA_ESTADO_REMITO, TONO_ESTADO_REMITO, formatearCantidadItemCompra } from '../../lib/constantes'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
@@ -71,15 +72,22 @@ export default function TransferenciasSucursal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function cargarRemitos() {
-    setCargandoRemitos(true)
+  // Refresco silencioso cada 20s + al volver a la pestaña: una sucursal
+  // puede aceptar o reportar diferencia de un remito en cualquier momento.
+  // `silencioso` evita el parpadeo de "Cargando remitos..." y no pisa el
+  // formulario de "armar remito nuevo" de más arriba, que tiene su propio
+  // estado (sucursalDestinoId/items) sin relación con esta lista.
+  useRefrescoPeriodico(() => cargarRemitos({ silencioso: true }), { inicial: false })
+
+  async function cargarRemitos({ silencioso = false } = {}) {
+    if (!silencioso) setCargandoRemitos(true)
     try {
       const data = await listarRemitosTransferencia()
       setRemitos(data)
     } catch (e) {
-      setError(traducirError(e))
+      if (!silencioso) setError(traducirError(e))
     } finally {
-      setCargandoRemitos(false)
+      if (!silencioso) setCargandoRemitos(false)
     }
   }
 

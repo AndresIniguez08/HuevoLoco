@@ -3,6 +3,7 @@ import { listarDiferenciasCobro, marcarDiferenciaRevisada } from '../../lib/dife
 import { autorizarExcepcionCC } from '../../lib/cobranzas'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
+import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -58,16 +59,22 @@ export default function DiferenciasCobro() {
     cargar()
   }, [])
 
-  async function cargar() {
-    setCargando(true)
+  // Refresco silencioso cada 20s + al volver a la pestaña: una diferencia
+  // nueva puede llegar en cualquier momento desde VistaChofer. `silencioso`
+  // evita tocar `cargando` (que desmontaría la pantalla y el modal de
+  // excepción si está abierto) y evita pisar un error recién mostrado.
+  useRefrescoPeriodico(() => cargar({ silencioso: true }), { inicial: false })
+
+  async function cargar({ silencioso = false } = {}) {
+    if (!silencioso) setCargando(true)
     try {
       const data = await listarDiferenciasCobro()
       setDiferencias(data)
-      setError(null)
+      if (!silencioso) setError(null)
     } catch (e) {
-      setError(traducirError(e))
+      if (!silencioso) setError(traducirError(e))
     } finally {
-      setCargando(false)
+      if (!silencioso) setCargando(false)
     }
   }
 

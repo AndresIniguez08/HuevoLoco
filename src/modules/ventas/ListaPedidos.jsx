@@ -10,6 +10,7 @@ import {
   obtenerUltimoPagoPedido,
 } from '../../lib/cobranzas'
 import { obtenerFechasInicioSaldoPendiente } from '../../lib/clientes'
+import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import {
   MEDIOS_PAGO,
   ETIQUETA_ESTADO_PEDIDO,
@@ -58,8 +59,15 @@ export default function ListaPedidos({ soloPropios = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function cargar() {
-    setCargando(true)
+  // Refresco silencioso cada 20s + al volver a la pestaña: otro vendedor o
+  // depósito puede confirmar/cobrar/marcar retirado un pedido en paralelo.
+  // `silencioso` evita tocar `cargando` (que desmontaría toda la pantalla,
+  // incluidos los modales de pago/excepción si están abiertos) y evita pisar
+  // el mensaje de `error` de una acción que el usuario acaba de disparar.
+  useRefrescoPeriodico(() => cargar({ silencioso: true }), { inicial: false })
+
+  async function cargar({ silencioso = false } = {}) {
+    if (!silencioso) setCargando(true)
     try {
       const hoy = new Date().toISOString().slice(0, 10)
       let query = supabase
@@ -78,11 +86,11 @@ export default function ListaPedidos({ soloPropios = false }) {
       setSaldosPorCliente(new Map(saldos.map((c) => [c.cliente_id, Number(c.saldo)])))
       setFechasSaldoPorCliente(fechas)
 
-      setError(null)
+      if (!silencioso) setError(null)
     } catch (e) {
-      setError(traducirError(e))
+      if (!silencioso) setError(traducirError(e))
     } finally {
-      setCargando(false)
+      if (!silencioso) setCargando(false)
     }
   }
 

@@ -6,6 +6,7 @@ import { ROLES, RUTA_RAIZ_POR_ROL } from '../lib/constantes'
 import { contarDiferenciasSinRevisar } from '../lib/diferenciasCobro'
 import { contarRemitosDiferenciaSinRevisar } from '../lib/transferencias'
 import { contarComprasDiferenciaSinRevisar } from '../lib/compras'
+import { contarPedidosPendientes } from '../lib/ventas'
 import { useRefrescoPeriodico } from '../hooks/useRefrescoPeriodico'
 import RutaProtegida from '../components/RutaProtegida'
 import AppShell from '../components/AppShell'
@@ -60,7 +61,7 @@ import PerdidaSucursal from '../modules/sucursal/PerdidaSucursal'
 import CajaSucursal from '../modules/sucursal/CajaSucursal'
 import ConteoSucursal from '../modules/sucursal/ConteoSucursal'
 
-function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia) {
+function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia, contadorPedidosPendientes) {
   return [
   { to: '/dueno', label: 'Dashboard', end: true },
   {
@@ -79,7 +80,7 @@ function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorC
     icono: ShoppingCart,
     items: [
       { to: '/dueno/ventas', label: 'Tomar pedido' },
-      { to: '/dueno/pedidos', label: 'Pedidos' },
+      { to: '/dueno/pedidos', label: 'Pedidos', contador: contadorPedidosPendientes },
       { to: '/dueno/aprobaciones', label: 'Aprobaciones' },
     ],
   },
@@ -141,7 +142,7 @@ function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorC
   ]
 }
 
-function crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia) {
+function crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia, contadorPedidosPendientes) {
   return [
   {
     grupo: 'Stock',
@@ -157,7 +158,7 @@ function crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia, contadorC
     icono: ShoppingCart,
     items: [
       { to: '/admin/ventas', label: 'Tomar pedido' },
-      { to: '/admin/pedidos', label: 'Pedidos', end: true },
+      { to: '/admin/pedidos', label: 'Pedidos', end: true, contador: contadorPedidosPendientes },
       { to: '/admin/aprobaciones', label: 'Aprobaciones' },
     ],
   },
@@ -261,7 +262,7 @@ function InicioSesionResuelto() {
   return <Navigate to={perfil ? RUTA_RAIZ_POR_ROL[perfil.rol] || '/login' : '/login'} replace />
 }
 
-// Refresca cada 30s mientras el rol correspondiente tiene la sesión abierta,
+// Refresca cada 20s mientras el rol correspondiente tiene la sesión abierta,
 // y también al volver a la pestaña — vía useRefrescoPeriodico, reutilizado
 // por VistaChofer y AceptarMercaderia para el mismo problema.
 function useContadorPeriodico(activo, obtenerContador) {
@@ -291,13 +292,14 @@ export default function AppRouter() {
   const contadorDiferencias = useContadorPeriodico(puedeVerDiferencias, contarDiferenciasSinRevisar)
   const contadorRemitosDiferencia = useContadorPeriodico(puedeVerRemitosDiferencia, contarRemitosDiferenciaSinRevisar)
   const contadorComprasDiferencia = useContadorPeriodico(puedeVerDiferencias, contarComprasDiferenciaSinRevisar)
+  const contadorPedidosPendientes = useContadorPeriodico(puedeVerDiferencias, contarPedidosPendientes)
   const navDueno = useMemo(
-    () => crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia),
-    [contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia]
+    () => crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia, contadorPedidosPendientes),
+    [contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia, contadorPedidosPendientes]
   )
   const navAdmin = useMemo(
-    () => crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia),
-    [contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia]
+    () => crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia, contadorPedidosPendientes),
+    [contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia, contadorPedidosPendientes]
   )
   const navDeposito = useMemo(() => crearNavDeposito(contadorRemitosDiferencia), [contadorRemitosDiferencia])
 

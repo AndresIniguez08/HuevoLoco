@@ -38,7 +38,7 @@ export default function VistaChofer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Refresco silencioso cada 30s + al volver a la pestaña: si depósito o
+  // Refresco silencioso cada 20s + al volver a la pestaña: si depósito o
   // administrativo le asignan una entrega nueva mientras el chofer tiene
   // esta pantalla abierta (probablemente manejando), tiene que aparecer
   // sola, sin que el chofer tenga que acordarse de recargar.

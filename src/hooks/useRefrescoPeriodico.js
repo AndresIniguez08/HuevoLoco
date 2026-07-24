@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react'
 // (badges del sidebar, entregas de VistaChofer, remitos de AceptarMercaderia).
 // `accion` se guarda en un ref para que cambiar de identidad en cada render
 // no reinicie el interval; solo `activo`/`intervaloMs` lo reinician.
-export function useRefrescoPeriodico(accion, { activo = true, intervaloMs = 30000, inicial = true } = {}) {
+export function useRefrescoPeriodico(accion, { activo = true, intervaloMs = 20000, inicial = true } = {}) {
   const accionRef = useRef(accion)
   useEffect(() => {
     accionRef.current = accion

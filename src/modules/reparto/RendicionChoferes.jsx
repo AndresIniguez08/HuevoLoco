@@ -8,6 +8,7 @@ import {
 } from '../../lib/rendicionesChofer'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
+import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -26,8 +27,14 @@ export default function RendicionChoferes() {
     cargar()
   }, [])
 
-  async function cargar() {
-    setCargando(true)
+  // Refresco silencioso cada 20s + al volver a la pestaña: otro chofer puede
+  // iniciar su rendición del día en paralelo. `silencioso` evita tocar
+  // `cargando` (que desmontaría la pantalla y perdería el foco de cualquier
+  // monto que se esté tipeando para cerrar una rendición).
+  useRefrescoPeriodico(() => cargar({ silencioso: true }), { inicial: false })
+
+  async function cargar({ silencioso = false } = {}) {
+    if (!silencioso) setCargando(true)
     try {
       const [choferesData, hoyData, historialData] = await Promise.all([
         listarChoferes(),
@@ -37,11 +44,11 @@ export default function RendicionChoferes() {
       setChoferes(choferesData)
       setRendicionesHoy(hoyData)
       setHistorial(historialData)
-      setError(null)
+      if (!silencioso) setError(null)
     } catch (e) {
-      setError(traducirError(e))
+      if (!silencioso) setError(traducirError(e))
     } finally {
-      setCargando(false)
+      if (!silencioso) setCargando(false)
     }
   }
 
