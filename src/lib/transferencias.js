@@ -16,6 +16,18 @@ export async function actualizarPermiteVentaSinStock(sucursalId, permite) {
   if (error) throw error
 }
 
+// fn_confirmar_pedido considera autorizado a un cliente si tiene su propia
+// autorización de CC o si su sucursal tiene este toggle general prendido —
+// no hace falta autorizar cliente por cliente.
+export async function configurarCCSucursal(sucursalId, habilitada, limiteDefault) {
+  const { error } = await supabase.rpc('fn_configurar_cc_sucursal', {
+    p_sucursal_id: sucursalId,
+    p_habilitada: habilitada,
+    p_limite_default: limiteDefault,
+  })
+  if (error) throw error
+}
+
 export async function crearRemitoTransferencia(sucursalDestinoId, items) {
   const { data, error } = await supabase.rpc('fn_crear_remito_transferencia', {
     p_sucursal_destino_id: sucursalDestinoId,

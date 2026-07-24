@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { listarDiferenciasCobro, marcarDiferenciaRevisada } from '../../lib/diferenciasCobro'
 import { autorizarExcepcionCC } from '../../lib/cobranzas'
 import { formatearDiferencia } from '../../lib/caja'
@@ -54,6 +55,7 @@ export default function DiferenciasCobro() {
   const [revisandoId, setRevisandoId] = useState(null)
   const [mostrarRevisadas, setMostrarRevisadas] = useState(false)
   const [difExcepcion, setDifExcepcion] = useState(null)
+  const [ultimaExcepcionId, setUltimaExcepcionId] = useState(null)
 
   useEffect(() => {
     cargar()
@@ -94,6 +96,12 @@ export default function DiferenciasCobro() {
   const pendientes = diferencias.filter((d) => !d.revisado)
   const revisadas = diferencias.filter((d) => d.revisado)
 
+  function excepcionCargada(excepcionId) {
+    setDifExcepcion(null)
+    setUltimaExcepcionId(excepcionId || null)
+    cargar()
+  }
+
   if (cargando) return <p className="text-marca/60">Cargando diferencias...</p>
 
   return (
@@ -103,6 +111,22 @@ export default function DiferenciasCobro() {
         {pendientes.length > 0 && <Badge tono="error">{pendientes.length} sin revisar</Badge>}
       </div>
       {error && <p className="text-sm text-perdida">{error}</p>}
+      {ultimaExcepcionId && (
+        <div className="flex items-center justify-between gap-3 rounded-lg bg-fresco/10 p-3 text-sm text-fresco">
+          <span>Excepción cargada.</span>
+          <div className="flex items-center gap-3">
+            <button
+              className="underline"
+              onClick={() => window.open(`/excepcion/${ultimaExcepcionId}/imprimir`, '_blank')}
+            >
+              Imprimir autorización
+            </button>
+            <button onClick={() => setUltimaExcepcionId(null)} aria-label="Cerrar aviso">
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-xl bg-white shadow-sm">
         <h2 className="p-4 pb-0 text-sm font-medium text-marca">Sin revisar</h2>
@@ -142,7 +166,7 @@ export default function DiferenciasCobro() {
         )}
       </div>
 
-      <ModalExcepcion dif={difExcepcion} onCerrar={() => setDifExcepcion(null)} onCargada={cargar} />
+      <ModalExcepcion dif={difExcepcion} onCerrar={() => setDifExcepcion(null)} onCargada={excepcionCargada} />
     </div>
   )
 }
@@ -152,56 +176,30 @@ function ModalExcepcion({ dif, onCerrar, onCargada }) {
   const [motivo, setMotivo] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
-  const [excepcionId, setExcepcionId] = useState(null)
 
   useEffect(() => {
     if (dif) {
       setMonto(String(Number(dif.monto_esperado) - Number(dif.monto_cobrado)))
       setMotivo(dif.motivo || '')
       setError(null)
-      setExcepcionId(null)
     }
   }, [dif])
 
   if (!dif) return null
 
+  // El modal se cierra solo (onCargada) apenas la excepción queda cargada,
+  // en vez de esperar un click extra en un cartel de "Excepción cargada".
   async function confirmar() {
     setEnviando(true)
     setError(null)
     try {
       const id = await autorizarExcepcionCC(dif.pedido_id, Number(monto), motivo)
-      setExcepcionId(id)
+      onCargada(id)
     } catch (e) {
       setError(traducirError(e))
     } finally {
       setEnviando(false)
     }
-  }
-
-  function cerrarYActualizar() {
-    onCargada()
-    onCerrar()
-  }
-
-  if (excepcionId) {
-    return (
-      <Modal abierto={!!dif} onCerrar={cerrarYActualizar} titulo="Excepción cargada">
-        <div className="flex flex-col gap-3">
-          <p className="text-sm text-fresco">Excepción cargada.</p>
-          <Button
-            type="button"
-            variante="secundario"
-            onClick={() => window.open(`/excepcion/${excepcionId}/imprimir`, '_blank')}
-            className="w-full"
-          >
-            Imprimir autorización
-          </Button>
-          <Button type="button" onClick={cerrarYActualizar} className="w-full">
-            Cerrar
-          </Button>
-        </div>
-      </Modal>
-    )
   }
 
   return (

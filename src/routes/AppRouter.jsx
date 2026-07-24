@@ -60,6 +60,7 @@ import StockSucursal from '../modules/sucursal/StockSucursal'
 import PerdidaSucursal from '../modules/sucursal/PerdidaSucursal'
 import CajaSucursal from '../modules/sucursal/CajaSucursal'
 import ConteoSucursal from '../modules/sucursal/ConteoSucursal'
+import GestionSucursales from '../modules/administracion/GestionSucursales'
 
 function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia, contadorPedidosPendientes) {
   return [
@@ -138,7 +139,14 @@ function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorC
       { to: '/dueno/disponibilidad-sucursal', label: 'Disponibilidad por sucursal' },
     ],
   },
-  { grupo: 'Administración', icono: Settings, items: [{ to: '/dueno/usuarios', label: 'Usuarios' }] },
+  {
+    grupo: 'Administración',
+    icono: Settings,
+    items: [
+      { to: '/dueno/usuarios', label: 'Usuarios' },
+      { to: '/dueno/sucursales', label: 'Sucursales' },
+    ],
+  },
   ]
 }
 
@@ -215,6 +223,7 @@ function crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia, contadorC
       { to: '/admin/disponibilidad-sucursal', label: 'Disponibilidad por sucursal' },
     ],
   },
+  { grupo: 'Administración', icono: Settings, items: [{ to: '/admin/sucursales', label: 'Sucursales' }] },
   ]
 }
 
@@ -346,6 +355,7 @@ export default function AppRouter() {
           <Route path="productos" element={<ListaProductos />} />
           <Route path="disponibilidad-sucursal" element={<DisponibilidadSucursal />} />
           <Route path="usuarios" element={<ListaUsuarios />} />
+          <Route path="sucursales" element={<GestionSucursales />} />
         </Route>
 
         <Route
@@ -381,6 +391,7 @@ export default function AppRouter() {
           <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
           <Route path="disponibilidad-sucursal" element={<DisponibilidadSucursal />} />
+          <Route path="sucursales" element={<GestionSucursales />} />
         </Route>
 
         <Route

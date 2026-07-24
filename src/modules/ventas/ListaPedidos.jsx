@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Check, Store, Trash2, Truck } from 'lucide-react'
+import { Check, Store, Trash2, Truck, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
@@ -50,6 +50,7 @@ export default function ListaPedidos({ soloPropios = false }) {
   const [bloqueoPedidoId, setBloqueoPedidoId] = useState(null)
   const [pedidoPago, setPedidoPago] = useState(null)
   const [pedidoExcepcion, setPedidoExcepcion] = useState(null)
+  const [ultimaExcepcionId, setUltimaExcepcionId] = useState(null)
   const [imprimiendoId, setImprimiendoId] = useState(null)
   const [saldosPorCliente, setSaldosPorCliente] = useState(new Map())
   const [fechasSaldoPorCliente, setFechasSaldoPorCliente] = useState(new Map())
@@ -127,9 +128,10 @@ export default function ListaPedidos({ soloPropios = false }) {
     }
   }
 
-  function excepcionCargada() {
+  function excepcionCargada(excepcionId) {
     setPedidoExcepcion(null)
     setBloqueoPedidoId(null)
+    setUltimaExcepcionId(excepcionId || null)
     cargar()
   }
 
@@ -156,6 +158,22 @@ export default function ListaPedidos({ soloPropios = false }) {
     <div>
       <h1 className="mb-4 font-display text-xl text-marca">{soloPropios ? 'Mis pedidos de hoy' : 'Pedidos de hoy'}</h1>
       {error && <p className="mb-3 text-sm text-perdida">{error}</p>}
+      {ultimaExcepcionId && (
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-fresco/10 p-3 text-sm text-fresco">
+          <span>Excepción cargada y pedido confirmado.</span>
+          <div className="flex items-center gap-3">
+            <button
+              className="underline"
+              onClick={() => window.open(`/excepcion/${ultimaExcepcionId}/imprimir`, '_blank')}
+            >
+              Imprimir autorización
+            </button>
+            <button onClick={() => setUltimaExcepcionId(null)} aria-label="Cerrar aviso">
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
       {pedidos.length === 0 ? (
         <p className="text-sm text-marca/50">No hay pedidos todavía hoy.</p>
       ) : (
@@ -251,18 +269,19 @@ function ModalExcepcionConfirmar({ pedido, onCerrar, onConfirmado }) {
   const [motivo, setMotivo] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
-  const [excepcionId, setExcepcionId] = useState(null)
 
   useEffect(() => {
     if (pedido) {
       setMotivo('')
       setError(null)
-      setExcepcionId(null)
     }
   }, [pedido])
 
   if (!pedido) return null
 
+  // Autoriza la excepción y reintenta la confirmación en la misma acción —
+  // si las dos RPC salen bien, el modal se cierra solo (onConfirmado) en vez
+  // de esperar un click extra en un cartel de "Excepción cargada" separado.
   async function confirmar() {
     setEnviando(true)
     setError(null)
@@ -270,33 +289,12 @@ function ModalExcepcionConfirmar({ pedido, onCerrar, onConfirmado }) {
       const id = await autorizarExcepcionCC(pedido.id, Number(pedido.total), motivo)
       const { error: errorRpc } = await supabase.rpc('fn_confirmar_pedido', { p_pedido_id: pedido.id })
       if (errorRpc) throw new Error(errorRpc.message)
-      setExcepcionId(id)
+      onConfirmado(id)
     } catch (e) {
       setError(e.message)
     } finally {
       setEnviando(false)
     }
-  }
-
-  if (excepcionId) {
-    return (
-      <Modal abierto={!!pedido} onCerrar={onConfirmado} titulo="Excepción cargada">
-        <div className="flex flex-col gap-3">
-          <p className="text-sm text-fresco">Excepción cargada y pedido confirmado.</p>
-          <Button
-            type="button"
-            variante="secundario"
-            onClick={() => window.open(`/excepcion/${excepcionId}/imprimir`, '_blank')}
-            className="w-full"
-          >
-            Imprimir autorización
-          </Button>
-          <Button type="button" onClick={onConfirmado} className="w-full">
-            Cerrar
-          </Button>
-        </div>
-      </Modal>
-    )
   }
 
   return (
