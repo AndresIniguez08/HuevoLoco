@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 
 export async function listarUsuarios() {
-  const { data, error } = await supabase.from('perfiles').select('*').order('nombre')
+  const { data, error } = await supabase.from('perfiles').select('*, sucursales(nombre)').order('nombre')
   if (error) throw error
   return data
 }
@@ -18,7 +18,7 @@ export async function obtenerNombrePerfil(id) {
   return data.nombre
 }
 
-export async function crearUsuario({ email, password, nombre, rol }) {
+export async function crearUsuario({ email, password, nombre, rol, sucursal_id }) {
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -31,7 +31,7 @@ export async function crearUsuario({ email, password, nombre, rol }) {
       Authorization: `Bearer ${session.access_token}`,
       apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
     },
-    body: JSON.stringify({ email, password, nombre, rol }),
+    body: JSON.stringify({ email, password, nombre, rol, sucursal_id: sucursal_id || null }),
   })
 
   const data = await res.json()

@@ -31,6 +31,7 @@ export const ROLES_ASIGNABLES = [
   ROLES.DEPOSITO,
   ROLES.VENDEDOR,
   ROLES.CHOFER,
+  ROLES.ENCARGADO_SUCURSAL,
 ].map((value) => ({ value, label: ETIQUETA_ROL[value] }))
 
 export const MEDIOS_PAGO = [

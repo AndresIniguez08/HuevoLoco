@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listarUsuarios, actualizarEstadoUsuario } from '../../lib/usuarios'
 import { traducirError } from '../../lib/errores'
-import { ETIQUETA_ROL } from '../../lib/constantes'
+import { ETIQUETA_ROL, ROLES } from '../../lib/constantes'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -69,7 +69,10 @@ export default function ListaUsuarios() {
               <li key={u.id} className="flex items-center justify-between gap-3 p-4 text-sm">
                 <div>
                   <p className="font-medium text-marca">{u.nombre}</p>
-                  <p className="text-marca/50">{ETIQUETA_ROL[u.rol] || u.rol}</p>
+                  <p className="text-marca/50">
+                    {ETIQUETA_ROL[u.rol] || u.rol}
+                    {u.rol === ROLES.ENCARGADO_SUCURSAL && u.sucursales?.nombre && ` — ${u.sucursales.nombre}`}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge tono={u.activo ? 'exito' : 'error'}>{u.activo ? 'Activo' : 'Inactivo'}</Badge>

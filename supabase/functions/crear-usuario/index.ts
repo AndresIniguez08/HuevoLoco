@@ -1,4 +1,5 @@
 // supabase/functions/crear-usuario/index.ts
+// v3: ahora acepta sucursal_id (obligatorio si el rol es encargado_sucursal)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -9,7 +10,6 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // El navegador manda un preflight OPTIONS antes del POST real — hay que responderlo
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { email, password, nombre, rol } = await req.json();
+    const { email, password, nombre, rol, sucursal_id } = await req.json();
 
     if (!email || !password || !nombre || !rol) {
       return new Response(
@@ -73,6 +73,7 @@ Deno.serve(async (req) => {
       "deposito",
       "vendedor",
       "chofer",
+      "encargado_sucursal",
     ];
     if (!rolesValidos.includes(rol)) {
       return new Response(JSON.stringify({ error: "Rol inválido" }), {
@@ -81,13 +82,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    if (!serviceRoleKey) {
+    if (rol === "encargado_sucursal" && !sucursal_id) {
       return new Response(
         JSON.stringify({
           error:
-            "DIAGNOSTICO: falta SUPABASE_SERVICE_ROLE_KEY en el entorno de la función",
+            "Un encargado de sucursal necesita tener una sucursal asignada",
         }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!serviceRoleKey) {
+      return new Response(
+        JSON.stringify({ error: "Falta configuración del servidor" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -114,9 +125,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { error: errorPerfil } = await supabaseAdmin
-      .from("perfiles")
-      .insert({ id: nuevoUsuario.user.id, nombre, rol, activo: true });
+    const { error: errorPerfil } = await supabaseAdmin.from("perfiles").insert({
+      id: nuevoUsuario.user.id,
+      nombre,
+      rol,
+      activo: true,
+      sucursal_id: sucursal_id || null,
+    });
 
     if (errorPerfil) {
       await supabaseAdmin.auth.admin.deleteUser(nuevoUsuario.user.id);
