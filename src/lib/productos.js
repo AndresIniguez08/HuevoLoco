@@ -26,18 +26,12 @@ export async function obtenerProductosConStock() {
   })
 }
 
-// Desglose de stock por producto: cajas (balde atómico independiente) y
-// cajón + maple suelto (mismo balde — vender maples sueltos es abrir un
-// cajón de a poco). Ver vista `stock_desglose` en el backend.
-export async function obtenerStockDesglose() {
-  const { data, error } = await supabase.from('stock_desglose').select('*').order('nombre')
-  if (error) throw error
-  return data
-}
-
-// Igual que obtenerStockDesglose pero acotado a una sucursal — usado por
-// StockSucursal, donde el stock es el de esa sucursal puntual, no el de
-// toda la empresa.
+// Desglose de stock por producto, acotado a una sucursal: cajas (balde
+// atómico independiente) y cajón + maple suelto (mismo balde — vender
+// maples sueltos es abrir un cajón de a poco). Ver vista `stock_desglose`
+// en el backend — trae una fila por producto + sucursal, así que siempre
+// hay que filtrar por sucursal_id o se ven filas "duplicadas" del mismo
+// producto en otras sucursales.
 export async function obtenerStockDesgloseSucursal(sucursalId) {
   const { data, error } = await supabase
     .from('stock_desglose')

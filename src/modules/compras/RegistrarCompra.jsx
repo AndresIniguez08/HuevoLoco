@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { obtenerProductosConStock } from '../../lib/productos'
-import { registrarCompra as registrarCompraRpc } from '../../lib/compras'
+import { crearCompra } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD } from '../../lib/constantes'
 import SelectorUnidad, { convertirAMaple } from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
 import ProveedorSelector from './ProveedorSelector'
 
-export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
+export default function RegistrarCompra() {
   const [productos, setProductos] = useState([])
   const [proveedorId, setProveedorId] = useState('')
   const [productoId, setProductoId] = useState('')
@@ -29,10 +29,10 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
 
   function agregarItem() {
     if (!productoSeleccionado || cantidadSeleccion.cantidad_maple <= 0 || costoManual === '') return
-    // fn_registrar_compra espera costo_unitario por maple (mezcla el costo
-    // promedio ponderado con compras previas, que también están en costo
-    // por maple), así que si el usuario cargó el costo por caja o cajón hay
-    // que convertirlo acá antes de guardarlo/enviarlo.
+    // fn_crear_compra guarda costo_unitario por maple (depósito recién lo
+    // vuelca al costo promedio ponderado al confirmar la recepción, pero ya
+    // en esa unidad), así que si el usuario cargó el costo por caja o cajón
+    // hay que convertirlo acá antes de guardarlo/enviarlo.
     const equivalenciaUnidad = convertirAMaple(1, cantidadSeleccion.unidad, productoSeleccionado) || 1
     const costoUnitarioMaple = Number(costoManual) / equivalenciaUnidad
     setItems([
@@ -64,7 +64,7 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
     setMensaje(null)
     setCompraId(null)
     try {
-      const id = await registrarCompraRpc(
+      const id = await crearCompra(
         proveedorId,
         items.map((it) => ({
           producto_id: it.producto_id,
@@ -74,7 +74,7 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
           cantidad_unidad_transaccion: it.cantidad,
         }))
       )
-      setMensaje('Compra registrada. El stock ya se actualizó.')
+      setMensaje('Orden de compra creada. Depósito la va a confirmar cuando llegue la mercadería.')
       setCompraId(id)
       setItems([])
       setProveedorId('')
@@ -89,14 +89,14 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-4 font-display text-xl text-marca">{titulo}</h1>
+      <h1 className="mb-4 font-display text-xl text-marca">Registrar compra</h1>
 
       <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
         <ProveedorSelector proveedorId={proveedorId} onCambio={setProveedorId} />
       </div>
 
       <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-sm font-medium text-marca">Agregar producto recibido</h2>
+        <h2 className="mb-3 text-sm font-medium text-marca">Agregar producto</h2>
         <div className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-marca">Producto</span>
@@ -137,7 +137,7 @@ export default function RegistrarCompra({ titulo = 'Registrar compra' }) {
       </div>
 
       <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-sm font-medium text-marca">Items recibidos</h2>
+        <h2 className="mb-3 text-sm font-medium text-marca">Items de la compra</h2>
         {items.length === 0 ? (
           <p className="text-sm text-marca/50">Todavía no agregaste productos.</p>
         ) : (

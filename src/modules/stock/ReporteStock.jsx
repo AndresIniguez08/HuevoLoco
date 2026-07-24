@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react'
-import { obtenerStockDesglose } from '../../lib/productos'
+import { obtenerStockDesgloseSucursal } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
+import { useAuthStore } from '../../stores/authStore'
 
 export default function ReporteStock() {
+  const perfil = useAuthStore((s) => s.perfil)
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    obtenerStockDesglose()
+    if (!perfil?.sucursal_id) return
+    obtenerStockDesgloseSucursal(perfil.sucursal_id)
       .then(setProductos)
       .catch((e) => setError(traducirError(e)))
       .finally(() => setCargando(false))
-  }, [])
+  }, [perfil?.sucursal_id])
 
   if (cargando) return <p className="text-marca/60">Cargando reporte...</p>
   if (error) return <p className="text-perdida">{error}</p>

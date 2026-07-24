@@ -1,23 +1,26 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import { obtenerStockDesglose } from '../../lib/productos'
+import { obtenerStockDesgloseSucursal } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
+import { useAuthStore } from '../../stores/authStore'
 import GrillaCajon from '../../components/GrillaCajon'
 import Badge from '../../components/ui/Badge'
 
 export default function StockActual() {
+  const perfil = useAuthStore((s) => s.perfil)
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!perfil?.sucursal_id) return
     cargar()
-  }, [])
+  }, [perfil?.sucursal_id])
 
   async function cargar() {
     setCargando(true)
     try {
-      const data = await obtenerStockDesglose()
+      const data = await obtenerStockDesgloseSucursal(perfil.sucursal_id)
       setProductos(data)
       setError(null)
     } catch (e) {
