@@ -91,9 +91,9 @@ export default function ConteoStock() {
                   onClick={() => navigate(`${base}/conteo/${c.id}`)}
                   className="flex w-full items-center justify-between gap-3 p-4 text-left text-sm hover:bg-marca/5"
                 >
-                  <span>
+                  <span className="flex items-center gap-2">
                     <span className="font-medium text-marca">{new Date(c.fecha).toLocaleDateString('es-AR')}</span>
-                    <span className="ml-2 text-marca/50">{c.sucursales?.nombre || '—'}</span>
+                    <Badge tono="neutro">{c.sucursales?.nombre || '—'}</Badge>
                   </span>
                   <Badge tono={c.cerrado ? 'exito' : 'neutro'}>{c.cerrado ? 'Cerrado' : 'Abierto'}</Badge>
                 </button>

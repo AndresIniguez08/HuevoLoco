@@ -83,3 +83,30 @@ export async function actualizarEstadoProducto(id, activo) {
   const { error } = await supabase.from('productos').update({ activo }).eq('id', id)
   if (error) throw error
 }
+
+// Matriz para la pantalla de disponibilidad: productos activos, sucursales
+// (menos Casa Central, que ya vende todo el catálogo por defecto) y las
+// filas de producto_sucursal que ya existan. La ausencia de una fila para
+// un par producto+sucursal significa "no habilitado" — no todas las
+// combinaciones se crean de antemano.
+export async function listarDisponibilidadSucursal() {
+  const [{ data: productos, error: errorProductos }, { data: sucursales, error: errorSucursales }, { data: filas, error: errorFilas }] =
+    await Promise.all([
+      supabase.from('productos').select('id, nombre').eq('activo', true).order('nombre'),
+      supabase.from('sucursales').select('id, nombre').neq('nombre', 'Casa Central').order('nombre'),
+      supabase.from('producto_sucursal').select('producto_id, sucursal_id, habilitado'),
+    ])
+  if (errorProductos) throw errorProductos
+  if (errorSucursales) throw errorSucursales
+  if (errorFilas) throw errorFilas
+  return { productos, sucursales, filas: filas || [] }
+}
+
+// mismo patrón de upsert que guardarItemsListaPrecio en lib/listasPrecio.js:
+// crea la fila si es la primera vez que se habilita/deshabilita ese par.
+export async function actualizarDisponibilidadSucursal(productoId, sucursalId, habilitado) {
+  const { error } = await supabase
+    .from('producto_sucursal')
+    .upsert({ producto_id: productoId, sucursal_id: sucursalId, habilitado }, { onConflict: 'producto_id,sucursal_id' })
+  if (error) throw error
+}

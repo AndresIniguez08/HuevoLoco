@@ -36,6 +36,7 @@ import ListaUsuarios from '../modules/usuarios/ListaUsuarios'
 import ListaProveedores from '../modules/proveedores/ListaProveedores'
 import CuentaCorrienteProveedores from '../modules/proveedores/CuentaCorrienteProveedores'
 import ListaProductos from '../modules/productos/ListaProductos'
+import DisponibilidadSucursal from '../modules/productos/DisponibilidadSucursal'
 import ReporteDeuda from '../modules/cobranzas/ReporteDeuda'
 import InformeCobranzas from '../modules/cobranzas/InformeCobranzas'
 import ImprimirInformeCobranzas from '../modules/cobranzas/ImprimirInformeCobranzas'
@@ -128,7 +129,14 @@ function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorC
       { to: '/dueno/transferencias', label: 'Transferencias a sucursal', contador: contadorRemitosDiferencia },
     ],
   },
-  { grupo: 'Catálogo', icono: Egg, items: [{ to: '/dueno/productos', label: 'Productos' }] },
+  {
+    grupo: 'Catálogo',
+    icono: Egg,
+    items: [
+      { to: '/dueno/productos', label: 'Productos' },
+      { to: '/dueno/disponibilidad-sucursal', label: 'Disponibilidad por sucursal' },
+    ],
+  },
   { grupo: 'Administración', icono: Settings, items: [{ to: '/dueno/usuarios', label: 'Usuarios' }] },
   ]
 }
@@ -198,7 +206,14 @@ function crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia, contadorC
       { to: '/admin/transferencias', label: 'Transferencias a sucursal', contador: contadorRemitosDiferencia },
     ],
   },
-  { grupo: 'Catálogo', icono: Egg, items: [{ to: '/admin/productos', label: 'Productos' }] },
+  {
+    grupo: 'Catálogo',
+    icono: Egg,
+    items: [
+      { to: '/admin/productos', label: 'Productos' },
+      { to: '/admin/disponibilidad-sucursal', label: 'Disponibilidad por sucursal' },
+    ],
+  },
   ]
 }
 
@@ -327,6 +342,7 @@ export default function AppRouter() {
           <Route path="proveedores" element={<ListaProveedores />} />
           <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
+          <Route path="disponibilidad-sucursal" element={<DisponibilidadSucursal />} />
           <Route path="usuarios" element={<ListaUsuarios />} />
         </Route>
 
@@ -362,6 +378,7 @@ export default function AppRouter() {
           <Route path="proveedores" element={<ListaProveedores />} />
           <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
+          <Route path="disponibilidad-sucursal" element={<DisponibilidadSucursal />} />
         </Route>
 
         <Route
