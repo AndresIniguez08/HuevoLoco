@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { obtenerMovimientosCaja } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
+import { useAuthStore } from '../../stores/authStore'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 
@@ -11,19 +12,23 @@ function haceDias(n) {
 }
 
 export default function HistorialMovimientos() {
+  const perfil = useAuthStore((s) => s.perfil)
   const [desde, setDesde] = useState(haceDias(7))
   const [movimientos, setMovimientos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    if (!perfil?.sucursal_id) return
     cargar()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [desde])
+  }, [desde, perfil?.sucursal_id])
 
+  // Mismo criterio que Arqueo.jsx: filtrado por la propia sucursal (Casa
+  // Central acá), para no mezclar movimientos de las sucursales.
   function cargar() {
     setCargando(true)
-    obtenerMovimientosCaja({ desde })
+    obtenerMovimientosCaja({ desde, sucursalId: perfil.sucursal_id })
       .then(setMovimientos)
       .catch((e) => setError(traducirError(e)))
       .finally(() => setCargando(false))

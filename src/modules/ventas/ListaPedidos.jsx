@@ -3,12 +3,7 @@ import { Check, Store, Trash2, Truck, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
-import {
-  autorizarExcepcionCC,
-  listarSaldosClientes,
-  obtenerTotalesPagadosPorPedidos,
-  obtenerUltimoPagoPedido,
-} from '../../lib/cobranzas'
+import { listarSaldosClientes, obtenerTotalesPagadosPorPedidos, obtenerUltimoPagoPedido } from '../../lib/cobranzas'
 import { obtenerFechasInicioSaldoPendiente } from '../../lib/clientes'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import {
@@ -25,6 +20,7 @@ import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
 import Input from '../../components/ui/Input'
 import AvisoSaldoCliente from '../../components/AvisoSaldoCliente'
+import ModalExcepcionConfirmar from '../../components/ModalExcepcionConfirmar'
 
 // fn_confirmar_pedido devuelve estos mensajes en lenguaje claro cuando la
 // confirmación chocaría con la cuenta corriente del cliente — se detectan
@@ -76,6 +72,11 @@ export default function ListaPedidos({ soloPropios = false }) {
         .select('*, clientes(nombre)')
         .gte('creado_at', `${hoy}T00:00:00`)
         .order('creado_at', { ascending: false })
+      // Esta pantalla es de Central (dueño/admin/vendedor/depósito son todos
+      // roles de Casa Central) — los pedidos de sucursal tienen su propia
+      // cola en Aprobaciones cuando quedan bloqueados, y su propia pantalla
+      // de venta para lo demás. Sin este filtro se mezclaban acá.
+      if (perfil?.sucursal_id) query = query.eq('sucursal_id', perfil.sucursal_id)
       if (soloPropios && usuario) query = query.eq('vendedor_id', usuario.id)
       const { data, error: errorPedidos } = await query
       if (errorPedidos) throw errorPedidos
@@ -262,62 +263,6 @@ export default function ListaPedidos({ soloPropios = false }) {
       <ModalPago pedido={pedidoPago} onCerrar={() => setPedidoPago(null)} onPagado={cargar} />
       <ModalExcepcionConfirmar pedido={pedidoExcepcion} onCerrar={() => setPedidoExcepcion(null)} onConfirmado={excepcionCargada} />
     </div>
-  )
-}
-
-function ModalExcepcionConfirmar({ pedido, onCerrar, onConfirmado }) {
-  const [motivo, setMotivo] = useState('')
-  const [enviando, setEnviando] = useState(false)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    if (pedido) {
-      setMotivo('')
-      setError(null)
-    }
-  }, [pedido])
-
-  if (!pedido) return null
-
-  // Autoriza la excepción y reintenta la confirmación en la misma acción —
-  // si las dos RPC salen bien, el modal se cierra solo (onConfirmado) en vez
-  // de esperar un click extra en un cartel de "Excepción cargada" separado.
-  async function confirmar() {
-    setEnviando(true)
-    setError(null)
-    try {
-      const id = await autorizarExcepcionCC(pedido.id, Number(pedido.total), motivo)
-      const { error: errorRpc } = await supabase.rpc('fn_confirmar_pedido', { p_pedido_id: pedido.id })
-      if (errorRpc) throw new Error(errorRpc.message)
-      onConfirmado(id)
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setEnviando(false)
-    }
-  }
-
-  return (
-    <Modal abierto={!!pedido} onCerrar={onCerrar} titulo="Cargar excepción y confirmar">
-      <div className="flex flex-col gap-3">
-        <p className="text-sm text-marca/70">
-          Cliente: {pedido.clientes?.nombre || 'Cliente'} — Total: <span className="font-mono">${Number(pedido.total).toFixed(2)}</span>
-        </p>
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-marca">Motivo</span>
-          <textarea
-            value={motivo}
-            onChange={(e) => setMotivo(e.target.value)}
-            rows={3}
-            className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
-          />
-        </label>
-        {error && <p className="text-sm text-perdida">{error}</p>}
-        <Button type="button" onClick={confirmar} cargando={enviando} disabled={!motivo.trim()} className="w-full">
-          Confirmar excepción y confirmar pedido
-        </Button>
-      </div>
-    </Modal>
   )
 }
 

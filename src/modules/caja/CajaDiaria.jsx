@@ -2,19 +2,26 @@ import { useEffect, useState } from 'react'
 import { obtenerMovimientosCaja, totalesPorMedio } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { MEDIOS_PAGO } from '../../lib/constantes'
+import { useAuthStore } from '../../stores/authStore'
 import Badge from '../../components/ui/Badge'
 
 export default function CajaDiaria() {
+  const perfil = useAuthStore((s) => s.perfil)
   const [movimientos, setMovimientos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    obtenerMovimientosCaja()
+    if (!perfil?.sucursal_id) return
+    // Filtrado por la propia sucursal (Casa Central para quien usa esta
+    // pantalla): con más de una sucursal generando caja_movimientos, sin
+    // este filtro Central sumaría en su total del día plata que en
+    // realidad está en la caja física de San Martín o Mercado.
+    obtenerMovimientosCaja({ sucursalId: perfil.sucursal_id })
       .then(setMovimientos)
       .catch((e) => setError(traducirError(e)))
       .finally(() => setCargando(false))
-  }, [])
+  }, [perfil?.sucursal_id])
 
   if (cargando) return <p className="text-marca/60">Cargando caja...</p>
   if (error) return <p className="text-perdida">{error}</p>
