@@ -70,8 +70,8 @@ function crearNavDueno(contadores, contadorComprasDiferencia) {
     items: [
       { to: '/dueno/stock', label: 'Stock actual' },
       { to: '/dueno/reporte-stock', label: 'Reporte de stock' },
-      { to: '/dueno/conteo', label: 'Conteo de stock' },
-      { to: '/dueno/auditorias', label: 'Auditorías', contador: contadores.conteos_abiertos },
+      { to: '/dueno/conteo', label: 'Conteo de stock', contador: contadores.conteos_abiertos },
+      { to: '/dueno/auditorias', label: 'Auditorías' },
       { to: '/dueno/perdidas', label: 'Pérdidas' },
     ],
   },
@@ -157,8 +157,8 @@ function crearNavAdmin(contadores, contadorComprasDiferencia) {
     icono: Package,
     items: [
       { to: '/admin/reporte-stock', label: 'Reporte de stock' },
-      { to: '/admin/conteo', label: 'Conteo de stock' },
-      { to: '/admin/auditorias', label: 'Auditorías', contador: contadores.conteos_abiertos },
+      { to: '/admin/conteo', label: 'Conteo de stock', contador: contadores.conteos_abiertos },
+      { to: '/admin/auditorias', label: 'Auditorías' },
     ],
   },
   {
@@ -235,8 +235,8 @@ function crearNavDeposito(contadores) {
       items: [
         { to: '/deposito/stock', label: 'Stock actual', end: true },
         { to: '/deposito/reporte-stock', label: 'Reporte de stock' },
-        { to: '/deposito/conteo', label: 'Conteo de stock' },
-        { to: '/deposito/auditorias', label: 'Auditorías', contador: contadores.conteos_abiertos },
+        { to: '/deposito/conteo', label: 'Conteo de stock', contador: contadores.conteos_abiertos },
+        { to: '/deposito/auditorias', label: 'Auditorías' },
         { to: '/deposito/perdidas', label: 'Pérdidas' },
       ],
     },

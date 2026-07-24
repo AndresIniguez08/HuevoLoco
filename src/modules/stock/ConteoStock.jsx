@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { crearConteo, listarConteos } from '../../lib/conteoStock'
 import { traducirError } from '../../lib/errores'
@@ -49,6 +49,9 @@ export default function ConteoStock() {
     }
   }
 
+  const abiertos = useMemo(() => conteos.filter((c) => !c.cerrado), [conteos])
+  const cerrados = useMemo(() => conteos.filter((c) => c.cerrado), [conteos])
+
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-4 flex items-center justify-between">
@@ -78,29 +81,63 @@ export default function ConteoStock() {
 
       {error && <p className="mb-3 text-sm text-perdida">{error}</p>}
 
-      <div className="rounded-xl bg-white shadow-sm">
-        {cargando ? (
-          <p className="p-4 text-sm text-marca/60">Cargando conteos...</p>
-        ) : conteos.length === 0 ? (
-          <p className="p-4 text-sm text-marca/50">Todavía no se hizo ningún conteo.</p>
-        ) : (
-          <ul className="divide-y divide-marca/10">
-            {conteos.map((c) => (
-              <li key={c.id}>
-                <button
-                  onClick={() => navigate(`${base}/conteo/${c.id}`)}
-                  className="flex w-full items-center justify-between gap-3 p-4 text-left text-sm hover:bg-marca/5"
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="font-medium text-marca">{new Date(c.fecha).toLocaleDateString('es-AR')}</span>
-                    <Badge tono="neutro">{c.sucursales?.nombre || '—'}</Badge>
-                  </span>
-                  <Badge tono={c.cerrado ? 'exito' : 'neutro'}>{c.cerrado ? 'Cerrado' : 'Abierto'}</Badge>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+      {!cargando && (
+        <div className="mb-4">
+          <div className="mb-2 flex items-center gap-2">
+            <h2 className="text-sm font-medium text-marca">Conteos abiertos</h2>
+            {abiertos.length > 0 && <Badge tono="alerta">{abiertos.length}</Badge>}
+          </div>
+          <div className="rounded-xl bg-white shadow-sm">
+            {abiertos.length === 0 ? (
+              <p className="p-4 text-sm text-marca/50">No hay conteos abiertos ahora mismo.</p>
+            ) : (
+              <ul className="divide-y divide-marca/10">
+                {abiertos.map((c) => (
+                  <li key={c.id}>
+                    <button
+                      onClick={() => navigate(`${base}/conteo/${c.id}`)}
+                      className="flex w-full items-center justify-between gap-3 p-4 text-left text-sm hover:bg-marca/5"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium text-marca">{new Date(c.fecha).toLocaleDateString('es-AR')}</span>
+                        <Badge tono="neutro">{c.sucursales?.nombre || '—'}</Badge>
+                      </span>
+                      <Badge tono="neutro">Abierto</Badge>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h2 className="mb-2 text-sm font-medium text-marca">Historial</h2>
+        <div className="rounded-xl bg-white shadow-sm">
+          {cargando ? (
+            <p className="p-4 text-sm text-marca/60">Cargando conteos...</p>
+          ) : cerrados.length === 0 ? (
+            <p className="p-4 text-sm text-marca/50">Todavía no se cerró ningún conteo.</p>
+          ) : (
+            <ul className="divide-y divide-marca/10">
+              {cerrados.map((c) => (
+                <li key={c.id}>
+                  <button
+                    onClick={() => navigate(`${base}/conteo/${c.id}`)}
+                    className="flex w-full items-center justify-between gap-3 p-4 text-left text-sm hover:bg-marca/5"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium text-marca">{new Date(c.fecha).toLocaleDateString('es-AR')}</span>
+                      <Badge tono="neutro">{c.sucursales?.nombre || '—'}</Badge>
+                    </span>
+                    <Badge tono="exito">Cerrado</Badge>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   )
