@@ -12,7 +12,7 @@ function telefonoLimpio(telefono) {
 }
 
 function mensajeWhatsapp(cliente) {
-  const texto = `Hola ${cliente.nombre}, te escribimos de Huevo Loco para recordarte que tenés un saldo pendiente de ${formatearMoneda(cliente.saldo)}. ¡Gracias!`
+  const texto = `Hola ${cliente.nombre}, te escribimos de Huevo Loco para recordarte que tenés un saldo pendiente de ${formatearMoneda(cliente.saldo_actual)}. ¡Gracias!`
   return `https://wa.me/${telefonoLimpio(cliente.telefono)}?text=${encodeURIComponent(texto)}`
 }
 
@@ -27,7 +27,7 @@ function TablaClientes({ clientes, mostrarPeriodo, rutaBase }) {
             <p className="text-xs text-marca/40">{c.sucursal_nombre || '—'}</p>
             <p className="mt-1 text-sm text-marca/70">
               <span className="text-xs text-marca/40">Saldo actual: </span>
-              <span className="font-mono text-perdida">{formatearMoneda(c.saldo)}</span>
+              <span className="font-mono text-perdida">{formatearMoneda(c.saldo_actual)}</span>
             </p>
             {mostrarPeriodo && (
               <p className="text-sm text-marca/70">
@@ -75,7 +75,7 @@ function TablaClientes({ clientes, mostrarPeriodo, rutaBase }) {
               <tr key={c.cliente_id}>
                 <td className="p-3 font-medium text-marca">{c.nombre}</td>
                 <td className="p-3 text-marca/70">{c.sucursal_nombre || '—'}</td>
-                <td className="p-3 font-mono text-perdida">{formatearMoneda(c.saldo)}</td>
+                <td className="p-3 font-mono text-perdida">{formatearMoneda(c.saldo_actual)}</td>
                 {mostrarPeriodo && (
                   <td className="p-3 font-mono text-yema">{formatearMoneda(c.deuda_generada_periodo)}</td>
                 )}
@@ -136,7 +136,7 @@ export default function ReporteDeuda() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sucursalId, periodoId])
 
-  const totalAdeudado = clientes.reduce((acc, c) => acc + Number(c.saldo), 0)
+  const totalAdeudado = clientes.reduce((acc, c) => acc + Number(c.saldo_actual), 0)
   const mostrarPeriodo = periodoId !== 'general'
 
   const grupos = useMemo(() => {

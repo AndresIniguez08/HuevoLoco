@@ -101,9 +101,20 @@ export default function CuentaCorriente() {
     <div className="mx-auto max-w-2xl">
       <h1 className="mb-4 font-display text-xl text-marca">Cuenta corriente</h1>
 
-      <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
-        <BuscadorCliente onSeleccionar={setCliente} />
-      </div>
+      {cliente ? (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
+          <p className="text-sm text-marca/70">
+            Viendo cuenta corriente de <span className="font-medium text-marca">{cliente.nombre}</span>
+          </p>
+          <Button tamano="sm" variante="secundario" onClick={() => setCliente(null)}>
+            Buscar otro cliente
+          </Button>
+        </div>
+      ) : (
+        <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
+          <BuscadorCliente onSeleccionar={setCliente} />
+        </div>
+      )}
 
       {cliente && (
         <div className="flex flex-col gap-4">
