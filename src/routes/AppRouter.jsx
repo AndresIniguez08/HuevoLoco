@@ -6,6 +6,7 @@ import { ROLES, RUTA_RAIZ_POR_ROL } from '../lib/constantes'
 import { contarDiferenciasSinRevisar } from '../lib/diferenciasCobro'
 import { contarRemitosDiferenciaSinRevisar } from '../lib/transferencias'
 import { contarComprasDiferenciaSinRevisar } from '../lib/compras'
+import { useRefrescoPeriodico } from '../hooks/useRefrescoPeriodico'
 import RutaProtegida from '../components/RutaProtegida'
 import AppShell from '../components/AppShell'
 import Login from '../modules/auth/Login'
@@ -246,36 +247,23 @@ function InicioSesionResuelto() {
 }
 
 // Refresca cada 30s mientras el rol correspondiente tiene la sesión abierta,
-// y también al volver a la pestaña (visibilitychange) — cubre el caso de
-// alguien que cambió de pestaña/app y volvió con un badge ya desactualizado.
+// y también al volver a la pestaña — vía useRefrescoPeriodico, reutilizado
+// por VistaChofer y AceptarMercaderia para el mismo problema.
 function useContadorPeriodico(activo, obtenerContador) {
   const [contador, setContador] = useState(0)
 
   useEffect(() => {
-    if (!activo) {
-      setContador(0)
-      return
-    }
-    let vivo = true
-    function refrescar() {
+    if (!activo) setContador(0)
+  }, [activo])
+
+  useRefrescoPeriodico(
+    () => {
       obtenerContador()
-        .then((n) => {
-          if (vivo) setContador(n)
-        })
+        .then((n) => setContador(n))
         .catch(() => {})
-    }
-    function alVolverVisible() {
-      if (document.visibilityState === 'visible') refrescar()
-    }
-    refrescar()
-    const intervalo = setInterval(refrescar, 30000)
-    document.addEventListener('visibilitychange', alVolverVisible)
-    return () => {
-      vivo = false
-      clearInterval(intervalo)
-      document.removeEventListener('visibilitychange', alVolverVisible)
-    }
-  }, [activo, obtenerContador])
+    },
+    { activo }
+  )
 
   return contador
 }

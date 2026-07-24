@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { listarRemitosPendientesSucursal, aceptarRemito, reportarDiferenciaRemito } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
 import { formatearCantidadItemCompra } from '../../lib/constantes'
+import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Button from '../../components/ui/Button'
 
 export default function AceptarMercaderia() {
@@ -23,16 +24,21 @@ export default function AceptarMercaderia() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function cargar() {
-    setCargando(true)
+  // Refresco silencioso cada 30s + al volver a la pestaña: si Central manda
+  // un remito nuevo mientras el encargado tiene esta pantalla abierta, tiene
+  // que aparecer solo, sin recargar la página (mismo criterio que VistaChofer).
+  useRefrescoPeriodico(() => cargar({ silencioso: true }), { inicial: false })
+
+  async function cargar({ silencioso = false } = {}) {
+    if (!silencioso) setCargando(true)
     try {
       const data = await listarRemitosPendientesSucursal(perfil.sucursal_id)
       setRemitos(data)
       setError(null)
     } catch (e) {
-      setError(traducirError(e))
+      if (!silencioso) setError(traducirError(e))
     } finally {
-      setCargando(false)
+      if (!silencioso) setCargando(false)
     }
   }
 

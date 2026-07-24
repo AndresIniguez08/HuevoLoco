@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { obtenerTotalesPagadosPorPedidos } from '../../lib/cobranzas'
+import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import { MEDIOS_PAGO, ETIQUETA_UNIDAD } from '../../lib/constantes'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
@@ -37,8 +38,14 @@ export default function VistaChofer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function cargar() {
-    setCargando(true)
+  // Refresco silencioso cada 30s + al volver a la pestaña: si depósito o
+  // administrativo le asignan una entrega nueva mientras el chofer tiene
+  // esta pantalla abierta (probablemente manejando), tiene que aparecer
+  // sola, sin que el chofer tenga que acordarse de recargar.
+  useRefrescoPeriodico(() => cargar({ silencioso: true }), { inicial: false })
+
+  async function cargar({ silencioso = false } = {}) {
+    if (!silencioso) setCargando(true)
     try {
       const hoy = new Date().toISOString().slice(0, 10)
       const { data, error: errorRepartos } = await supabase
@@ -63,9 +70,11 @@ export default function VistaChofer() {
       setSaldosPorPedido(saldos)
       setError(null)
     } catch (e) {
-      setError(traducirError(e))
+      // En un refresco silencioso no mostramos el error: no vale la pena
+      // taparle al chofer la lista de entregas ya cargada por un hipo de red.
+      if (!silencioso) setError(traducirError(e))
     } finally {
-      setCargando(false)
+      if (!silencioso) setCargando(false)
     }
   }
 
