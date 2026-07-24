@@ -246,7 +246,8 @@ function InicioSesionResuelto() {
 }
 
 // Refresca cada 30s mientras el rol correspondiente tiene la sesión abierta,
-// para que el badge de la sidebar no quede desactualizado por mucho tiempo.
+// y también al volver a la pestaña (visibilitychange) — cubre el caso de
+// alguien que cambió de pestaña/app y volvió con un badge ya desactualizado.
 function useContadorPeriodico(activo, obtenerContador) {
   const [contador, setContador] = useState(0)
 
@@ -263,11 +264,16 @@ function useContadorPeriodico(activo, obtenerContador) {
         })
         .catch(() => {})
     }
+    function alVolverVisible() {
+      if (document.visibilityState === 'visible') refrescar()
+    }
     refrescar()
     const intervalo = setInterval(refrescar, 30000)
+    document.addEventListener('visibilitychange', alVolverVisible)
     return () => {
       vivo = false
       clearInterval(intervalo)
+      document.removeEventListener('visibilitychange', alVolverVisible)
     }
   }, [activo, obtenerContador])
 
