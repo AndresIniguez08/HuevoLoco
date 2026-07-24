@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { listarSucursales, configurarCCSucursal } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
 import Button from '../../components/ui/Button'
+import Toggle from '../../components/ui/Toggle'
 
 function TarjetaSucursal({ sucursal, onGuardado }) {
   const [habilitada, setHabilitada] = useState(!!sucursal.cc_habilitada_default)
@@ -12,8 +13,8 @@ function TarjetaSucursal({ sucursal, onGuardado }) {
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState(null)
 
-  function alternar() {
-    setHabilitada((v) => !v)
+  function alternar(valor) {
+    setHabilitada(valor)
     setSinGuardar(true)
   }
 
@@ -42,21 +43,7 @@ function TarjetaSucursal({ sucursal, onGuardado }) {
 
       <div className="mb-3 flex items-center justify-between gap-4">
         <span className="text-sm text-marca/70">Activar cuenta corriente para esta sucursal</span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={habilitada}
-          onClick={alternar}
-          className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-            habilitada ? 'bg-fresco' : 'bg-marca/20'
-          }`}
-        >
-          <span
-            className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-              habilitada ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
-        </button>
+        <Toggle checked={habilitada} onChange={alternar} />
       </div>
 
       <label className="mb-3 flex flex-col gap-1 text-sm">

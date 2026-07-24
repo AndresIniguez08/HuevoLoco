@@ -3,6 +3,7 @@ import { Check } from 'lucide-react'
 import { listarDisponibilidadSucursal, actualizarDisponibilidadSucursal } from '../../lib/productos'
 import { actualizarPermiteVentaSinStock } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
+import Toggle from '../../components/ui/Toggle'
 
 function clave(productoId, sucursalId) {
   return `${productoId}:${sucursalId}`
@@ -21,22 +22,7 @@ function InterruptorVentaSinStock({ sucursal, guardando, onCambiar }) {
           con seña que el cliente retira más tarde). Si está apagado, el sistema bloquea la venta si falta stock.
         </p>
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={activo}
-        disabled={guardando}
-        onClick={() => onCambiar(sucursal.id, activo)}
-        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
-          activo ? 'bg-fresco' : 'bg-marca/20'
-        }`}
-      >
-        <span
-          className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            activo ? 'translate-x-6' : 'translate-x-1'
-          }`}
-        />
-      </button>
+      <Toggle checked={activo} disabled={guardando} onChange={() => onCambiar(sucursal.id, activo)} />
     </div>
   )
 }
