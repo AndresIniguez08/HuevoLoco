@@ -11,6 +11,18 @@ import { formatearMoneda, formatearNumero } from '../../lib/formato'
 
 const COLOR_BARRA = '#0B2D5B'
 
+function useEsMovil() {
+  const [esMovil, setEsMovil] = useState(() => window.innerWidth < 640)
+  useEffect(() => {
+    function onResize() {
+      setEsMovil(window.innerWidth < 640)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+  return esMovil
+}
+
 function TooltipFacturacion({ active, payload }) {
   if (!active || !payload?.length) return null
   const item = payload[0].payload
@@ -53,6 +65,7 @@ function ModalResumenSucursales({ abierto, onCerrar }) {
   const [resumen, setResumen] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
+  const esMovil = useEsMovil()
 
   useEffect(() => {
     if (!abierto) return
@@ -78,19 +91,38 @@ function ModalResumenSucursales({ abierto, onCerrar }) {
           </div>
 
           {resumen.length > 0 && (
-            <div style={{ width: '100%', height: 260 }}>
-              <ResponsiveContainer>
-                <BarChart data={resumen} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+            // min-w-0 es necesario: este div es un ítem de un contenedor flex
+            // (flex flex-col más arriba), y por defecto un ítem flex no se
+            // achica por debajo del ancho de su contenido aunque tenga
+            // width: 100% — eso es lo que hacía que el SVG del gráfico se
+            // saliera del modal en pantallas angostas (eje Y cortado y barras
+            // "sueltas" fuera del contenedor).
+            <div className="min-w-0 overflow-hidden" style={{ width: '100%', height: esMovil ? 220 : 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={resumen}
+                  margin={{ top: 8, right: 8, left: esMovil ? -16 : 8, bottom: esMovil ? 20 : 8 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="#0B2D5B1A" vertical={false} />
-                  <XAxis dataKey="nombre" tick={{ fontSize: 12, fill: '#0B2D5B99' }} axisLine={{ stroke: '#0B2D5B1A' }} tickLine={false} />
+                  <XAxis
+                    dataKey="nombre"
+                    tick={{ fontSize: esMovil ? 10 : 12, fill: '#0B2D5B99' }}
+                    axisLine={{ stroke: '#0B2D5B1A' }}
+                    tickLine={false}
+                    interval={0}
+                    angle={esMovil ? -30 : 0}
+                    textAnchor={esMovil ? 'end' : 'middle'}
+                    height={esMovil ? 36 : 30}
+                  />
                   <YAxis
-                    tick={{ fontSize: 12, fill: '#0B2D5B99' }}
+                    tick={{ fontSize: esMovil ? 10 : 12, fill: '#0B2D5B99' }}
                     axisLine={false}
                     tickLine={false}
+                    width={esMovil ? 46 : 60}
                     tickFormatter={(v) => `$${formatearNumero(v)}`}
                   />
                   <Tooltip content={<TooltipFacturacion />} cursor={{ fill: '#0B2D5B0D' }} />
-                  <Bar dataKey="facturacion_total" fill={COLOR_BARRA} radius={[4, 4, 0, 0]} maxBarSize={80} />
+                  <Bar dataKey="facturacion_total" fill={COLOR_BARRA} radius={[4, 4, 0, 0]} maxBarSize={esMovil ? 48 : 80} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
