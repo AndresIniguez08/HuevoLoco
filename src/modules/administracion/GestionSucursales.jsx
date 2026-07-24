@@ -11,6 +11,36 @@ import { formatearMoneda, formatearNumero } from '../../lib/formato'
 
 const COLOR_BARRA = '#0B2D5B'
 
+function inicioDeHoy() {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function inicioDeSemana() {
+  const d = new Date()
+  const dia = d.getDay()
+  const diff = dia === 0 ? 6 : dia - 1 // semana arranca el lunes
+  d.setDate(d.getDate() - diff)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function inicioDeMes() {
+  const d = new Date()
+  return new Date(d.getFullYear(), d.getMonth(), 1)
+}
+
+// deuda_total y valor_stock son una foto del momento y no cambian con el
+// período (a propósito, según fn_resumen_sucursales) — el filtro solo afecta
+// facturacion_total/cantidad_ventas, por eso el mensaje aclaratorio en el modal.
+const PERIODOS = [
+  { id: 'hoy', label: 'Hoy', rango: () => ({ desde: inicioDeHoy(), hasta: new Date() }) },
+  { id: 'semana', label: 'Esta semana', rango: () => ({ desde: inicioDeSemana(), hasta: new Date() }) },
+  { id: 'mes', label: 'Este mes', rango: () => ({ desde: inicioDeMes(), hasta: new Date() }) },
+  { id: 'general', label: 'General', rango: () => ({ desde: null, hasta: null }) },
+]
+
 function useEsMovil() {
   const [esMovil, setEsMovil] = useState(() => window.innerWidth < 640)
   useEffect(() => {
@@ -65,19 +95,41 @@ function ModalResumenSucursales({ abierto, onCerrar }) {
   const [resumen, setResumen] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
+  const [periodoId, setPeriodoId] = useState('general')
   const esMovil = useEsMovil()
+  const periodo = PERIODOS.find((p) => p.id === periodoId)
 
   useEffect(() => {
     if (!abierto) return
     setCargando(true)
-    obtenerResumenSucursales()
+    const { desde, hasta } = periodo.rango()
+    obtenerResumenSucursales(desde ? desde.toISOString() : null, hasta ? hasta.toISOString() : null)
       .then(setResumen)
       .catch((e) => setError(traducirError(e)))
       .finally(() => setCargando(false))
-  }, [abierto])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abierto, periodoId])
 
   return (
     <Modal abierto={abierto} onCerrar={onCerrar} titulo="Resumen por sucursal" ancho="max-w-4xl">
+      <p className="mb-4 text-xs text-marca/50">
+        Facturación y ventas de: {periodo.label} — Deuda y stock: al día de hoy
+      </p>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {PERIODOS.map((p) => (
+          <Button
+            key={p.id}
+            type="button"
+            tamano="sm"
+            variante={p.id === periodoId ? 'primario' : 'secundario'}
+            onClick={() => setPeriodoId(p.id)}
+          >
+            {p.label}
+          </Button>
+        ))}
+      </div>
+
       {cargando ? (
         <p className="text-sm text-marca/60">Cargando resumen...</p>
       ) : error ? (

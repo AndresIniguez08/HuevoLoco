@@ -8,9 +8,11 @@ export async function listarSucursales() {
 
 // fn_resumen_sucursales ya bloquea esto a dueño/administrativo en el
 // backend — el frontend solo evita mostrar el botón a otros roles, no es la
-// única barrera.
-export async function obtenerResumenSucursales() {
-  const { data, error } = await supabase.rpc('fn_resumen_sucursales')
+// única barrera. p_desde/p_hasta son opcionales (null = histórico completo)
+// y solo filtran facturación_total/cantidad_ventas — deuda_total y
+// valor_stock siempre son la foto actual, a propósito.
+export async function obtenerResumenSucursales(desde = null, hasta = null) {
+  const { data, error } = await supabase.rpc('fn_resumen_sucursales', { p_desde: desde, p_hasta: hasta })
   if (error) throw error
   return data || []
 }
