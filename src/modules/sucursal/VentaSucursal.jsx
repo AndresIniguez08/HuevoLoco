@@ -144,9 +144,9 @@ export default function VentaSucursal() {
           cliente.id,
           items.map((it) => ({
             producto_id: it.producto_id,
-            cantidad_maple: it.cantidad_maple,
-            unidad_transaccion: it.unidad,
+            unidad_vendida: it.unidad,
             cantidad_unidad: it.cantidad,
+            cantidad_maple: it.cantidad_maple,
             precio_lista: it.precio_lista,
             precio_aplicado: it.precio_aplicado,
           }))
