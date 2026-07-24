@@ -35,6 +35,35 @@ export async function obtenerStockDesglose() {
   return data
 }
 
+// Igual que obtenerStockDesglose pero acotado a una sucursal — usado por
+// StockSucursal, donde el stock es el de esa sucursal puntual, no el de
+// toda la empresa.
+export async function obtenerStockDesgloseSucursal(sucursalId) {
+  const { data, error } = await supabase
+    .from('stock_desglose')
+    .select('*')
+    .eq('sucursal_id', sucursalId)
+    .order('nombre')
+  if (error) throw error
+  return data
+}
+
+// Catálogo de una sucursal: solo los productos que Central habilitó para
+// venderse ahí (producto_sucursal.habilitado). Distinto del catálogo
+// completo que usa Central en TomarPedido/RegistrarCompra.
+export async function obtenerProductosHabilitadosSucursal(sucursalId) {
+  const { data, error } = await supabase
+    .from('producto_sucursal')
+    .select('productos(*)')
+    .eq('sucursal_id', sucursalId)
+    .eq('habilitado', true)
+  if (error) throw error
+  return (data || [])
+    .map((fila) => fila.productos)
+    .filter(Boolean)
+    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+}
+
 // Para la pantalla de gestión: por defecto solo activos, con opción de
 // incluir inactivos vía el filtro "mostrar inactivos".
 export async function listarProductosGestion({ texto = '', incluirInactivos = false } = {}) {

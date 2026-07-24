@@ -1,6 +1,13 @@
-import { LogOut, PackageCheck } from 'lucide-react'
+import { LogOut, PackageCheck, PackageSearch, ShoppingCart, Wallet } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
+
+const BOTONES = [
+  { to: '/sucursal/vender', label: 'Vender', icono: ShoppingCart, clase: 'bg-marca' },
+  { to: '/sucursal/aceptar-mercaderia', label: 'Aceptar mercadería', icono: PackageCheck, clase: 'bg-fresco' },
+  { to: '/sucursal/stock', label: 'Stock', icono: PackageSearch, clase: 'bg-yema' },
+  { to: '/sucursal/caja', label: 'Caja', icono: Wallet, clase: 'bg-marca-claro' },
+]
 
 export default function InicioSucursal() {
   const perfil = useAuthStore((s) => s.perfil)
@@ -19,14 +26,17 @@ export default function InicioSucursal() {
         </button>
       </header>
 
-      <div className="flex flex-col gap-4 p-4">
-        <button
-          onClick={() => navigate('/sucursal/aceptar-mercaderia')}
-          className="flex min-h-[80px] w-full items-center justify-center gap-3 rounded-2xl bg-fresco px-4 text-2xl font-medium text-white shadow-sm active:bg-fresco/90"
-        >
-          <PackageCheck size={32} />
-          Aceptar mercadería
-        </button>
+      <div className="grid grid-cols-2 gap-4 p-4">
+        {BOTONES.map((b) => (
+          <button
+            key={b.to}
+            onClick={() => navigate(b.to)}
+            className={`flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl px-3 text-xl font-medium text-white shadow-sm active:opacity-90 ${b.clase}`}
+          >
+            <b.icono size={32} />
+            {b.label}
+          </button>
+        ))}
       </div>
     </div>
   )

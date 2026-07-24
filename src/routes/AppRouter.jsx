@@ -51,6 +51,10 @@ import ImprimirDiferencia from '../modules/reparto/ImprimirDiferencia'
 import TransferenciasSucursal from '../modules/reparto/TransferenciasSucursal'
 import InicioSucursal from '../modules/sucursal/InicioSucursal'
 import AceptarMercaderia from '../modules/sucursal/AceptarMercaderia'
+import VentaSucursal from '../modules/sucursal/VentaSucursal'
+import StockSucursal from '../modules/sucursal/StockSucursal'
+import PerdidaSucursal from '../modules/sucursal/PerdidaSucursal'
+import CajaSucursal from '../modules/sucursal/CajaSucursal'
 
 function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia) {
   return [
@@ -411,7 +415,7 @@ export default function AppRouter() {
         <Route
           path="/arqueo/:id/imprimir"
           element={
-            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO]}>
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.ENCARGADO_SUCURSAL]}>
               <ImprimirArqueo />
             </RutaProtegida>
           }
@@ -438,7 +442,7 @@ export default function AppRouter() {
         <Route
           path="/perdida/:id/imprimir"
           element={
-            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.DEPOSITO]}>
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.DEPOSITO, ROLES.ENCARGADO_SUCURSAL]}>
               <ImprimirPerdida />
             </RutaProtegida>
           }
@@ -521,6 +525,42 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
               <AceptarMercaderia />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/sucursal/vender"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
+              <VentaSucursal />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/sucursal/stock"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
+              <StockSucursal />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/sucursal/perdidas"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
+              <PerdidaSucursal />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/sucursal/caja"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
+              <CajaSucursal />
             </RutaProtegida>
           }
         />

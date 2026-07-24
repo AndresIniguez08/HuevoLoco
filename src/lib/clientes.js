@@ -3,18 +3,35 @@ import { supabase } from './supabase'
 // Por defecto excluye clientes inactivos: esta función alimenta los
 // selectores de pantallas de operación (TomarPedido, CuentaCorriente, etc.).
 // Pasar { incluirInactivos: true } solo desde pantallas de gestión.
-export async function buscarClientes(texto, { incluirInactivos = false } = {}) {
+// sucursalId acota la búsqueda a los clientes de esa sucursal (VentaSucursal).
+export async function buscarClientes(texto, { incluirInactivos = false, sucursalId } = {}) {
   let query = supabase.from('clientes').select('*').order('nombre').limit(20)
   if (!incluirInactivos) query = query.eq('activo', true)
+  if (sucursalId) query = query.eq('sucursal_id', sucursalId)
   if (texto) query = query.ilike('nombre', `%${texto}%`)
   const { data, error } = await query
   if (error) throw error
   return data
 }
 
-export async function crearCliente(datos) {
-  const { error } = await supabase.from('clientes').insert(datos)
+// Cada sucursal tiene su propio cliente "Consumidor Final" (creado por la
+// migración multi-sucursal), usado como default en la venta mostrador cuando
+// no se elige un cliente registrado.
+export async function obtenerClienteConsumidorFinal(sucursalId) {
+  const { data, error } = await supabase
+    .from('clientes')
+    .select('*')
+    .eq('sucursal_id', sucursalId)
+    .ilike('nombre', 'Consumidor Final')
+    .maybeSingle()
   if (error) throw error
+  return data
+}
+
+export async function crearCliente(datos) {
+  const { data, error } = await supabase.from('clientes').insert(datos).select().single()
+  if (error) throw error
+  return data
 }
 
 export async function actualizarCliente(id, datos) {

@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export async function obtenerMovimientosCaja({ desde, hasta } = {}) {
+export async function obtenerMovimientosCaja({ desde, hasta, sucursalId } = {}) {
   const hoy = new Date().toISOString().slice(0, 10)
   let query = supabase
     .from('caja_movimientos')
@@ -8,6 +8,7 @@ export async function obtenerMovimientosCaja({ desde, hasta } = {}) {
     .order('creado_at', { ascending: false })
     .gte('creado_at', `${desde || hoy}T00:00:00`)
   if (hasta) query = query.lte('creado_at', `${hasta}T23:59:59`)
+  if (sucursalId) query = query.eq('sucursal_id', sucursalId)
   const { data, error } = await query
   if (error) throw error
 

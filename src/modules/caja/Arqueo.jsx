@@ -22,6 +22,7 @@ function lineaDiferencia(etiqueta, contado, esperado) {
 // no se envía en el insert, solo se muestra localmente como vista previa.
 export default function Arqueo() {
   const usuario = useAuthStore((s) => s.usuario)
+  const perfil = useAuthStore((s) => s.perfil)
   const [esperados, setEsperados] = useState({ efectivo: 0, mercado_pago: 0, transferencia: 0 })
   const [cantidadesBilletes, setCantidadesBilletes] = useState({})
   const [mpContado, setMpContado] = useState('')
@@ -32,7 +33,11 @@ export default function Arqueo() {
   const [arqueoGuardado, setArqueoGuardado] = useState(null)
 
   useEffect(() => {
-    obtenerMovimientosCaja()
+    if (!perfil?.sucursal_id) return
+    // Filtrado por sucursal_id de quien está haciendo el arqueo: con más de
+    // una sucursal generando caja_movimientos, sin este filtro Central vería
+    // plata que en realidad es de las sucursales (y viceversa).
+    obtenerMovimientosCaja({ sucursalId: perfil.sucursal_id })
       .then((movimientos) => {
         const totales = totalesPorMedio(movimientos)
         setEsperados({
@@ -43,7 +48,7 @@ export default function Arqueo() {
       })
       .catch((e) => setError(traducirError(e)))
       .finally(() => setCargando(false))
-  }, [])
+  }, [perfil?.sucursal_id])
 
   const totalEfectivoContado = DENOMINACIONES_BILLETE.reduce(
     (acc, denom) => acc + denom * (Number(cantidadesBilletes[denom]) || 0),
@@ -75,6 +80,7 @@ export default function Arqueo() {
         .from('caja_arqueos')
         .insert({
           usuario_id: usuario.id,
+          sucursal_id: perfil.sucursal_id,
           fecha: new Date().toISOString().slice(0, 10),
           monto_esperado: esperados.efectivo,
           monto_contado: totalEfectivoContado,
