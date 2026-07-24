@@ -49,3 +49,39 @@ export async function reportarDiferenciaCompra(compraId, observacion) {
   })
   if (error) throw error
 }
+
+export async function contarComprasDiferenciaSinRevisar() {
+  const { count, error } = await supabase
+    .from('compras')
+    .select('*', { count: 'exact', head: true })
+    .eq('estado', 'con_diferencia')
+    .eq('revisado', false)
+  if (error) throw error
+  return count || 0
+}
+
+// compras tiene tres FKs hacia perfiles (usuario_id, recibido_por,
+// revisado_por) — sin el hint !fk_constraint, PostgREST no puede resolver
+// el embed y tira PGRST201 (mismo caso que remitos_transferencia).
+export async function listarComprasDiferencia() {
+  const { data, error } = await supabase
+    .from('compras')
+    .select(
+      `
+      *,
+      proveedores(nombre),
+      receptor:perfiles!compras_recibido_por_fkey (nombre),
+      revisor:perfiles!compras_revisado_por_fkey (nombre)
+    `
+    )
+    .eq('estado', 'con_diferencia')
+    .order('revisado', { ascending: true })
+    .order('creado_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+export async function revisarCompra(compraId) {
+  const { error } = await supabase.rpc('fn_revisar_compra', { p_compra_id: compraId })
+  if (error) throw error
+}

@@ -1,12 +1,35 @@
 import { useEffect, useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { obtenerProductosConStock } from '../../lib/productos'
-import { crearCompra } from '../../lib/compras'
+import { crearCompra, listarComprasDiferencia, revisarCompra } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD } from '../../lib/constantes'
 import SelectorUnidad, { convertirAMaple } from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
+import Badge from '../../components/ui/Badge'
 import ProveedorSelector from './ProveedorSelector'
+
+function FilaDiferencia({ compra, onRevisar, revisando }) {
+  return (
+    <li className="flex flex-col gap-2 p-4 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="font-medium text-marca">{compra.proveedores?.nombre || 'Proveedor'}</p>
+        <span className="text-xs text-marca/50">{new Date(compra.creado_at).toLocaleDateString('es-AR')}</span>
+      </div>
+      <p className="text-marca/60">Recibida por: {compra.receptor?.nombre || '—'}</p>
+      {compra.observacion_diferencia && <p className="text-marca/70">"{compra.observacion_diferencia}"</p>}
+      {compra.revisado ? (
+        <p className="text-marca/60">Revisado por: {compra.revisor?.nombre || '—'}</p>
+      ) : (
+        <div className="mt-1">
+          <Button tamano="sm" variante="confirmar" cargando={revisando} onClick={() => onRevisar(compra.id)}>
+            Marcar como revisado
+          </Button>
+        </div>
+      )}
+    </li>
+  )
+}
 
 export default function RegistrarCompra() {
   const [productos, setProductos] = useState([])
@@ -21,9 +44,43 @@ export default function RegistrarCompra() {
   const [compraId, setCompraId] = useState(null)
   const [error, setError] = useState(null)
 
+  const [diferencias, setDiferencias] = useState([])
+  const [cargandoDiferencias, setCargandoDiferencias] = useState(true)
+  const [revisandoId, setRevisandoId] = useState(null)
+  const [mostrarRevisadas, setMostrarRevisadas] = useState(false)
+
   useEffect(() => {
     obtenerProductosConStock().then(setProductos).catch((e) => setError(traducirError(e)))
+    cargarDiferencias()
   }, [])
+
+  async function cargarDiferencias() {
+    setCargandoDiferencias(true)
+    try {
+      const data = await listarComprasDiferencia()
+      setDiferencias(data)
+    } catch (e) {
+      setError(traducirError(e))
+    } finally {
+      setCargandoDiferencias(false)
+    }
+  }
+
+  async function revisar(id) {
+    setRevisandoId(id)
+    setError(null)
+    try {
+      await revisarCompra(id)
+      await cargarDiferencias()
+    } catch (e) {
+      setError(traducirError(e))
+    } finally {
+      setRevisandoId(null)
+    }
+  }
+
+  const diferenciasPendientes = diferencias.filter((d) => !d.revisado)
+  const diferenciasRevisadas = diferencias.filter((d) => d.revisado)
 
   const productoSeleccionado = productos.find((p) => p.id === productoId)
 
@@ -89,7 +146,46 @@ export default function RegistrarCompra() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-4 font-display text-xl text-marca">Registrar compra</h1>
+      <div className="mb-4 flex items-center gap-2">
+        <h1 className="font-display text-xl text-marca">Registrar compra</h1>
+        {diferenciasPendientes.length > 0 && <Badge tono="error">{diferenciasPendientes.length} con diferencia</Badge>}
+      </div>
+
+      {!cargandoDiferencias && diferencias.length > 0 && (
+        <div className="mb-6 flex flex-col gap-3">
+          <div className="rounded-xl bg-white shadow-sm">
+            <h2 className="p-4 pb-0 text-sm font-medium text-marca">Con diferencia, sin revisar</h2>
+            {diferenciasPendientes.length === 0 ? (
+              <p className="p-4 text-sm text-marca/50">No hay diferencias pendientes de revisión.</p>
+            ) : (
+              <ul className="divide-y divide-marca/10">
+                {diferenciasPendientes.map((c) => (
+                  <FilaDiferencia key={c.id} compra={c} revisando={revisandoId === c.id} onRevisar={revisar} />
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {diferenciasRevisadas.length > 0 && (
+            <div className="rounded-xl bg-white shadow-sm">
+              <button
+                onClick={() => setMostrarRevisadas((v) => !v)}
+                className="flex w-full items-center justify-between p-4 text-sm font-medium text-marca"
+              >
+                Revisadas ({diferenciasRevisadas.length})
+                <span className="text-marca/50">{mostrarRevisadas ? 'Ocultar' : 'Mostrar'}</span>
+              </button>
+              {mostrarRevisadas && (
+                <ul className="divide-y divide-marca/10 border-t border-marca/10">
+                  {diferenciasRevisadas.map((c) => (
+                    <FilaDiferencia key={c.id} compra={c} revisando={false} onRevisar={() => {}} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
         <ProveedorSelector proveedorId={proveedorId} onCambio={setProveedorId} />

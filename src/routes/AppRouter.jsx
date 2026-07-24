@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/authStore'
 import { ROLES, RUTA_RAIZ_POR_ROL } from '../lib/constantes'
 import { contarDiferenciasSinRevisar } from '../lib/diferenciasCobro'
 import { contarRemitosDiferenciaSinRevisar } from '../lib/transferencias'
+import { contarComprasDiferenciaSinRevisar } from '../lib/compras'
 import RutaProtegida from '../components/RutaProtegida'
 import AppShell from '../components/AppShell'
 import Login from '../modules/auth/Login'
@@ -57,7 +58,7 @@ import PerdidaSucursal from '../modules/sucursal/PerdidaSucursal'
 import CajaSucursal from '../modules/sucursal/CajaSucursal'
 import ConteoSucursal from '../modules/sucursal/ConteoSucursal'
 
-function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia) {
+function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia) {
   return [
   { to: '/dueno', label: 'Dashboard', end: true },
   {
@@ -100,7 +101,7 @@ function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia) {
     grupo: 'Compras',
     icono: PackageSearch,
     items: [
-      { to: '/dueno/compras', label: 'Registrar compra' },
+      { to: '/dueno/compras', label: 'Registrar compra', contador: contadorComprasDiferencia },
       { to: '/dueno/proveedores', label: 'Proveedores' },
       { to: '/dueno/cuenta-corriente-proveedores', label: 'Cuenta corriente' },
     ],
@@ -131,7 +132,7 @@ function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia) {
   ]
 }
 
-function crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia) {
+function crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia) {
   return [
   {
     grupo: 'Stock',
@@ -171,7 +172,7 @@ function crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia) {
     grupo: 'Compras',
     icono: PackageSearch,
     items: [
-      { to: '/admin/compras', label: 'Registrar compra' },
+      { to: '/admin/compras', label: 'Registrar compra', contador: contadorComprasDiferencia },
       { to: '/admin/proveedores', label: 'Proveedores' },
       { to: '/admin/cuenta-corriente-proveedores', label: 'Cuenta corriente' },
     ],
@@ -280,13 +281,14 @@ export default function AppRouter() {
     perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO || perfil?.rol === ROLES.DEPOSITO
   const contadorDiferencias = useContadorPeriodico(puedeVerDiferencias, contarDiferenciasSinRevisar)
   const contadorRemitosDiferencia = useContadorPeriodico(puedeVerRemitosDiferencia, contarRemitosDiferenciaSinRevisar)
+  const contadorComprasDiferencia = useContadorPeriodico(puedeVerDiferencias, contarComprasDiferenciaSinRevisar)
   const navDueno = useMemo(
-    () => crearNavDueno(contadorDiferencias, contadorRemitosDiferencia),
-    [contadorDiferencias, contadorRemitosDiferencia]
+    () => crearNavDueno(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia),
+    [contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia]
   )
   const navAdmin = useMemo(
-    () => crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia),
-    [contadorDiferencias, contadorRemitosDiferencia]
+    () => crearNavAdmin(contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia),
+    [contadorDiferencias, contadorRemitosDiferencia, contadorComprasDiferencia]
   )
   const navDeposito = useMemo(() => crearNavDeposito(contadorRemitosDiferencia), [contadorRemitosDiferencia])
 
