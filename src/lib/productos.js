@@ -93,7 +93,11 @@ export async function listarDisponibilidadSucursal() {
   const [{ data: productos, error: errorProductos }, { data: sucursales, error: errorSucursales }, { data: filas, error: errorFilas }] =
     await Promise.all([
       supabase.from('productos').select('id, nombre').eq('activo', true).order('nombre'),
-      supabase.from('sucursales').select('id, nombre').neq('nombre', 'Casa Central').order('nombre'),
+      supabase
+        .from('sucursales')
+        .select('id, nombre, permite_venta_sin_stock')
+        .neq('nombre', 'Casa Central')
+        .order('nombre'),
       supabase.from('producto_sucursal').select('producto_id, sucursal_id, habilitado'),
     ])
   if (errorProductos) throw errorProductos

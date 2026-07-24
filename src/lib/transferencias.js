@@ -6,6 +6,16 @@ export async function listarSucursales() {
   return data
 }
 
+// fn_crear_venta_sucursal se salta la validación de stock disponible cuando
+// esto está en true (ej: venta con seña que el cliente retira más tarde).
+export async function actualizarPermiteVentaSinStock(sucursalId, permite) {
+  const { error } = await supabase
+    .from('sucursales')
+    .update({ permite_venta_sin_stock: permite })
+    .eq('id', sucursalId)
+  if (error) throw error
+}
+
 export async function crearRemitoTransferencia(sucursalDestinoId, items) {
   const { data, error } = await supabase.rpc('fn_crear_remito_transferencia', {
     p_sucursal_destino_id: sucursalDestinoId,

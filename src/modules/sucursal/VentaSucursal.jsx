@@ -18,6 +18,14 @@ function necesitaAutorizacion(mensaje) {
   return /cuenta corriente autorizada|l[ií]mite autorizado/i.test(mensaje || '')
 }
 
+// fn_crear_venta_sucursal ya devuelve un mensaje claro con el producto y las
+// cantidades ("No hay stock suficiente de 'Blanco 2'...") — no matchea el
+// patrón genérico de traducirError (que busca "insuficiente", no
+// "suficiente"), así que se muestra tal cual en vez de perder el detalle.
+function esErrorStockInsuficiente(mensaje) {
+  return /no hay stock suficiente/i.test(mensaje || '')
+}
+
 function lineaDePagoVacia() {
   return { id: crypto.randomUUID(), monto: '', medio: 'efectivo' }
 }
@@ -162,6 +170,8 @@ export default function VentaSucursal() {
       const mensaje = e.message || ''
       if (necesitaAutorizacion(mensaje)) {
         setBloqueado(true)
+      } else if (esErrorStockInsuficiente(mensaje)) {
+        setError(mensaje)
       } else {
         setError(traducirError(e))
       }

@@ -1,10 +1,44 @@
 import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import { listarDisponibilidadSucursal, actualizarDisponibilidadSucursal } from '../../lib/productos'
+import { actualizarPermiteVentaSinStock } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
 
 function clave(productoId, sucursalId) {
   return `${productoId}:${sucursalId}`
+}
+
+function InterruptorVentaSinStock({ sucursal, guardando, onCambiar }) {
+  const activo = !!sucursal.permite_venta_sin_stock
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-xl bg-white p-4 shadow-sm">
+      <div>
+        <p className="font-medium text-marca">
+          {sucursal.nombre}: Permitir vender sin stock suficiente
+        </p>
+        <p className="mt-1 text-xs text-marca/50">
+          Si está activado, se puede cobrar un pedido aunque no haya stock disponible en el momento (por ejemplo, venta
+          con seña que el cliente retira más tarde). Si está apagado, el sistema bloquea la venta si falta stock.
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={activo}
+        disabled={guardando}
+        onClick={() => onCambiar(sucursal.id, activo)}
+        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
+          activo ? 'bg-fresco' : 'bg-marca/20'
+        }`}
+      >
+        <span
+          className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            activo ? 'translate-x-6' : 'translate-x-1'
+          }`}
+        />
+      </button>
+    </div>
+  )
 }
 
 export default function DisponibilidadSucursal() {
@@ -14,6 +48,7 @@ export default function DisponibilidadSucursal() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [guardadosRecientes, setGuardadosRecientes] = useState({})
+  const [guardandoToggleId, setGuardandoToggleId] = useState(null)
 
   useEffect(() => {
     cargar()
@@ -59,6 +94,25 @@ export default function DisponibilidadSucursal() {
     }
   }
 
+  async function alternarVentaSinStock(sucursalId, valorActual) {
+    const nuevoValor = !valorActual
+    setSucursales((prev) =>
+      prev.map((s) => (s.id === sucursalId ? { ...s, permite_venta_sin_stock: nuevoValor } : s))
+    )
+    setGuardandoToggleId(sucursalId)
+    setError(null)
+    try {
+      await actualizarPermiteVentaSinStock(sucursalId, nuevoValor)
+    } catch (e) {
+      setSucursales((prev) =>
+        prev.map((s) => (s.id === sucursalId ? { ...s, permite_venta_sin_stock: valorActual } : s))
+      )
+      setError(traducirError(e))
+    } finally {
+      setGuardandoToggleId(null)
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-1 font-display text-xl text-marca">Disponibilidad por sucursal</h1>
@@ -67,6 +121,19 @@ export default function DisponibilidadSucursal() {
       </p>
 
       {error && <p className="mb-3 text-sm text-perdida">{error}</p>}
+
+      {!cargando && sucursales.length > 0 && (
+        <div className="mb-6 flex flex-col gap-3">
+          {sucursales.map((s) => (
+            <InterruptorVentaSinStock
+              key={s.id}
+              sucursal={s}
+              guardando={guardandoToggleId === s.id}
+              onCambiar={alternarVentaSinStock}
+            />
+          ))}
+        </div>
+      )}
 
       {cargando ? (
         <p className="text-sm text-marca/60">Cargando...</p>
