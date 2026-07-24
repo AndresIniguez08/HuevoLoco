@@ -4,6 +4,7 @@ import { obtenerCliente, obtenerMovimientosCuentaCorriente, obtenerItemsPedido }
 import { obtenerSaldoCliente, obtenerDetallePago } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
 import { MEDIOS_PAGO, ETIQUETA_UNIDAD } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import BuscadorCliente from '../../components/BuscadorCliente'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -108,7 +109,7 @@ export default function CuentaCorriente() {
         <div className="flex flex-col gap-4">
           <div className="rounded-xl bg-marca p-4 text-white shadow-sm">
             <p className="text-xs text-white/70">Saldo total actual de {cliente.nombre}</p>
-            <p className={`font-mono text-2xl ${saldoTotal > 0 ? 'text-yema' : 'text-white'}`}>${saldoTotal.toFixed(2)}</p>
+            <p className={`font-mono text-2xl ${saldoTotal > 0 ? 'text-yema' : 'text-white'}`}>{formatearMoneda(saldoTotal)}</p>
             {saldoTotal > 0 && <p className="mt-1 text-xs text-white/60">El cliente tiene deuda pendiente.</p>}
           </div>
 
@@ -179,7 +180,7 @@ export default function CuentaCorriente() {
               <p className="text-xs text-marca/50">
                 {hayFiltro ? (
                   <>
-                    Saldo neto del período: <span className="font-mono">${saldoPeriodo.toFixed(2)}</span> — no confundir con
+                    Saldo neto del período: <span className="font-mono">{formatearMoneda(saldoPeriodo)}</span> — no confundir con
                     el saldo total de arriba
                   </>
                 ) : (
@@ -206,7 +207,8 @@ export default function CuentaCorriente() {
                       <p className="text-xs text-marca/50">{new Date(m.creado_at).toLocaleDateString('es-AR')}</p>
                     </div>
                     <span className={`font-mono ${m.tipo === 'debito' ? 'text-perdida' : 'text-fresco'}`}>
-                      {m.tipo === 'debito' ? '+' : '-'}${Number(m.monto).toFixed(2)}
+                      {m.tipo === 'debito' ? '+' : '-'}
+                      {formatearMoneda(m.monto)}
                     </span>
                   </li>
                 ))}
@@ -238,7 +240,7 @@ export default function CuentaCorriente() {
                       {item.productos?.nombre || 'Producto'}
                     </span>
                     <span className="font-mono text-marca">
-                      ${(Number(item.precio_aplicado) * Number(item.cantidad_unidad)).toFixed(2)}
+                      {formatearMoneda(Number(item.precio_aplicado) * Number(item.cantidad_unidad))}
                     </span>
                   </li>
                 ))}
@@ -247,10 +249,9 @@ export default function CuentaCorriente() {
             <div className="flex justify-between border-t border-marca/10 pt-2 font-medium text-marca">
               <span>Total</span>
               <span className="font-mono">
-                $
-                {detalle
-                  .reduce((acc, item) => acc + Number(item.precio_aplicado) * Number(item.cantidad_unidad), 0)
-                  .toFixed(2)}
+                {formatearMoneda(
+                  detalle.reduce((acc, item) => acc + Number(item.precio_aplicado) * Number(item.cantidad_unidad), 0)
+                )}
               </span>
             </div>
           </div>
@@ -270,7 +271,7 @@ export default function CuentaCorriente() {
             </div>
             <div className="flex justify-between py-2 font-medium text-marca">
               <span>Monto</span>
-              <span className="font-mono">${Number(detalle.monto).toFixed(2)}</span>
+              <span className="font-mono">{formatearMoneda(detalle.monto)}</span>
             </div>
           </div>
         ) : null}

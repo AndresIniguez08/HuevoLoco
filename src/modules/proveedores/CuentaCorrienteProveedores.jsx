@@ -7,6 +7,7 @@ import {
 } from '../../lib/proveedores'
 import { traducirError } from '../../lib/errores'
 import { MEDIOS_PAGO, formatearCantidadItemCompra } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import BuscadorProveedor from '../../components/BuscadorProveedor'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -127,7 +128,7 @@ export default function CuentaCorrienteProveedores() {
               <div>
                 <p className="text-xs text-white/70">Saldo total adeudado a {proveedor.nombre}</p>
                 <p className={`font-mono text-2xl ${saldoTotal > 0 ? 'text-yema' : 'text-white'}`}>
-                  ${saldoTotal.toFixed(2)}
+                  {formatearMoneda(saldoTotal)}
                 </p>
               </div>
               <Button variante="claro" tamano="sm" onClick={() => setModalPago(true)}>
@@ -203,7 +204,7 @@ export default function CuentaCorrienteProveedores() {
               <p className="text-xs text-marca/50">
                 {hayFiltro ? (
                   <>
-                    Saldo neto del período: <span className="font-mono">${saldoPeriodo.toFixed(2)}</span> — no confundir con
+                    Saldo neto del período: <span className="font-mono">{formatearMoneda(saldoPeriodo)}</span> — no confundir con
                     el saldo total de arriba
                   </>
                 ) : (
@@ -230,7 +231,8 @@ export default function CuentaCorrienteProveedores() {
                       <p className="text-xs text-marca/50">{new Date(m.creado_at).toLocaleDateString('es-AR')}</p>
                     </div>
                     <span className={`font-mono ${m.tipo === 'debito' ? 'text-perdida' : 'text-fresco'}`}>
-                      {m.tipo === 'debito' ? '+' : '-'}${Number(m.monto).toFixed(2)}
+                      {m.tipo === 'debito' ? '+' : '-'}
+                      {formatearMoneda(m.monto)}
                     </span>
                   </li>
                 ))}
@@ -261,7 +263,7 @@ export default function CuentaCorrienteProveedores() {
                       {formatearCantidadItemCompra(item)} — {item.productos?.nombre || 'Producto'}
                     </span>
                     <span className="font-mono text-marca">
-                      ${(Number(item.costo_unitario) * Number(item.cantidad_maple)).toFixed(2)}
+                      {formatearMoneda(Number(item.costo_unitario) * Number(item.cantidad_maple))}
                     </span>
                   </li>
                 ))}
@@ -270,10 +272,9 @@ export default function CuentaCorrienteProveedores() {
             <div className="flex justify-between border-t border-marca/10 pt-2 font-medium text-marca">
               <span>Total</span>
               <span className="font-mono">
-                $
-                {detalle
-                  .reduce((acc, item) => acc + Number(item.costo_unitario) * Number(item.cantidad_maple), 0)
-                  .toFixed(2)}
+                {formatearMoneda(
+                  detalle.reduce((acc, item) => acc + Number(item.costo_unitario) * Number(item.cantidad_maple), 0)
+                )}
               </span>
             </div>
           </div>
@@ -293,7 +294,7 @@ export default function CuentaCorrienteProveedores() {
             </div>
             <div className="flex justify-between py-2 font-medium text-marca">
               <span>Monto</span>
-              <span className="font-mono">${Number(detalle.monto).toFixed(2)}</span>
+              <span className="font-mono">{formatearMoneda(detalle.monto)}</span>
             </div>
           </div>
         ) : null}

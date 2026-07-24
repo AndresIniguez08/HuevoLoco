@@ -15,6 +15,7 @@ import {
   ETIQUETA_TIPO_ENTREGA,
   ROLES,
 } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -183,7 +184,7 @@ export default function ListaPedidos({ soloPropios = false }) {
             <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
               <div>
                 <p className="font-medium text-marca">{p.clientes?.nombre || 'Cliente'}</p>
-                <p className="font-mono text-sm text-marca/60">${Number(p.total).toFixed(2)}</p>
+                <p className="font-mono text-sm text-marca/60">{formatearMoneda(p.total)}</p>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <Badge tono="neutro" className="inline-flex items-center gap-1">
@@ -334,7 +335,7 @@ function ModalPago({ pedido, onCerrar, onPagado }) {
     <Modal abierto={!!pedido} onCerrar={onCerrar} titulo="Registrar pago">
       <div className="flex flex-col gap-3">
         <p className="text-sm text-marca/70">
-          Cliente: {pedido.clientes?.nombre || 'Cliente'} — Total: <span className="font-mono">${Number(pedido.total).toFixed(2)}</span>
+          Cliente: {pedido.clientes?.nombre || 'Cliente'} — Total: <span className="font-mono">{formatearMoneda(pedido.total)}</span>
         </p>
 
         {lineas.map((linea, i) => {
@@ -396,11 +397,11 @@ function ModalPago({ pedido, onCerrar, onPagado }) {
         <div className="rounded-lg bg-marca/5 p-3 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-marca/70">Total cargado</span>
-            <span className="font-mono text-marca">${sumaLineas.toFixed(2)}</span>
+            <span className="font-mono text-marca">{formatearMoneda(sumaLineas)}</span>
           </div>
           <div className="mt-1 flex items-center justify-between">
             <span className="text-marca/70">Saldo pendiente del pedido</span>
-            <span className="font-mono text-marca">${saldoPendiente.toFixed(2)}</span>
+            <span className="font-mono text-marca">{formatearMoneda(saldoPendiente)}</span>
           </div>
           {cubreSaldo ? (
             <p className="mt-2 flex items-center gap-1.5 font-medium text-fresco">
@@ -408,7 +409,7 @@ function ModalPago({ pedido, onCerrar, onPagado }) {
             </p>
           ) : (
             <p className="mt-2 text-perdida">
-              Van a quedar <span className="font-mono">${diferencia.toFixed(2)}</span> pendientes en cuenta corriente.
+              Van a quedar <span className="font-mono">{formatearMoneda(diferencia)}</span> pendientes en cuenta corriente.
             </p>
           )}
         </div>

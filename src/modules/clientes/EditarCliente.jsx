@@ -12,6 +12,7 @@ import { listarListasPrecio } from '../../lib/listasPrecio'
 import { obtenerNombrePerfil } from '../../lib/usuarios'
 import { traducirError } from '../../lib/errores'
 import { TIPOS_CLIENTE, ROLES } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import { useAuthStore } from '../../stores/authStore'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -159,7 +160,7 @@ export default function EditarCliente({ cliente, onActualizado, onCancelar }) {
         {cliente.cuenta_corriente_autorizada ? (
           <div className="flex flex-col gap-1.5 text-sm">
             <p className="text-marca/70">
-              Límite de crédito: <span className="font-mono text-marca">${Number(cliente.limite_credito || 0).toFixed(2)}</span>
+              Límite de crédito: <span className="font-mono text-marca">{formatearMoneda(cliente.limite_credito)}</span>
             </p>
             <p className="text-xs text-marca/50">
               Autorizada por {autorizadorNombre || '...'}

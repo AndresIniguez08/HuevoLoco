@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { obtenerDiferenciaCobro } from '../../lib/diferenciasCobro'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
+import { formatearMoneda } from '../../lib/formato'
 
 export default function ImprimirDiferencia() {
   const { id } = useParams()
@@ -59,11 +60,11 @@ export default function ImprimirDiferencia() {
         </div>
         <div className="flex justify-between border-b border-[#333] py-2">
           <span>Monto esperado</span>
-          <span>${esperado.toFixed(2)}</span>
+          <span>{formatearMoneda(esperado)}</span>
         </div>
         <div className="flex justify-between border-b border-[#333] py-2">
           <span>Monto cobrado</span>
-          <span>${cobrado.toFixed(2)}</span>
+          <span>{formatearMoneda(cobrado)}</span>
         </div>
         <div className="flex justify-between border-b border-[#333] py-2 font-medium">
           <span>Diferencia</span>

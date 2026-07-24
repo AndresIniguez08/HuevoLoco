@@ -6,6 +6,7 @@ import { obtenerMovimientosCaja, totalesPorMedio } from '../../lib/caja'
 import { contarRemitosDiferenciaSinRevisar } from '../../lib/transferencias'
 import { contarPedidosPendientes } from '../../lib/ventas'
 import { traducirError } from '../../lib/errores'
+import { formatearMoneda } from '../../lib/formato'
 
 export default function DashboardDueno() {
   const [kpis, setKpis] = useState(null)
@@ -48,7 +49,7 @@ export default function DashboardDueno() {
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <div className="rounded-xl bg-marca p-4 text-white shadow-sm">
           <p className="text-xs text-white/70">Caja de hoy</p>
-          <p className="font-mono text-2xl">${kpis.totalCajaHoy.toFixed(2)}</p>
+          <p className="font-mono text-2xl">{formatearMoneda(kpis.totalCajaHoy)}</p>
         </div>
         <div className="rounded-xl bg-white p-4 shadow-sm">
           <p className="text-xs text-marca/50">Pedidos de hoy</p>

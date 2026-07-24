@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { obtenerCompraParaImprimir } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
 import { formatearCantidadItemCompra } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -64,16 +65,16 @@ export default function ImprimirRecepcion() {
             <tr key={item.id}>
               <td className={`${BORDE} border p-2.5`}>{item.productos?.nombre || 'Producto'}</td>
               <td className={`${BORDE} border p-2.5`}>{formatearCantidadItemCompra(item)}</td>
-              <td className={`${BORDE} border p-2.5`}>${Number(item.costo_unitario).toFixed(2)}</td>
+              <td className={`${BORDE} border p-2.5`}>{formatearMoneda(item.costo_unitario)}</td>
               <td className={`${BORDE} border p-2.5`}>
-                ${(Number(item.costo_unitario) * Number(item.cantidad_maple)).toFixed(2)}
+                {formatearMoneda(Number(item.costo_unitario) * Number(item.cantidad_maple))}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <p className="mt-4 text-right font-mono text-lg font-medium">Total: ${Number(compra.total).toFixed(2)}</p>
+      <p className="mt-4 text-right font-mono text-lg font-medium">Total: {formatearMoneda(compra.total)}</p>
 
       <div className="mt-10 flex justify-between text-sm">
         <span>Recibido por: _______________________________</span>

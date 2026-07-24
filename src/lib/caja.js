@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { formatearMoneda } from './formato'
 
 export async function obtenerMovimientosCaja({ desde, hasta, sucursalId } = {}) {
   const hoy = new Date().toISOString().slice(0, 10)
@@ -64,6 +65,6 @@ export async function obtenerArqueo(id) {
 // señal de alerta real. Usado tanto en pantalla como en la hoja impresa.
 export function formatearDiferencia(diferencia) {
   if (diferencia === 0) return { texto: 'Sin diferencia', clase: 'text-fresco' }
-  if (diferencia > 0) return { texto: `Sobrante de $${diferencia.toLocaleString('es-AR')}`, clase: 'text-yema' }
-  return { texto: `Faltante de $${Math.abs(diferencia).toLocaleString('es-AR')}`, clase: 'text-perdida' }
+  if (diferencia > 0) return { texto: `Sobrante de ${formatearMoneda(diferencia)}`, clase: 'text-yema' }
+  return { texto: `Faltante de ${formatearMoneda(Math.abs(diferencia))}`, clase: 'text-perdida' }
 }

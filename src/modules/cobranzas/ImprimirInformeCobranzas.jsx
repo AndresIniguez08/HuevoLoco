@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listarSaldosClientes, obtenerTotalCobradoUltimos30Dias, listarExcepcionesCCDelMes } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
+import { formatearMoneda } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -68,7 +69,7 @@ export default function ImprimirInformeCobranzas() {
             top5.map((c) => (
               <tr key={c.cliente_id}>
                 <td className={`${BORDE} border p-2.5`}>{c.nombre}</td>
-                <td className={`${BORDE} border p-2.5`}>${Number(c.saldo).toFixed(2)}</td>
+                <td className={`${BORDE} border p-2.5`}>{formatearMoneda(c.saldo)}</td>
               </tr>
             ))
           )}
@@ -76,7 +77,7 @@ export default function ImprimirInformeCobranzas() {
       </table>
 
       <p className="mb-6 text-sm font-medium">
-        Total cobrado (últimos 30 días): <span className="font-mono">${totalCobrado.toFixed(2)}</span>
+        Total cobrado (últimos 30 días): <span className="font-mono">{formatearMoneda(totalCobrado)}</span>
       </p>
 
       <p className="mb-2 text-sm font-medium">Excepciones de cuenta corriente del mes</p>
@@ -100,7 +101,7 @@ export default function ImprimirInformeCobranzas() {
             excepciones.map((e) => (
               <tr key={e.id}>
                 <td className={`${BORDE} border p-2.5`}>{new Date(e.creado_at).toLocaleDateString('es-AR')}</td>
-                <td className={`${BORDE} border p-2.5`}>${Number(e.monto_excepcion).toFixed(2)}</td>
+                <td className={`${BORDE} border p-2.5`}>{formatearMoneda(e.monto_excepcion)}</td>
                 <td className={`${BORDE} border p-2.5`}>{e.motivo}</td>
                 <td className={`${BORDE} border p-2.5`}>{e.perfiles?.nombre || '—'}</td>
               </tr>

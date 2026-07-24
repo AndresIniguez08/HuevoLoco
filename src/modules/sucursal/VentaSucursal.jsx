@@ -8,6 +8,7 @@ import { buscarClientes, crearCliente, obtenerClienteConsumidorFinal } from '../
 import { crearVentaSucursal, completarVentaSucursal } from '../../lib/ventaSucursal'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD, MEDIOS_PAGO } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
 
@@ -205,7 +206,7 @@ export default function VentaSucursal() {
       <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-fondo p-4 text-center">
         <p className="text-3xl font-medium text-fresco">¡Venta cobrada!</p>
         <p className="text-lg text-marca/70">
-          {cliente?.nombre} — ${total.toFixed(2)}
+          {cliente?.nombre} — {formatearMoneda(total)}
         </p>
         <Button variante="confirmar" className="min-h-[64px] w-full max-w-xs text-xl" onClick={empezarVentaNueva}>
           Nueva venta
@@ -275,7 +276,7 @@ export default function VentaSucursal() {
 
         <div className="mb-4 rounded-2xl bg-marca p-5 text-center text-white">
           <p className="text-sm text-white/70">Total a cobrar</p>
-          <p className="font-mono text-4xl leading-tight">${total.toFixed(2)}</p>
+          <p className="font-mono text-4xl leading-tight">{formatearMoneda(total)}</p>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -327,10 +328,10 @@ export default function VentaSucursal() {
         {sumaLineas > 0 &&
           (diferencia > 0.01 ? (
             <p className="mt-3 text-center text-base text-marca/70">
-              Van a quedar <span className="font-mono">${diferencia.toFixed(2)}</span> pendientes en cuenta corriente.
+              Van a quedar <span className="font-mono">{formatearMoneda(diferencia)}</span> pendientes en cuenta corriente.
             </p>
           ) : diferencia < -0.01 ? (
-            <p className="mt-3 text-center text-base text-perdida">Sobran ${(-diferencia).toFixed(2)}</p>
+            <p className="mt-3 text-center text-base text-perdida">Sobran {formatearMoneda(-diferencia)}</p>
           ) : (
             <p className="mt-3 flex items-center justify-center gap-1.5 text-base font-medium text-fresco">
               <Check size={18} /> Cubre el total
@@ -422,12 +423,12 @@ export default function VentaSucursal() {
                 <div>
                   <p className="text-lg font-medium text-marca">{it.nombre}</p>
                   <p className="text-sm text-marca/60">
-                    {it.cantidad} {ETIQUETA_UNIDAD[it.unidad].plural} · ${it.precio_aplicado} c/
+                    {it.cantidad} {ETIQUETA_UNIDAD[it.unidad].plural} · {formatearMoneda(it.precio_aplicado)} c/
                     {ETIQUETA_UNIDAD[it.unidad].singular}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-lg">${it.subtotal.toFixed(2)}</span>
+                  <span className="font-mono text-lg">{formatearMoneda(it.subtotal)}</span>
                   <button onClick={() => quitarItem(it.id)} className="text-perdida">
                     <Trash2 size={20} />
                   </button>
@@ -436,7 +437,7 @@ export default function VentaSucursal() {
             ))}
           </ul>
           <p className="mt-3 flex justify-end border-t border-marca/10 pt-3 font-mono text-2xl text-marca">
-            ${total.toFixed(2)}
+            {formatearMoneda(total)}
           </p>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listarProveedores, actualizarEstadoProveedor, obtenerSaldosProveedores } from '../../lib/proveedores'
 import { traducirError } from '../../lib/errores'
+import { formatearMoneda } from '../../lib/formato'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -117,7 +118,7 @@ export default function ListaProveedores() {
                     <div className="text-right">
                       <p className="text-xs text-marca/50">Saldo adeudado</p>
                       <p className={`font-mono ${saldos.get(p.id) > 0 ? 'text-perdida' : 'text-marca'}`}>
-                        ${(saldos.get(p.id) || 0).toFixed(2)}
+                        {formatearMoneda(saldos.get(p.id) || 0)}
                       </p>
                     </div>
                     <Badge tono={p.activo ? 'exito' : 'error'}>{p.activo ? 'Activo' : 'Inactivo'}</Badge>

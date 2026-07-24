@@ -7,6 +7,7 @@ import { buscarClientes, obtenerFechaInicioSaldoPendiente } from '../../lib/clie
 import { obtenerSaldoCliente } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD, TIPOS_ENTREGA } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import { usePedidoStore } from '../../stores/pedidoStore'
 import { useAuthStore } from '../../stores/authStore'
 import SelectorUnidad from '../../components/SelectorUnidad'
@@ -288,7 +289,7 @@ export default function TomarPedido() {
                 <div>
                   <p className="font-medium text-marca">{it.nombre}</p>
                   <p className="text-marca/50">
-                    {it.cantidad} {it.unidad} ({it.cantidad_maple} maples) · ${it.precio_aplicado} c/
+                    {it.cantidad} {it.unidad} ({it.cantidad_maple} maples) · {formatearMoneda(it.precio_aplicado)} c/
                     {ETIQUETA_UNIDAD[it.unidad].singular}
                     {it.precio_especial && (
                       <Badge tono="neutro" className="ml-2">
@@ -298,7 +299,7 @@ export default function TomarPedido() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono">${it.subtotal.toFixed(2)}</span>
+                  <span className="font-mono">{formatearMoneda(it.subtotal)}</span>
                   <button onClick={() => quitarItem(it.id)} className="text-perdida">
                     <Trash2 size={16} />
                   </button>
@@ -309,7 +310,7 @@ export default function TomarPedido() {
         )}
         {items.length > 0 && (
           <div className="mt-3 flex justify-end border-t border-marca/10 pt-3 font-mono text-lg text-marca">
-            Total: ${total().toFixed(2)}
+            Total: {formatearMoneda(total())}
           </div>
         )}
       </div>

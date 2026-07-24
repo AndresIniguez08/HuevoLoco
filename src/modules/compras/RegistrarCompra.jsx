@@ -4,6 +4,7 @@ import { obtenerProductosConStock } from '../../lib/productos'
 import { crearCompra, listarComprasDiferencia, revisarCompra } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import SelectorUnidad, { convertirAMaple } from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
@@ -243,12 +244,12 @@ export default function RegistrarCompra() {
                 <div>
                   <p className="font-medium text-marca">{it.nombre}</p>
                   <p className="text-marca/50">
-                    {it.cantidad} {it.unidad} ({it.cantidad_maple} maples) · ${it.costo_unitario} c/
+                    {it.cantidad} {it.unidad} ({it.cantidad_maple} maples) · {formatearMoneda(it.costo_unitario)} c/
                     {ETIQUETA_UNIDAD[it.unidad].singular}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono">${(it.costo_unitario_maple * it.cantidad_maple).toFixed(2)}</span>
+                  <span className="font-mono">{formatearMoneda(it.costo_unitario_maple * it.cantidad_maple)}</span>
                   <button onClick={() => quitarItem(it.id)} className="text-perdida">
                     <Trash2 size={16} />
                   </button>
@@ -259,7 +260,7 @@ export default function RegistrarCompra() {
         )}
         {items.length > 0 && (
           <div className="mt-3 flex justify-end border-t border-marca/10 pt-3 font-mono text-lg text-marca">
-            Total: ${totalCompra.toFixed(2)}
+            Total: {formatearMoneda(totalCompra)}
           </div>
         )}
       </div>

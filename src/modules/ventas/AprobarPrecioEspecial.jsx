@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
+import { formatearMoneda } from '../../lib/formato'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import ModalExcepcionConfirmar from '../../components/ModalExcepcionConfirmar'
@@ -146,7 +147,7 @@ export default function AprobarPrecioEspecial() {
                 {p.items.map((it) => (
                   <li key={it.id} className="flex justify-between py-1.5">
                     <span>{it.productos?.nombre}</span>
-                    <span className="font-mono">${it.precio_aplicado}</span>
+                    <span className="font-mono">{formatearMoneda(it.precio_aplicado)}</span>
                   </li>
                 ))}
               </ul>
@@ -175,7 +176,7 @@ export default function AprobarPrecioEspecial() {
                 <p className="text-xs text-marca/50">{p.sucursales?.nombre || 'Sucursal'}</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-mono text-marca">${Number(p.total).toFixed(2)}</span>
+                <span className="font-mono text-marca">{formatearMoneda(p.total)}</span>
                 <Button tamano="sm" variante="secundario" onClick={() => setPedidoExcepcion(p)}>
                   Cargar excepción
                 </Button>

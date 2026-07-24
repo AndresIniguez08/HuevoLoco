@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { obtenerPedidosCliente } from '../../lib/clientes'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_ESTADO_PEDIDO, TONO_ESTADO_PEDIDO, ETIQUETA_ESTADO_PAGO, TONO_ESTADO_PAGO } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import BuscadorCliente from '../../components/BuscadorCliente'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
@@ -64,7 +65,7 @@ export default function GestionClientes() {
                 {pedidos.map((p) => (
                   <li key={p.id} className="flex items-center justify-between gap-2 py-2">
                     <span className="text-marca/70">{new Date(p.creado_at).toLocaleDateString('es-AR')}</span>
-                    <span className="font-mono">${Number(p.total).toFixed(2)}</span>
+                    <span className="font-mono">{formatearMoneda(p.total)}</span>
                     <Badge tono={TONO_ESTADO_PEDIDO[p.estado] || 'neutro'}>{ETIQUETA_ESTADO_PEDIDO[p.estado] || p.estado}</Badge>
                     <Badge tono={TONO_ESTADO_PAGO[p.estado_pago] || 'neutro'}>
                       {ETIQUETA_ESTADO_PAGO[p.estado_pago] || p.estado_pago}

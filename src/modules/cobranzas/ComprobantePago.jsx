@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { obtenerPago } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
 import { MEDIOS_PAGO } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 
 const ETIQUETA_MEDIO = Object.fromEntries(MEDIOS_PAGO.map((m) => [m.value, m.label]))
 
@@ -61,7 +62,7 @@ export default function ComprobantePago() {
         </div>
         <div className="flex justify-between border-b border-[#333] py-2 font-medium">
           <span>Monto</span>
-          <span>${Number(pago.monto).toFixed(2)}</span>
+          <span>{formatearMoneda(pago.monto)}</span>
         </div>
       </div>
 

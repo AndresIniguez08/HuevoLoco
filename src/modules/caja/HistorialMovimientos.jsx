@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { obtenerMovimientosCaja } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
+import { formatearMoneda } from '../../lib/formato'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 
@@ -79,7 +80,7 @@ export default function HistorialMovimientos() {
                   <td className="px-4 py-2">
                     <Badge tono={m.tipo === 'egreso' ? 'error' : 'exito'}>{m.tipo === 'egreso' ? 'Egreso' : 'Ingreso'}</Badge>
                   </td>
-                  <td className="px-4 py-2 text-right font-mono">${Number(m.monto).toFixed(2)}</td>
+                  <td className="px-4 py-2 text-right font-mono">{formatearMoneda(m.monto)}</td>
                 </tr>
               ))}
             </tbody>

@@ -4,6 +4,7 @@ import { obtenerPedidoParaImprimir } from '../../lib/ventas'
 import { obtenerTotalesPagadosPorPedidos } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD, ETIQUETA_ESTADO_PAGO } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -89,9 +90,9 @@ export default function ImprimirRemito() {
             <tr key={item.id}>
               <td className={`${BORDE} border p-2.5`}>{item.productos?.nombre || 'Producto'}</td>
               <td className={`${BORDE} border p-2.5`}>{etiquetaCantidadUnidad(item.cantidad_unidad, item.unidad_vendida)}</td>
-              <td className={`${BORDE} border p-2.5`}>${Number(item.precio_aplicado).toFixed(2)}</td>
+              <td className={`${BORDE} border p-2.5`}>{formatearMoneda(item.precio_aplicado)}</td>
               <td className={`${BORDE} border p-2.5`}>
-                ${(Number(item.precio_aplicado) * Number(item.cantidad_unidad)).toFixed(2)}
+                {formatearMoneda(Number(item.precio_aplicado) * Number(item.cantidad_unidad))}
               </td>
             </tr>
           ))}
@@ -99,10 +100,10 @@ export default function ImprimirRemito() {
       </table>
 
       <div className="mt-4 flex flex-col items-end gap-1 text-sm">
-        <p className="font-mono text-lg font-medium">Total: ${Number(pedido.total).toFixed(2)}</p>
+        <p className="font-mono text-lg font-medium">Total: {formatearMoneda(pedido.total)}</p>
         <p>
           <strong>Estado de pago:</strong> {ETIQUETA_ESTADO_PAGO[pedido.estado_pago] || pedido.estado_pago}
-          {pedido.estado_pago === 'parcial' && ` — quedan $${pendiente.toFixed(2)} pendientes`}
+          {pedido.estado_pago === 'parcial' && ` — quedan ${formatearMoneda(pendiente)} pendientes`}
         </p>
       </div>
 

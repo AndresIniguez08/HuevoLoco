@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { obtenerMovimientosCaja, totalesPorMedio, formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { DENOMINACIONES_BILLETE } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import { useAuthStore } from '../../stores/authStore'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -109,7 +110,7 @@ export default function Arqueo() {
       <div className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm">
         <div>
           <p className="text-xs text-marca/50">Efectivo esperado según movimientos de hoy</p>
-          <p className="font-mono text-2xl text-marca">${esperados.efectivo.toFixed(2)}</p>
+          <p className="font-mono text-2xl text-marca">{formatearMoneda(esperados.efectivo)}</p>
         </div>
 
         <div>
@@ -126,7 +127,7 @@ export default function Arqueo() {
               <tbody className="divide-y divide-marca/10">
                 {DENOMINACIONES_BILLETE.map((denom) => (
                   <tr key={denom}>
-                    <td className="py-1.5 font-mono text-marca">${denom}</td>
+                    <td className="py-1.5 font-mono text-marca">{formatearMoneda(denom)}</td>
                     <td className="py-1.5">
                       <input
                         type="number"
@@ -139,20 +140,20 @@ export default function Arqueo() {
                       />
                     </td>
                     <td className="py-1.5 text-right font-mono text-marca/70">
-                      ${(denom * (Number(cantidadesBilletes[denom]) || 0)).toFixed(2)}
+                      {formatearMoneda(denom * (Number(cantidadesBilletes[denom]) || 0))}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-right font-mono text-2xl text-marca">${totalEfectivoContado.toFixed(2)}</p>
+          <p className="mt-2 text-right font-mono text-2xl text-marca">{formatearMoneda(totalEfectivoContado)}</p>
         </div>
 
         <div className="rounded-lg border border-marca/10 p-3">
           <p className="mb-2 text-sm font-medium text-marca">Mercado Pago</p>
           <p className="mb-2 text-xs text-marca/50">
-            Esperado según movimientos de hoy: ${esperados.mercado_pago.toFixed(2)}
+            Esperado según movimientos de hoy: {formatearMoneda(esperados.mercado_pago)}
           </p>
           <Input
             label="Contado / verificado"
@@ -171,7 +172,7 @@ export default function Arqueo() {
         <div className="rounded-lg border border-marca/10 p-3">
           <p className="mb-2 text-sm font-medium text-marca">Transferencia</p>
           <p className="mb-2 text-xs text-marca/50">
-            Esperado según movimientos de hoy: ${esperados.transferencia.toFixed(2)}
+            Esperado según movimientos de hoy: {formatearMoneda(esperados.transferencia)}
           </p>
           <Input
             label="Contado / verificado"

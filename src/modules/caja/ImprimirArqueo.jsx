@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { obtenerArqueo, formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { DENOMINACIONES_BILLETE } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -11,8 +12,8 @@ function filaResultado(etiqueta, esperado, contado) {
   return (
     <tr key={etiqueta}>
       <td className={`${BORDE} border p-2.5`}>{etiqueta}</td>
-      <td className={`${BORDE} border p-2.5`}>${Number(esperado).toFixed(2)}</td>
-      <td className={`${BORDE} border p-2.5`}>${Number(contado).toFixed(2)}</td>
+      <td className={`${BORDE} border p-2.5`}>{formatearMoneda(esperado)}</td>
+      <td className={`${BORDE} border p-2.5`}>{formatearMoneda(contado)}</td>
       <td className={`${BORDE} border p-2.5`}>{texto}</td>
     </tr>
   )
@@ -85,9 +86,9 @@ export default function ImprimirArqueo() {
         <tbody>
           {DENOMINACIONES_BILLETE.filter((denom) => detalle[denom]).map((denom) => (
             <tr key={denom}>
-              <td className={`${BORDE} border p-2.5`}>${denom}</td>
+              <td className={`${BORDE} border p-2.5`}>{formatearMoneda(denom)}</td>
               <td className={`${BORDE} border p-2.5`}>{detalle[denom]}</td>
-              <td className={`${BORDE} border p-2.5`}>${(denom * detalle[denom]).toFixed(2)}</td>
+              <td className={`${BORDE} border p-2.5`}>{formatearMoneda(denom * detalle[denom])}</td>
             </tr>
           ))}
         </tbody>

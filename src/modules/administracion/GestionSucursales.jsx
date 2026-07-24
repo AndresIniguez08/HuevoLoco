@@ -7,6 +7,7 @@ import { ROLES } from '../../lib/constantes'
 import Button from '../../components/ui/Button'
 import Toggle from '../../components/ui/Toggle'
 import Modal from '../../components/ui/Modal'
+import { formatearMoneda, formatearNumero } from '../../lib/formato'
 
 const COLOR_BARRA = '#0B2D5B'
 
@@ -16,7 +17,7 @@ function TooltipFacturacion({ active, payload }) {
   return (
     <div className="rounded-lg border border-marca/10 bg-white px-3 py-2 text-sm shadow-md">
       <p className="font-medium text-marca">{item.nombre}</p>
-      <p className="font-mono text-marca/70">${Number(item.facturacion_total).toFixed(2)}</p>
+      <p className="font-mono text-marca/70">{formatearMoneda(item.facturacion_total)}</p>
     </div>
   )
 }
@@ -29,7 +30,7 @@ function TarjetaResumen({ r }) {
       <div className="flex flex-col gap-3 text-sm">
         <div>
           <p className="text-xs text-marca/50">Facturación total</p>
-          <p className="font-mono text-lg text-marca">${Number(r.facturacion_total || 0).toFixed(2)}</p>
+          <p className="font-mono text-lg text-marca">{formatearMoneda(r.facturacion_total)}</p>
         </div>
         <div>
           <p className="text-xs text-marca/50">Cantidad de ventas</p>
@@ -37,11 +38,11 @@ function TarjetaResumen({ r }) {
         </div>
         <div>
           <p className="text-xs text-marca/50">Deuda total de clientes</p>
-          <p className={`font-mono ${deuda > 0 ? 'text-perdida' : 'text-marca'}`}>${deuda.toFixed(2)}</p>
+          <p className={`font-mono ${deuda > 0 ? 'text-perdida' : 'text-marca'}`}>{formatearMoneda(deuda)}</p>
         </div>
         <div>
           <p className="text-xs text-marca/50">Valor de stock</p>
-          <p className="font-mono text-marca">${Number(r.valor_stock || 0).toFixed(2)}</p>
+          <p className="font-mono text-marca">{formatearMoneda(r.valor_stock)}</p>
         </div>
       </div>
     </div>
@@ -86,7 +87,7 @@ function ModalResumenSucursales({ abierto, onCerrar }) {
                     tick={{ fontSize: 12, fill: '#0B2D5B99' }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(v) => `$${v}`}
+                    tickFormatter={(v) => `$${formatearNumero(v)}`}
                   />
                   <Tooltip content={<TooltipFacturacion />} cursor={{ fill: '#0B2D5B0D' }} />
                   <Bar dataKey="facturacion_total" fill={COLOR_BARRA} radius={[4, 4, 0, 0]} maxBarSize={80} />

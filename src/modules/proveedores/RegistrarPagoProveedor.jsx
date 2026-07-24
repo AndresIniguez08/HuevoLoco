@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { listarComprasProveedor, registrarPagoProveedor } from '../../lib/proveedores'
 import { traducirError } from '../../lib/errores'
 import { MEDIOS_PAGO } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 
@@ -84,7 +85,7 @@ export default function RegistrarPagoProveedor({ proveedorId, onGuardado, onCanc
           <option value="">Pago genérico a cuenta</option>
           {compras.map((c) => (
             <option key={c.id} value={c.id}>
-              {new Date(c.creado_at).toLocaleDateString('es-AR')} — ${Number(c.total).toFixed(2)}
+              {new Date(c.creado_at).toLocaleDateString('es-AR')} — {formatearMoneda(c.total)}
             </option>
           ))}
         </select>

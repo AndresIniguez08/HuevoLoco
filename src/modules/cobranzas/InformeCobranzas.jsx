@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { listarSaldosClientes, obtenerTotalCobradoUltimos30Dias, listarExcepcionesCCDelMes } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
+import { formatearMoneda, formatearNumero } from '../../lib/formato'
 import Button from '../../components/ui/Button'
 
 const COLOR_BARRA = '#0B2D5B'
@@ -12,7 +13,7 @@ function TooltipDeuda({ active, payload }) {
   return (
     <div className="rounded-lg border border-marca/10 bg-white px-3 py-2 text-sm shadow-md">
       <p className="font-medium text-marca">{item.nombre}</p>
-      <p className="font-mono text-marca/70">${item.saldo.toFixed(2)}</p>
+      <p className="font-mono text-marca/70">{formatearMoneda(item.saldo)}</p>
     </div>
   )
 }
@@ -54,7 +55,7 @@ export default function InformeCobranzas() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-xl bg-marca p-4 text-white shadow-sm">
           <p className="text-xs text-white/70">Total cobrado (últimos 30 días)</p>
-          <p className="font-mono text-2xl">${totalCobrado.toFixed(2)}</p>
+          <p className="font-mono text-2xl">{formatearMoneda(totalCobrado)}</p>
         </div>
         <div className="rounded-xl bg-white p-4 shadow-sm">
           <p className="text-xs text-marca/50">Excepciones de cuenta corriente este mes</p>
@@ -76,7 +77,7 @@ export default function InformeCobranzas() {
                   tick={{ fontSize: 12, fill: '#0B2D5B99' }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => `$${v}`}
+                  tickFormatter={(v) => `$${formatearNumero(v)}`}
                 />
                 <Tooltip content={<TooltipDeuda />} cursor={{ fill: '#0B2D5B0D' }} />
                 <Bar dataKey="saldo" fill={COLOR_BARRA} radius={[4, 4, 0, 0]} maxBarSize={56} />
@@ -95,7 +96,7 @@ export default function InformeCobranzas() {
             {excepciones.map((e) => (
               <li key={e.id} className="flex flex-col gap-1 py-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-marca">${Number(e.monto_excepcion).toFixed(2)}</span>
+                  <span className="font-mono text-marca">{formatearMoneda(e.monto_excepcion)}</span>
                   <span className="text-xs text-marca/50">{new Date(e.creado_at).toLocaleDateString('es-AR')}</span>
                 </div>
                 <p className="text-marca/70">{e.motivo}</p>

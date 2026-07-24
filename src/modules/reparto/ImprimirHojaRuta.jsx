@@ -6,6 +6,7 @@ import { obtenerNombrePerfil } from '../../lib/usuarios'
 import { obtenerTotalesPagadosPorPedidos } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -113,7 +114,7 @@ export default function ImprimirHojaRuta() {
                 <td className={`${BORDE} border p-2.5`}>{e.pedidos?.clientes?.direccion || '—'}</td>
                 <td className={`${BORDE} border p-2.5`}>{e.pedidos?.clientes?.telefono || '—'}</td>
                 <td className={`${BORDE} border p-2.5`}>{resumenProductos(e.pedidos?.pedido_items)}</td>
-                <td className={`${BORDE} border p-2.5`}>{saldo > 0 ? `$${saldo.toFixed(2)}` : '—'}</td>
+                <td className={`${BORDE} border p-2.5`}>{saldo > 0 ? formatearMoneda(saldo) : '—'}</td>
                 <td className={`${BORDE} border p-2.5`}>&nbsp;</td>
               </tr>
             )

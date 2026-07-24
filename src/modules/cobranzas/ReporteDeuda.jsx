@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { listarSaldosClientes } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
+import { formatearMoneda } from '../../lib/formato'
 import Button from '../../components/ui/Button'
 
 function telefonoLimpio(telefono) {
@@ -9,7 +10,7 @@ function telefonoLimpio(telefono) {
 }
 
 function mensajeWhatsapp(cliente) {
-  const texto = `Hola ${cliente.nombre}, te escribimos de Huevo Loco para recordarte que tenés un saldo pendiente de $${Number(cliente.saldo).toFixed(2)}. ¡Gracias!`
+  const texto = `Hola ${cliente.nombre}, te escribimos de Huevo Loco para recordarte que tenés un saldo pendiente de ${formatearMoneda(cliente.saldo)}. ¡Gracias!`
   return `https://wa.me/${telefonoLimpio(cliente.telefono)}?text=${encodeURIComponent(texto)}`
 }
 
@@ -38,7 +39,7 @@ export default function ReporteDeuda() {
 
       <div className="mb-4 rounded-xl bg-marca p-4 text-white shadow-sm">
         <p className="text-xs text-white/70">Total adeudado</p>
-        <p className="font-mono text-2xl">${totalAdeudado.toFixed(2)}</p>
+        <p className="font-mono text-2xl">{formatearMoneda(totalAdeudado)}</p>
       </div>
 
       {clientes.length === 0 ? (
@@ -51,7 +52,7 @@ export default function ReporteDeuda() {
               <li key={c.cliente_id} className="rounded-xl bg-white p-4 shadow-sm">
                 <p className="font-medium text-marca">{c.nombre}</p>
                 <p className="mt-1 text-sm text-marca/70">
-                  Saldo: <span className="font-mono text-perdida">${Number(c.saldo).toFixed(2)}</span>
+                  Saldo: <span className="font-mono text-perdida">{formatearMoneda(c.saldo)}</span>
                 </p>
                 <p className="text-sm text-marca/70">Teléfono: {c.telefono || '—'}</p>
                 <div className="mt-3 flex flex-col gap-2">
@@ -90,7 +91,7 @@ export default function ReporteDeuda() {
                 {clientes.map((c) => (
                   <tr key={c.cliente_id}>
                     <td className="p-3 font-medium text-marca">{c.nombre}</td>
-                    <td className="p-3 font-mono text-perdida">${Number(c.saldo).toFixed(2)}</td>
+                    <td className="p-3 font-mono text-perdida">{formatearMoneda(c.saldo)}</td>
                     <td className="p-3 text-marca/70">{c.telefono || '—'}</td>
                     <td className="p-3">
                       <div className="flex justify-end gap-2">

@@ -8,6 +8,7 @@ import {
 } from '../../lib/rendicionesChofer'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
+import { formatearMoneda } from '../../lib/formato'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -127,7 +128,7 @@ export default function RendicionChoferes() {
                   <div className="mt-3 flex flex-col gap-2">
                     <p className="text-sm text-marca/70">
                       Monto esperado:{' '}
-                      <span className="font-mono text-marca">${Number(rendicion.monto_esperado).toFixed(2)}</span>
+                      <span className="font-mono text-marca">{formatearMoneda(rendicion.monto_esperado)}</span>
                     </p>
                     <Input
                       label="Monto que entregó"
@@ -151,7 +152,7 @@ export default function RendicionChoferes() {
 
                 {cerrada && (
                   <p className="mt-2 text-sm text-marca/50">
-                    Entregó ${Number(rendicion.monto_entregado).toFixed(2)} de ${Number(rendicion.monto_esperado).toFixed(2)} esperados.
+                    Entregó {formatearMoneda(rendicion.monto_entregado)} de {formatearMoneda(rendicion.monto_esperado)} esperados.
                   </p>
                 )}
               </div>
@@ -177,7 +178,7 @@ export default function RendicionChoferes() {
                   </div>
                   <div className="text-right">
                     <p className="font-mono text-marca">
-                      ${Number(r.monto_entregado).toFixed(2)} / ${Number(r.monto_esperado).toFixed(2)}
+                      {formatearMoneda(r.monto_entregado)} / {formatearMoneda(r.monto_esperado)}
                     </p>
                     <p className={clase}>{texto}</p>
                   </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { obtenerExcepcionCC } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
+import { formatearMoneda } from '../../lib/formato'
 
 export default function ImprimirExcepcion() {
   const { id } = useParams()
@@ -56,7 +57,7 @@ export default function ImprimirExcepcion() {
         </div>
         <div className="flex justify-between border-b border-[#333] py-2">
           <span>Monto de la excepción</span>
-          <span>${Number(excepcion.monto_excepcion).toFixed(2)}</span>
+          <span>{formatearMoneda(excepcion.monto_excepcion)}</span>
         </div>
         <div className="flex justify-between border-b border-[#333] py-2">
           <span>Motivo</span>

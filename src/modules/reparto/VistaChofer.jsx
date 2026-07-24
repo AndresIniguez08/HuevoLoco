@@ -6,6 +6,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { obtenerTotalesPagadosPorPedidos } from '../../lib/cobranzas'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import { MEDIOS_PAGO, ETIQUETA_UNIDAD } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
@@ -168,7 +169,7 @@ export default function VistaChofer() {
                     </div>
                   )}
 
-                  <p className="mt-3 font-mono text-lg text-marca">${Number(e.pedidos?.total).toFixed(2)}</p>
+                  <p className="mt-3 font-mono text-lg text-marca">{formatearMoneda(e.pedidos?.total)}</p>
                   <Button
                     variante="confirmar"
                     tamano="lg"
@@ -242,7 +243,7 @@ function ModalCobro({ entrega, saldo, enviando, onCerrar, onConfirmar }) {
         <div className="flex flex-col gap-4">
           <p className="text-center text-lg text-marca">
             Vas a dejar un saldo pendiente de{' '}
-            <span className="font-mono font-semibold">${diferencia.toFixed(2)}</span>. ¿Confirmás?
+            <span className="font-mono font-semibold">{formatearMoneda(diferencia)}</span>. ¿Confirmás?
           </p>
           <Button variante="confirmar" tamano="lg" className="w-full text-lg" onClick={() => setVista('motivo')}>
             Sí, confirmar
@@ -289,7 +290,7 @@ function ModalCobro({ entrega, saldo, enviando, onCerrar, onConfirmar }) {
       <div className="flex flex-col gap-4">
         <div className="rounded-xl bg-marca p-4 text-center text-white">
           <p className="text-sm text-white/70">Saldo pendiente</p>
-          <p className="font-mono text-4xl leading-tight">${Number(saldo || 0).toFixed(2)}</p>
+          <p className="font-mono text-4xl leading-tight">{formatearMoneda(saldo)}</p>
         </div>
 
         <Input

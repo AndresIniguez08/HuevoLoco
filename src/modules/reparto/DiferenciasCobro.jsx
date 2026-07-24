@@ -4,6 +4,7 @@ import { listarDiferenciasCobro, marcarDiferenciaRevisada } from '../../lib/dife
 import { autorizarExcepcionCC } from '../../lib/cobranzas'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
+import { formatearMoneda } from '../../lib/formato'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -24,8 +25,8 @@ function FilaDiferencia({ dif, onRevisar, revisando, onCargarExcepcion }) {
       <p className="text-marca/60">Chofer: {dif.chofer?.nombre || '—'}</p>
       {dif.revisado && <p className="text-marca/60">Revisado por: {dif.revisor?.nombre || '—'}</p>}
       <div className="flex flex-wrap gap-4 font-mono">
-        <span className="text-marca/70">Esperado: ${esperado.toFixed(2)}</span>
-        <span className="text-marca/70">Cobrado: ${cobrado.toFixed(2)}</span>
+        <span className="text-marca/70">Esperado: {formatearMoneda(esperado)}</span>
+        <span className="text-marca/70">Cobrado: {formatearMoneda(cobrado)}</span>
         <span className={clase}>{texto}</span>
       </div>
       {dif.motivo && <p className="text-marca/70">"{dif.motivo}"</p>}

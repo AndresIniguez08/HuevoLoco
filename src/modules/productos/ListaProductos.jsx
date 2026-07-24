@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { listarProductosGestion, actualizarEstadoProducto } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_CATEGORIA_HUEVO } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -115,7 +116,7 @@ export default function ListaProductos() {
                   </div>
                   <div className="flex items-center gap-3">
                     {p.costo_promedio != null && (
-                      <span className="font-mono text-marca/70">${Number(p.costo_promedio).toFixed(2)}</span>
+                      <span className="font-mono text-marca/70">{formatearMoneda(p.costo_promedio)}</span>
                     )}
                     <Badge tono={p.activo ? 'exito' : 'error'}>{p.activo ? 'Activo' : 'Inactivo'}</Badge>
                     <Button

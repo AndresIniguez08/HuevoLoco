@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { autorizarExcepcionCC } from '../lib/cobranzas'
+import { formatearMoneda } from '../lib/formato'
 import Button from './ui/Button'
 import Modal from './ui/Modal'
 
@@ -44,7 +45,7 @@ export default function ModalExcepcionConfirmar({ pedido, onCerrar, onConfirmado
       <div className="flex flex-col gap-3">
         <p className="text-sm text-marca/70">
           Cliente: {pedido.clientes?.nombre || 'Cliente'} — Total:{' '}
-          <span className="font-mono">${Number(pedido.total).toFixed(2)}</span>
+          <span className="font-mono">{formatearMoneda(pedido.total)}</span>
         </p>
         <label className="flex flex-col gap-1 text-sm">
           <span className="font-medium text-marca">Motivo</span>

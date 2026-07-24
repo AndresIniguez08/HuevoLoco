@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { obtenerMovimientosCaja, totalesPorMedio } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { MEDIOS_PAGO } from '../../lib/constantes'
+import { formatearMoneda } from '../../lib/formato'
 import { useAuthStore } from '../../stores/authStore'
 import Badge from '../../components/ui/Badge'
 
@@ -37,14 +38,14 @@ export default function CajaDiaria() {
         {MEDIOS_PAGO.map((m) => (
           <div key={m.value} className="rounded-xl bg-white p-4 shadow-sm">
             <p className="text-xs text-marca/50">{m.label}</p>
-            <p className="font-mono text-lg text-marca">${(totales[m.value] || 0).toFixed(2)}</p>
+            <p className="font-mono text-lg text-marca">{formatearMoneda(totales[m.value] || 0)}</p>
           </div>
         ))}
       </div>
 
       <div className="mb-4 rounded-xl bg-marca p-4 text-white shadow-sm">
         <p className="text-xs text-white/70">Total del día</p>
-        <p className="font-mono text-2xl">${totalDia.toFixed(2)}</p>
+        <p className="font-mono text-2xl">{formatearMoneda(totalDia)}</p>
       </div>
 
       <div className="rounded-xl bg-white p-4 shadow-sm">
@@ -61,7 +62,7 @@ export default function CajaDiaria() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge tono={m.tipo === 'egreso' ? 'error' : 'exito'}>{m.tipo === 'egreso' ? 'Egreso' : 'Ingreso'}</Badge>
-                  <span className="font-mono">${Number(m.monto).toFixed(2)}</span>
+                  <span className="font-mono">{formatearMoneda(m.monto)}</span>
                 </div>
               </li>
             ))}
