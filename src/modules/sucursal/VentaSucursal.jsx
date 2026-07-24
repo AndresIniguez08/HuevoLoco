@@ -63,6 +63,17 @@ export default function VentaSucursal() {
       .then(([c, p]) => {
         setCliente(c)
         setProductos(p)
+        // maybeSingle() no tira error si no hay fila: pasa cuando a esta
+        // sucursal todavía no se le cargó su cliente "Consumidor Final"
+        // (ver comentario en obtenerClienteConsumidorFinal). Sin esto, el
+        // botón "Cobrar" queda deshabilitado sin ninguna explicación en
+        // pantalla — el nombre mostrado más abajo cae al mismo texto
+        // "Consumidor Final" así haya o no un cliente real.
+        if (!c) {
+          setError(
+            "No existe el cliente \"Consumidor Final\" para esta sucursal. Avisá a Central para que lo cargue, o elegí un cliente registrado para poder cobrar."
+          )
+        }
       })
       .catch((e) => setError(traducirError(e)))
       .finally(() => setCargandoCliente(false))
@@ -349,7 +360,7 @@ export default function VentaSucursal() {
 
       <div className="mb-4 rounded-2xl bg-white p-4 shadow-sm">
         <p className="text-sm text-marca/50">Cliente</p>
-        <p className="mb-3 text-2xl font-medium text-marca">{cliente?.nombre || 'Consumidor Final'}</p>
+        <p className="mb-3 text-2xl font-medium text-marca">{cliente?.nombre || 'Sin cliente asignado'}</p>
         <button
           onClick={() => setPaso('buscarCliente')}
           className="flex min-h-[60px] w-full items-center justify-center rounded-xl border border-marca-claro text-lg font-medium text-marca-claro"
