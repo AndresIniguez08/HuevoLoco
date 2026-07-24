@@ -9,7 +9,10 @@ export async function crearConteo() {
 }
 
 export async function listarConteos() {
-  const { data, error } = await supabase.from('conteos_stock').select('*').order('fecha', { ascending: false })
+  const { data, error } = await supabase
+    .from('conteos_stock')
+    .select('*, sucursales(nombre)')
+    .order('fecha', { ascending: false })
   if (error) throw error
   return data
 }

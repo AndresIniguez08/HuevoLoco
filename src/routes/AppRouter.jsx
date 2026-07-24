@@ -55,6 +55,7 @@ import VentaSucursal from '../modules/sucursal/VentaSucursal'
 import StockSucursal from '../modules/sucursal/StockSucursal'
 import PerdidaSucursal from '../modules/sucursal/PerdidaSucursal'
 import CajaSucursal from '../modules/sucursal/CajaSucursal'
+import ConteoSucursal from '../modules/sucursal/ConteoSucursal'
 
 function crearNavDueno(contadorDiferencias, contadorRemitosDiferencia) {
   return [
@@ -552,6 +553,15 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
               <PerdidaSucursal />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/sucursal/conteo"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
+              <ConteoSucursal />
             </RutaProtegida>
           }
         />

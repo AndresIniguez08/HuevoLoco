@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertTriangle, ArrowLeft, PackageMinus } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, ClipboardList, PackageMinus } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { obtenerStockDesgloseSucursal } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
@@ -30,13 +30,22 @@ export default function StockSucursal() {
       </button>
       <h1 className="mb-4 font-display text-2xl text-marca">Stock</h1>
 
-      <button
-        onClick={() => navigate('/sucursal/perdidas')}
-        className="mb-4 flex min-h-[60px] w-full items-center justify-center gap-2 rounded-xl border border-perdida text-lg font-medium text-perdida"
-      >
-        <PackageMinus size={22} />
-        Reportar pérdida
-      </button>
+      <div className="mb-4 flex flex-col gap-3">
+        <button
+          onClick={() => navigate('/sucursal/conteo')}
+          className="flex min-h-[60px] w-full items-center justify-center gap-2 rounded-xl border border-marca-claro text-lg font-medium text-marca-claro"
+        >
+          <ClipboardList size={22} />
+          Control de stock
+        </button>
+        <button
+          onClick={() => navigate('/sucursal/perdidas')}
+          className="flex min-h-[60px] w-full items-center justify-center gap-2 rounded-xl border border-perdida text-lg font-medium text-perdida"
+        >
+          <PackageMinus size={22} />
+          Reportar pérdida
+        </button>
+      </div>
 
       {cargando ? (
         <p className="text-center text-lg text-marca/60">Cargando...</p>
