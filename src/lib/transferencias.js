@@ -6,6 +6,15 @@ export async function listarSucursales() {
   return data
 }
 
+// fn_resumen_sucursales ya bloquea esto a dueño/administrativo en el
+// backend — el frontend solo evita mostrar el botón a otros roles, no es la
+// única barrera.
+export async function obtenerResumenSucursales() {
+  const { data, error } = await supabase.rpc('fn_resumen_sucursales')
+  if (error) throw error
+  return data || []
+}
+
 // fn_crear_venta_sucursal se salta la validación de stock disponible cuando
 // esto está en true (ej: venta con seña que el cliente retira más tarde).
 export async function actualizarPermiteVentaSinStock(sucursalId, permite) {

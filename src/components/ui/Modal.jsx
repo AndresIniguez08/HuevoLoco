@@ -1,11 +1,11 @@
 import { X } from 'lucide-react'
 
-export default function Modal({ abierto, onCerrar, titulo, children }) {
+export default function Modal({ abierto, onCerrar, titulo, children, ancho = 'max-w-md' }) {
   if (!abierto) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-marca/40 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+      <div className={`w-full ${ancho} rounded-xl bg-white p-5 shadow-xl`}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-lg text-marca">{titulo}</h2>
           <button

@@ -1,13 +1,109 @@
 import { useEffect, useState } from 'react'
-import { listarSucursales, configurarCCSucursal } from '../../lib/transferencias'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { listarSucursales, configurarCCSucursal, obtenerResumenSucursales } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
+import { useAuthStore } from '../../stores/authStore'
+import { ROLES } from '../../lib/constantes'
 import Button from '../../components/ui/Button'
 import Toggle from '../../components/ui/Toggle'
+import Modal from '../../components/ui/Modal'
+
+const COLOR_BARRA = '#0B2D5B'
+
+function TooltipFacturacion({ active, payload }) {
+  if (!active || !payload?.length) return null
+  const item = payload[0].payload
+  return (
+    <div className="rounded-lg border border-marca/10 bg-white px-3 py-2 text-sm shadow-md">
+      <p className="font-medium text-marca">{item.nombre}</p>
+      <p className="font-mono text-marca/70">${Number(item.facturacion_total).toFixed(2)}</p>
+    </div>
+  )
+}
+
+function TarjetaResumen({ r }) {
+  const deuda = Number(r.deuda_total) || 0
+  return (
+    <div className="rounded-xl bg-marca/5 p-4">
+      <h3 className="mb-3 font-medium text-marca">{r.nombre}</h3>
+      <div className="flex flex-col gap-3 text-sm">
+        <div>
+          <p className="text-xs text-marca/50">Facturación total</p>
+          <p className="font-mono text-lg text-marca">${Number(r.facturacion_total || 0).toFixed(2)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-marca/50">Cantidad de ventas</p>
+          <p className="font-mono text-marca">{r.cantidad_ventas ?? 0}</p>
+        </div>
+        <div>
+          <p className="text-xs text-marca/50">Deuda total de clientes</p>
+          <p className={`font-mono ${deuda > 0 ? 'text-perdida' : 'text-marca'}`}>${deuda.toFixed(2)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-marca/50">Valor de stock</p>
+          <p className="font-mono text-marca">${Number(r.valor_stock || 0).toFixed(2)}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ModalResumenSucursales({ abierto, onCerrar }) {
+  const [resumen, setResumen] = useState([])
+  const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!abierto) return
+    setCargando(true)
+    obtenerResumenSucursales()
+      .then(setResumen)
+      .catch((e) => setError(traducirError(e)))
+      .finally(() => setCargando(false))
+  }, [abierto])
+
+  return (
+    <Modal abierto={abierto} onCerrar={onCerrar} titulo="Resumen por sucursal" ancho="max-w-4xl">
+      {cargando ? (
+        <p className="text-sm text-marca/60">Cargando resumen...</p>
+      ) : error ? (
+        <p className="text-sm text-perdida">{error}</p>
+      ) : (
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {resumen.map((r) => (
+              <TarjetaResumen key={r.sucursal_id || r.nombre} r={r} />
+            ))}
+          </div>
+
+          {resumen.length > 0 && (
+            <div style={{ width: '100%', height: 260 }}>
+              <ResponsiveContainer>
+                <BarChart data={resumen} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#0B2D5B1A" vertical={false} />
+                  <XAxis dataKey="nombre" tick={{ fontSize: 12, fill: '#0B2D5B99' }} axisLine={{ stroke: '#0B2D5B1A' }} tickLine={false} />
+                  <YAxis
+                    tick={{ fontSize: 12, fill: '#0B2D5B99' }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `$${v}`}
+                  />
+                  <Tooltip content={<TooltipFacturacion />} cursor={{ fill: '#0B2D5B0D' }} />
+                  <Bar dataKey="facturacion_total" fill={COLOR_BARRA} radius={[4, 4, 0, 0]} maxBarSize={80} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      )}
+    </Modal>
+  )
+}
 
 function TarjetaSucursal({ sucursal, onGuardado }) {
   const [habilitada, setHabilitada] = useState(!!sucursal.cc_habilitada_default)
   const [limite, setLimite] = useState(
-    sucursal.cc_limite_default != null ? String(sucursal.cc_limite_default) : ''
+    sucursal.limite_credito_default != null ? String(sucursal.limite_credito_default) : ''
   )
   const [sinGuardar, setSinGuardar] = useState(false)
   const [guardando, setGuardando] = useState(false)
@@ -72,9 +168,12 @@ function TarjetaSucursal({ sucursal, onGuardado }) {
 }
 
 export default function GestionSucursales() {
+  const perfil = useAuthStore((s) => s.perfil)
+  const puedeVerResumen = perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO
   const [sucursales, setSucursales] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
+  const [resumenAbierto, setResumenAbierto] = useState(false)
 
   useEffect(() => {
     cargar()
@@ -97,7 +196,14 @@ export default function GestionSucursales() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-1 font-display text-xl text-marca">Sucursales</h1>
+      <div className="mb-1 flex items-center justify-between gap-3">
+        <h1 className="font-display text-xl text-marca">Sucursales</h1>
+        {puedeVerResumen && (
+          <Button tamano="sm" variante="secundario" onClick={() => setResumenAbierto(true)}>
+            Ver resumen por sucursal
+          </Button>
+        )}
+      </div>
       <p className="mb-4 text-sm text-marca/60">
         Cuenta corriente general por sucursal: si está activada, sus clientes pueden confirmar pedidos a crédito hasta
         el límite de acá sin necesitar autorización individual.
@@ -115,6 +221,10 @@ export default function GestionSucursales() {
             <TarjetaSucursal key={s.id} sucursal={s} onGuardado={cargar} />
           ))}
         </div>
+      )}
+
+      {puedeVerResumen && (
+        <ModalResumenSucursales abierto={resumenAbierto} onCerrar={() => setResumenAbierto(false)} />
       )}
     </div>
   )
