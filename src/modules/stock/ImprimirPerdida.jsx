@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { obtenerPerdida } from '../../lib/perdidas'
 import { traducirError } from '../../lib/errores'
+import { formatearFecha } from '../../lib/formato'
 
 export default function ImprimirPerdida() {
   const { id } = useParams()
@@ -40,7 +41,7 @@ export default function ImprimirPerdida() {
 
       <header className="mb-6">
         <h1 className="font-display text-2xl leading-none">Huevo Loco — Comprobante de pérdida</h1>
-        <p className="mt-1 text-sm text-black/70">{new Date(perdida.creado_at).toLocaleDateString('es-AR')}</p>
+        <p className="mt-1 text-sm text-black/70">{formatearFecha(perdida.creado_at)}</p>
       </header>
 
       <div className="flex flex-col gap-2 text-sm">

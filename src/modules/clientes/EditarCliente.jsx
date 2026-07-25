@@ -12,7 +12,7 @@ import { listarListasPrecio } from '../../lib/listasPrecio'
 import { obtenerNombrePerfil } from '../../lib/usuarios'
 import { traducirError } from '../../lib/errores'
 import { TIPOS_CLIENTE, ROLES } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import { useAuthStore } from '../../stores/authStore'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -164,7 +164,7 @@ export default function EditarCliente({ cliente, onActualizado, onCancelar }) {
             </p>
             <p className="text-xs text-marca/50">
               Autorizada por {autorizadorNombre || '...'}
-              {cliente.cc_autorizado_at && ` el ${new Date(cliente.cc_autorizado_at).toLocaleDateString('es-AR')}`}
+              {cliente.cc_autorizado_at && ` el ${formatearFecha(cliente.cc_autorizado_at)}`}
             </p>
             {puedeGestionarCC && (
               <Button

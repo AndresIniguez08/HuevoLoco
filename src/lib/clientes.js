@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { formatearFecha } from './formato'
 
 // Por defecto excluye clientes inactivos: esta función alimenta los
 // selectores de pantallas de operación (TomarPedido, CuentaCorriente, etc.).
@@ -130,7 +131,7 @@ export async function obtenerMovimientosCuentaCorriente(clienteId, { desde, hast
   return data.map((m) => {
     if (m.referencia_tipo === 'venta') {
       const pedido = pedidosPorId.get(m.referencia_id)
-      const fecha = pedido ? new Date(pedido.creado_at).toLocaleDateString('es-AR') : ''
+      const fecha = pedido ? formatearFecha(pedido.creado_at) : ''
       return { ...m, descripcion: `Venta — pedido del ${fecha}` }
     }
     if (m.referencia_tipo === 'pago') {

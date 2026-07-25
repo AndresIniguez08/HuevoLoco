@@ -8,7 +8,7 @@ import {
 } from '../../lib/rendicionesChofer'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -173,7 +173,7 @@ export default function RendicionChoferes() {
                 <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm">
                   <div>
                     <p className="font-medium text-marca">{r.chofer?.nombre || 'Chofer'}</p>
-                    <p className="text-marca/50">{new Date(r.creado_at).toLocaleDateString('es-AR')}</p>
+                    <p className="text-marca/50">{formatearFecha(r.creado_at)}</p>
                     <p className="text-xs text-marca/40">Recibió: {r.receptor?.nombre || '—'}</p>
                   </div>
                   <div className="text-right">

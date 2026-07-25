@@ -6,7 +6,7 @@ import { obtenerNombrePerfil } from '../../lib/usuarios'
 import { obtenerTotalesPagadosPorPedidos } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -81,7 +81,7 @@ export default function ImprimirHojaRuta() {
             {camioneta?.patente ? `${camioneta.nombre} — ${camioneta.patente}` : camioneta?.nombre || '—'}
           </span>
           <span>
-            <strong>Fecha:</strong> {new Date(`${fecha}T00:00:00`).toLocaleDateString('es-AR')}
+            <strong>Fecha:</strong> {formatearFecha(`${fecha}T00:00:00`)}
           </span>
         </div>
       </header>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { listarSaldosClientes, obtenerTotalCobradoUltimos30Dias, listarExcepcionesCCDelMes } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
-import { formatearMoneda, formatearNumero } from '../../lib/formato'
+import { formatearMoneda, formatearNumero, formatearFecha } from '../../lib/formato'
 import Button from '../../components/ui/Button'
 
 const COLOR_BARRA = '#0B2D5B'
@@ -97,7 +97,7 @@ export default function InformeCobranzas() {
               <li key={e.id} className="flex flex-col gap-1 py-2">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-marca">{formatearMoneda(e.monto_excepcion)}</span>
-                  <span className="text-xs text-marca/50">{new Date(e.creado_at).toLocaleDateString('es-AR')}</span>
+                  <span className="text-xs text-marca/50">{formatearFecha(e.creado_at)}</span>
                 </div>
                 <p className="text-marca/70">{e.motivo}</p>
                 <p className="text-xs text-marca/50">Autorizado por {e.perfiles?.nombre || '—'}</p>

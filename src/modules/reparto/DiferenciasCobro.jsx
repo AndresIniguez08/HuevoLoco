@@ -4,7 +4,7 @@ import { listarDiferenciasCobro, marcarDiferenciaRevisada } from '../../lib/dife
 import { autorizarExcepcionCC } from '../../lib/cobranzas'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -20,7 +20,7 @@ function FilaDiferencia({ dif, onRevisar, revisando, onCargarExcepcion }) {
     <li className="flex flex-col gap-2 p-4 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-medium text-marca">{dif.pedidos?.clientes?.nombre || 'Cliente'}</p>
-        <span className="text-xs text-marca/50">{new Date(dif.creado_at).toLocaleDateString('es-AR')}</span>
+        <span className="text-xs text-marca/50">{formatearFecha(dif.creado_at)}</span>
       </div>
       <p className="text-marca/60">Chofer: {dif.chofer?.nombre || '—'}</p>
       {dif.revisado && <p className="text-marca/60">Revisado por: {dif.revisor?.nombre || '—'}</p>}

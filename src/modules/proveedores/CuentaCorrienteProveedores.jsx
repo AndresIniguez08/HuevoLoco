@@ -7,7 +7,7 @@ import {
 } from '../../lib/proveedores'
 import { traducirError } from '../../lib/errores'
 import { MEDIOS_PAGO, formatearCantidadItemCompra } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import BuscadorProveedor from '../../components/BuscadorProveedor'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -228,7 +228,7 @@ export default function CuentaCorrienteProveedores() {
                   >
                     <div>
                       <p className="text-marca">{m.descripcion || (m.tipo === 'debito' ? 'Compra' : 'Pago')}</p>
-                      <p className="text-xs text-marca/50">{new Date(m.creado_at).toLocaleDateString('es-AR')}</p>
+                      <p className="text-xs text-marca/50">{formatearFecha(m.creado_at)}</p>
                     </div>
                     <span className={`font-mono ${m.tipo === 'debito' ? 'text-perdida' : 'text-fresco'}`}>
                       {m.tipo === 'debito' ? '+' : '-'}
@@ -282,7 +282,7 @@ export default function CuentaCorrienteProveedores() {
           <div className="flex flex-col gap-2 text-sm">
             <div className="flex justify-between border-b border-marca/10 py-2">
               <span className="text-marca/60">Fecha</span>
-              <span className="text-marca">{new Date(detalle.creado_at).toLocaleDateString('es-AR')}</span>
+              <span className="text-marca">{formatearFecha(detalle.creado_at)}</span>
             </div>
             <div className="flex justify-between border-b border-marca/10 py-2">
               <span className="text-marca/60">Medio de pago</span>

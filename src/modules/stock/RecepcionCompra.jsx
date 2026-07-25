@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { listarComprasPendientes, recibirCompra, reportarDiferenciaCompra } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
 import { formatearCantidadItemCompra } from '../../lib/constantes'
+import { formatearFecha } from '../../lib/formato'
 import Button from '../../components/ui/Button'
 
 // Mismo patrón que AceptarMercaderia.jsx (sucursal): depósito solo confirma
@@ -114,7 +115,7 @@ export default function RecepcionCompra() {
           {compras.map((c) => (
             <div key={c.id} className="rounded-2xl bg-white p-5 shadow-sm">
               <p className="text-xl font-medium text-marca">{c.proveedores?.nombre || 'Proveedor'}</p>
-              <p className="text-base text-marca/60">{new Date(c.creado_at).toLocaleDateString('es-AR')}</p>
+              <p className="text-base text-marca/60">{formatearFecha(c.creado_at)}</p>
               <ul className="mt-2 flex flex-col gap-1">
                 {(c.compra_items || []).map((it) => (
                   <li key={it.id} className="text-xl font-medium leading-snug text-marca">

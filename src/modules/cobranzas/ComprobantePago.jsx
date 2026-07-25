@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { obtenerPago } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
 import { MEDIOS_PAGO } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 
 const ETIQUETA_MEDIO = Object.fromEntries(MEDIOS_PAGO.map((m) => [m.value, m.label]))
 
@@ -50,7 +50,7 @@ export default function ComprobantePago() {
       <div className="flex flex-col gap-2 text-sm">
         <div className="flex justify-between border-b border-[#333] py-2">
           <span>Fecha</span>
-          <span>{new Date(pago.creado_at).toLocaleDateString('es-AR')}</span>
+          <span>{formatearFecha(pago.creado_at)}</span>
         </div>
         <div className="flex justify-between border-b border-[#333] py-2">
           <span>Cliente</span>

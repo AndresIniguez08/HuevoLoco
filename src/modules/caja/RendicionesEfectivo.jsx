@@ -6,7 +6,7 @@ import {
 } from '../../lib/rendicionesEfectivo'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFechaHora } from '../../lib/formato'
 import { ETIQUETA_ESTADO_RENDICION, TONO_ESTADO_RENDICION } from '../../lib/constantes'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Badge from '../../components/ui/Badge'
@@ -36,6 +36,7 @@ function FilaPendiente({ r, onConfirmar }) {
         </div>
       </div>
       <p className="text-marca/60">Generada por: {r.creador?.nombre || '—'}</p>
+      <p className="text-xs text-marca/50">Enviada: {formatearFechaHora(r.fecha_envio)}</p>
       <p className="font-mono text-lg text-marca">{formatearMoneda(r.monto_declarado)}</p>
       {r.observaciones && <p className="text-marca/70">&quot;{r.observaciones}&quot;</p>}
       <div className="mt-1 flex flex-wrap gap-2">
@@ -66,7 +67,7 @@ function FilaHistorial({ r }) {
         <span className="text-marca/70">Recibido: {formatearMoneda(r.monto_recibido)}</span>
         {Number(r.diferencia) !== 0 && <span className={clase}>{texto}</span>}
       </div>
-      <p className="text-xs text-marca/50">{new Date(r.fecha_confirmacion).toLocaleString('es-AR')}</p>
+      <p className="text-xs text-marca/50">{formatearFechaHora(r.fecha_confirmacion)}</p>
       <div className="mt-1">
         <Button tamano="sm" variante="secundario" onClick={() => window.open(`/rendicion/${r.id}/imprimir`, '_blank')}>
           Imprimir

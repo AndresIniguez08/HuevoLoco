@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { obtenerConteo, listarItemsConteo } from '../../lib/conteoStock'
 import { traducirError } from '../../lib/errores'
+import { formatearFecha } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -49,7 +50,7 @@ export default function ImprimirConteo() {
         <p className="mt-1 text-sm text-black/70">Hoja de conteo físico de stock</p>
         <div className="mt-4 flex items-end justify-between text-sm">
           <span>
-            <strong>Fecha del conteo:</strong> {conteo && new Date(conteo.fecha).toLocaleDateString('es-AR')}
+            <strong>Fecha del conteo:</strong> {conteo && formatearFecha(conteo.fecha)}
           </span>
           <span>
             <strong>Realizado por:</strong> _______________________________

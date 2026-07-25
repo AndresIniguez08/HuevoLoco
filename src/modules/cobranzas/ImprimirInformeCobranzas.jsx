@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listarSaldosClientes, obtenerTotalCobradoUltimos30Dias, listarExcepcionesCCDelMes } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -47,7 +47,7 @@ export default function ImprimirInformeCobranzas() {
 
       <header className="mb-6">
         <h1 className="font-display text-2xl leading-none">Huevo Loco — Informe de cobranzas</h1>
-        <p className="mt-1 text-sm text-black/70">{new Date().toLocaleDateString('es-AR')}</p>
+        <p className="mt-1 text-sm text-black/70">{formatearFecha(new Date())}</p>
       </header>
 
       <p className="mb-2 text-sm font-medium">Top 5 clientes con mayor deuda</p>
@@ -100,7 +100,7 @@ export default function ImprimirInformeCobranzas() {
           ) : (
             excepciones.map((e) => (
               <tr key={e.id}>
-                <td className={`${BORDE} border p-2.5`}>{new Date(e.creado_at).toLocaleDateString('es-AR')}</td>
+                <td className={`${BORDE} border p-2.5`}>{formatearFecha(e.creado_at)}</td>
                 <td className={`${BORDE} border p-2.5`}>{formatearMoneda(e.monto_excepcion)}</td>
                 <td className={`${BORDE} border p-2.5`}>{e.motivo}</td>
                 <td className={`${BORDE} border p-2.5`}>{e.perfiles?.nombre || '—'}</td>

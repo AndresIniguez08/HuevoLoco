@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { obtenerDiferenciaCobro } from '../../lib/diferenciasCobro'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 
 export default function ImprimirDiferencia() {
   const { id } = useParams()
@@ -46,7 +46,7 @@ export default function ImprimirDiferencia() {
 
       <header className="mb-6">
         <h1 className="font-display text-2xl leading-none">Huevo Loco — Diferencia de cobro</h1>
-        <p className="mt-1 text-sm text-black/70">{new Date(dif.creado_at).toLocaleDateString('es-AR')}</p>
+        <p className="mt-1 text-sm text-black/70">{formatearFecha(dif.creado_at)}</p>
       </header>
 
       <div className="flex flex-col gap-2 text-sm">

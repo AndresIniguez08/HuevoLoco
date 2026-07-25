@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { obtenerRendicion } from '../../lib/rendicionesEfectivo'
 import { formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFechaHora } from '../../lib/formato'
 import { ETIQUETA_ESTADO_RENDICION } from '../../lib/constantes'
 
 export default function ImprimirRendicion() {
@@ -46,7 +46,7 @@ export default function ImprimirRendicion() {
 
       <header className="mb-6">
         <h1 className="font-display text-2xl leading-none">Huevo Loco — Comprobante de rendición de efectivo</h1>
-        <p className="mt-1 text-sm text-black/70">{new Date(rendicion.fecha_envio).toLocaleString('es-AR')}</p>
+        <p className="mt-1 text-sm text-black/70">{formatearFechaHora(rendicion.fecha_envio)}</p>
       </header>
 
       <div className="flex flex-col gap-2 text-sm">
@@ -89,7 +89,7 @@ export default function ImprimirRendicion() {
             </div>
             <div className="flex justify-between border-b border-[#333] py-2">
               <span>Fecha de confirmación</span>
-              <span>{new Date(rendicion.fecha_confirmacion).toLocaleString('es-AR')}</span>
+              <span>{formatearFechaHora(rendicion.fecha_confirmacion)}</span>
             </div>
             {rendicion.observaciones_confirmacion && (
               <div className="flex justify-between border-b border-[#333] py-2">

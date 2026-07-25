@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { obtenerExcepcionCC } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 
 export default function ImprimirExcepcion() {
   const { id } = useParams()
@@ -41,7 +41,7 @@ export default function ImprimirExcepcion() {
 
       <header className="mb-6">
         <h1 className="font-display text-2xl leading-none">Huevo Loco — Excepción de cuenta corriente</h1>
-        <p className="mt-1 text-sm text-black/70">{new Date(excepcion.creado_at).toLocaleDateString('es-AR')}</p>
+        <p className="mt-1 text-sm text-black/70">{formatearFecha(excepcion.creado_at)}</p>
       </header>
 
       <div className="flex flex-col gap-2 text-sm">
@@ -52,7 +52,7 @@ export default function ImprimirExcepcion() {
         <div className="flex justify-between border-b border-[#333] py-2">
           <span>Pedido asociado</span>
           <span>
-            {excepcion.pedidos ? `${excepcion.pedidos.id.slice(0, 8)} — ${new Date(excepcion.pedidos.creado_at).toLocaleDateString('es-AR')}` : '—'}
+            {excepcion.pedidos ? `${excepcion.pedidos.id.slice(0, 8)} — ${formatearFecha(excepcion.pedidos.creado_at)}` : '—'}
           </span>
         </div>
         <div className="flex justify-between border-b border-[#333] py-2">

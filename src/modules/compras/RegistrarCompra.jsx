@@ -4,7 +4,7 @@ import { obtenerProductosConStock } from '../../lib/productos'
 import { crearCompra, listarComprasDiferencia, revisarCompra } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import { convertirAMaple } from '../../lib/unidades'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
@@ -16,7 +16,7 @@ function FilaDiferencia({ compra, onRevisar, revisando }) {
     <li className="flex flex-col gap-2 p-4 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-medium text-marca">{compra.proveedores?.nombre || 'Proveedor'}</p>
-        <span className="text-xs text-marca/50">{new Date(compra.creado_at).toLocaleDateString('es-AR')}</span>
+        <span className="text-xs text-marca/50">{formatearFecha(compra.creado_at)}</span>
       </div>
       <p className="text-marca/60">Recibida por: {compra.receptor?.nombre || '—'}</p>
       {compra.observacion_diferencia && <p className="text-marca/70">"{compra.observacion_diferencia}"</p>}

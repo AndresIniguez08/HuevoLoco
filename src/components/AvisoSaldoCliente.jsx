@@ -1,4 +1,4 @@
-import { formatearMoneda } from '../lib/formato'
+import { formatearMoneda, formatearFecha } from '../lib/formato'
 
 export default function AvisoSaldoCliente({ nombre, saldo, desde, className = '' }) {
   if (!(saldo > 0)) return null
@@ -10,7 +10,7 @@ export default function AvisoSaldoCliente({ nombre, saldo, desde, className = ''
       {desde && (
         <>
           {' '}
-          desde el <span className="font-medium">{new Date(desde).toLocaleDateString('es-AR')}</span>
+          desde el <span className="font-medium">{formatearFecha(desde)}</span>
         </>
       )}
       .

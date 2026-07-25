@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { formatearFecha } from './formato'
 
 // Por defecto excluye proveedores inactivos: esta función alimenta tanto el
 // listado de gestión (con incluirInactivos) como selectores de otras
@@ -69,7 +70,7 @@ export async function obtenerMovimientosCCProveedor(proveedorId, { desde, hasta 
   return data.map((m) => {
     if (m.referencia_tipo === 'compra') {
       const compra = comprasPorId.get(m.referencia_id)
-      const fecha = compra ? new Date(compra.creado_at).toLocaleDateString('es-AR') : ''
+      const fecha = compra ? formatearFecha(compra.creado_at) : ''
       return { ...m, descripcion: `Compra — registrada el ${fecha}` }
     }
     if (m.referencia_tipo === 'pago') {

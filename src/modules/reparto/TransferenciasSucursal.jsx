@@ -11,6 +11,7 @@ import {
 import { traducirError } from '../../lib/errores'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import { ETIQUETA_UNIDAD, ETIQUETA_ESTADO_REMITO, TONO_ESTADO_REMITO, formatearCantidadItemCompra } from '../../lib/constantes'
+import { formatearFecha } from '../../lib/formato'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
@@ -24,7 +25,7 @@ function BloqueDiferencia({ remito, revisando, onRevisar }) {
       {remito.revisado ? (
         <p className="mt-2 text-xs text-marca/50">
           Revisado por {remito.revisor?.nombre || '—'}
-          {remito.revisado_at && ` el ${new Date(remito.revisado_at).toLocaleDateString('es-AR')}`}
+          {remito.revisado_at && ` el ${formatearFecha(remito.revisado_at)}`}
         </p>
       ) : (
         <Button
@@ -269,7 +270,7 @@ export default function TransferenciasSucursal() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-medium text-marca">{r.sucursales?.nombre || '—'}</p>
-                  <p className="text-xs text-marca/50">{new Date(r.creado_at).toLocaleDateString('es-AR')}</p>
+                  <p className="text-xs text-marca/50">{formatearFecha(r.creado_at)}</p>
                   <p className="text-xs text-marca/50">Enviado por {r.creador?.nombre || '—'}</p>
                   {r.receptor?.nombre && <p className="text-xs text-marca/50">Recibido por {r.receptor.nombre}</p>}
                 </div>

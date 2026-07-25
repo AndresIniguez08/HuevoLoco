@@ -4,6 +4,7 @@ import { listarConteosCerrados } from '../../lib/conteoStock'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { RUTA_RAIZ_POR_ROL } from '../../lib/constantes'
+import { formatearFecha } from '../../lib/formato'
 import Badge from '../../components/ui/Badge'
 
 export default function AuditoriasConteo() {
@@ -43,7 +44,7 @@ export default function AuditoriasConteo() {
                   className="flex w-full items-center justify-between gap-3 p-4 text-left text-sm hover:bg-marca/5"
                 >
                   <div>
-                    <p className="font-medium text-marca">{new Date(c.fecha).toLocaleDateString('es-AR')}</p>
+                    <p className="font-medium text-marca">{formatearFecha(c.fecha)}</p>
                     <p className="text-marca/50">{c.usuario_nombre || 'Usuario desconocido'}</p>
                   </div>
                   <Badge tono={c.cantidad_diferencias > 0 ? 'alerta' : 'exito'}>

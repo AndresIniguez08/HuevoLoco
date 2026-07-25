@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { obtenerMovimientosCaja } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFechaHora } from '../../lib/formato'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 
@@ -74,7 +74,7 @@ export default function HistorialMovimientos() {
             <tbody className="divide-y divide-marca/10">
               {movimientos.map((m) => (
                 <tr key={m.id}>
-                  <td className="px-4 py-2 text-marca/70">{new Date(m.creado_at).toLocaleString('es-AR')}</td>
+                  <td className="px-4 py-2 text-marca/70">{formatearFechaHora(m.creado_at)}</td>
                   <td className="px-4 py-2">{m.descripcion}</td>
                   <td className="px-4 py-2 capitalize">{m.medio}</td>
                   <td className="px-4 py-2">

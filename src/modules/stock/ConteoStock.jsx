@@ -4,6 +4,7 @@ import { crearConteo, listarConteos } from '../../lib/conteoStock'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { RUTA_RAIZ_POR_ROL } from '../../lib/constantes'
+import { formatearFecha } from '../../lib/formato'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 
@@ -99,7 +100,7 @@ export default function ConteoStock() {
                       className="flex w-full items-center justify-between gap-3 p-4 text-left text-sm hover:bg-marca/5"
                     >
                       <span className="flex items-center gap-2">
-                        <span className="font-medium text-marca">{new Date(c.fecha).toLocaleDateString('es-AR')}</span>
+                        <span className="font-medium text-marca">{formatearFecha(c.fecha)}</span>
                         <Badge tono="neutro">{c.sucursales?.nombre || '—'}</Badge>
                       </span>
                       <Badge tono="neutro">Abierto</Badge>
@@ -128,7 +129,7 @@ export default function ConteoStock() {
                     className="flex w-full items-center justify-between gap-3 p-4 text-left text-sm hover:bg-marca/5"
                   >
                     <span className="flex items-center gap-2">
-                      <span className="font-medium text-marca">{new Date(c.fecha).toLocaleDateString('es-AR')}</span>
+                      <span className="font-medium text-marca">{formatearFecha(c.fecha)}</span>
                       <Badge tono="neutro">{c.sucursales?.nombre || '—'}</Badge>
                     </span>
                     <Badge tono="exito">Cerrado</Badge>

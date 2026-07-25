@@ -4,7 +4,7 @@ import { obtenerPedidoParaImprimir } from '../../lib/ventas'
 import { obtenerTotalesPagadosPorPedidos } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_UNIDAD, ETIQUETA_ESTADO_PAGO } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -57,7 +57,7 @@ export default function ImprimirRemito() {
 
       <header className="mb-6">
         <h1 className="font-display text-2xl leading-none">Huevo Loco — Remito</h1>
-        <p className="mt-1 text-sm text-black/70">{new Date(pedido.creado_at).toLocaleDateString('es-AR')}</p>
+        <p className="mt-1 text-sm text-black/70">{formatearFecha(pedido.creado_at)}</p>
       </header>
 
       <div className="mb-6 flex flex-col gap-1 text-sm">

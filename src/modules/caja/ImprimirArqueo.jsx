@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { obtenerArqueo, formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { DENOMINACIONES_BILLETE } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
@@ -66,7 +66,7 @@ export default function ImprimirArqueo() {
         <h1 className="font-display text-2xl leading-none">Huevo Loco — Arqueo de caja</h1>
         <div className="mt-4 flex items-end justify-between text-sm">
           <span>
-            <strong>Fecha:</strong> {new Date(arqueo.fecha).toLocaleDateString('es-AR')}
+            <strong>Fecha:</strong> {formatearFecha(arqueo.fecha)}
           </span>
           <span>
             <strong>Realizado por:</strong> _______________________________

@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { listarRemitosPendientesSucursal, aceptarRemito, reportarDiferenciaRemito } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
 import { formatearCantidadItemCompra } from '../../lib/constantes'
+import { formatearFecha } from '../../lib/formato'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Button from '../../components/ui/Button'
 
@@ -126,7 +127,7 @@ export default function AceptarMercaderia() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {remitos.map((r) => (
             <div key={r.id} className="rounded-2xl bg-white p-5 shadow-sm">
-              <p className="text-base text-marca/60">{new Date(r.creado_at).toLocaleDateString('es-AR')}</p>
+              <p className="text-base text-marca/60">{formatearFecha(r.creado_at)}</p>
               <ul className="mt-2 flex flex-col gap-1">
                 {(r.remito_transferencia_items || []).map((it) => (
                   <li key={it.id} className="text-xl font-medium leading-snug text-marca">

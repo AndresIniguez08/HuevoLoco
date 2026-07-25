@@ -9,6 +9,7 @@ import {
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { ROLES } from '../../lib/constantes'
+import { formatearFecha } from '../../lib/formato'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -168,7 +169,7 @@ export default function DetalleConteo() {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="font-display text-xl text-marca">
-            Conteo del {conteo && new Date(conteo.fecha).toLocaleDateString('es-AR')}
+            Conteo del {conteo && formatearFecha(conteo.fecha)}
           </h1>
         </div>
         <Badge tono={conteo?.cerrado ? 'exito' : 'neutro'}>{conteo?.cerrado ? 'Cerrado' : 'Abierto'}</Badge>
