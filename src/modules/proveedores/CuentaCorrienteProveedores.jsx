@@ -260,7 +260,8 @@ export default function CuentaCorrienteProveedores() {
                 {detalle.map((item) => (
                   <li key={item.id} className="flex items-center justify-between py-2">
                     <span className="text-marca">
-                      {formatearCantidadItemCompra(item)} — {item.productos?.nombre || 'Producto'}
+                      {formatearCantidadItemCompra(item)} — {item.productos?.nombre || 'Producto'} —{' '}
+                      {formatearMoneda(item.costo_unitario)} c/u
                     </span>
                     <span className="font-mono text-marca">
                       {formatearMoneda(Number(item.costo_unitario) * Number(item.cantidad_maple))}

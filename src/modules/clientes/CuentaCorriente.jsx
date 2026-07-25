@@ -6,6 +6,7 @@ import { traducirError } from '../../lib/errores'
 import { MEDIOS_PAGO, ETIQUETA_UNIDAD } from '../../lib/constantes'
 import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import BuscadorCliente from '../../components/BuscadorCliente'
+import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
 
@@ -248,7 +249,12 @@ export default function CuentaCorriente() {
                   <li key={item.id} className="flex items-center justify-between py-2">
                     <span className="text-marca">
                       {etiquetaCantidadUnidad(item.cantidad_unidad, item.unidad_vendida)} —{' '}
-                      {item.productos?.nombre || 'Producto'}
+                      {item.productos?.nombre || 'Producto'} — {formatearMoneda(item.precio_aplicado)} c/u
+                      {item.es_precio_especial && (
+                        <Badge tono="neutro" className="ml-2">
+                          Precio especial
+                        </Badge>
+                      )}
                     </span>
                     <span className="font-mono text-marca">
                       {formatearMoneda(Number(item.precio_aplicado) * Number(item.cantidad_unidad))}

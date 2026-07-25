@@ -154,7 +154,7 @@ async function obtenerMapaPorId(tabla, columnas, ids) {
 export async function obtenerItemsPedido(pedidoId) {
   const { data, error } = await supabase
     .from('pedido_items')
-    .select('id, cantidad_unidad, unidad_vendida, precio_aplicado, productos(nombre)')
+    .select('id, cantidad_unidad, unidad_vendida, precio_aplicado, es_precio_especial, productos(nombre)')
     .eq('pedido_id', pedidoId)
   if (error) throw error
   return data
