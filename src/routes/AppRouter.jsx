@@ -119,7 +119,7 @@ function crearNavDueno(contadores, contadorComprasDiferencia) {
       { to: '/dueno/caja', label: 'Caja del día' },
       { to: '/dueno/arqueo', label: 'Arqueo' },
       { to: '/dueno/historial', label: 'Historial' },
-      { to: '/dueno/rendiciones', label: 'Rendiciones' },
+      { to: '/dueno/rendiciones', label: 'Rendiciones', contador: contadores.rendiciones_efectivo_pendientes },
     ],
   },
   {
@@ -206,7 +206,7 @@ function crearNavAdmin(contadores, contadorComprasDiferencia) {
       { to: '/admin/caja', label: 'Caja del día' },
       { to: '/admin/arqueo', label: 'Arqueo' },
       { to: '/admin/historial', label: 'Historial' },
-      { to: '/admin/rendiciones', label: 'Rendiciones' },
+      { to: '/admin/rendiciones', label: 'Rendiciones', contador: contadores.rendiciones_efectivo_pendientes },
     ],
   },
   {
@@ -258,18 +258,24 @@ function crearNavDeposito(contadores) {
   ]
 }
 
-const NAV_VENDEDOR = [
-  {
-    grupo: 'Ventas',
-    icono: ShoppingCart,
-    items: [
-      { to: '/vendedor/pedido', label: 'Tomar pedido', end: true },
-      { to: '/vendedor/pedidos', label: 'Mis pedidos' },
-    ],
-  },
-  { grupo: 'Clientes', icono: Users, items: [{ to: '/vendedor/clientes-gestion', label: 'Gestión de clientes' }] },
-  { grupo: 'Caja', icono: Wallet, items: [{ to: '/vendedor/rendiciones', label: 'Rendiciones' }] },
-]
+function crearNavVendedor(contadores) {
+  return [
+    {
+      grupo: 'Ventas',
+      icono: ShoppingCart,
+      items: [
+        { to: '/vendedor/pedido', label: 'Tomar pedido', end: true },
+        { to: '/vendedor/pedidos', label: 'Mis pedidos' },
+      ],
+    },
+    { grupo: 'Clientes', icono: Users, items: [{ to: '/vendedor/clientes-gestion', label: 'Gestión de clientes' }] },
+    {
+      grupo: 'Caja',
+      icono: Wallet,
+      items: [{ to: '/vendedor/rendiciones', label: 'Rendiciones', contador: contadores.rendiciones_efectivo_pendientes }],
+    },
+  ]
+}
 
 function InicioSesionResuelto() {
   const perfil = useAuthStore((s) => s.perfil)
@@ -317,6 +323,7 @@ export default function AppRouter() {
     [contadores, contadorComprasDiferencia]
   )
   const navDeposito = useMemo(() => crearNavDeposito(contadores), [contadores])
+  const navVendedor = useMemo(() => crearNavVendedor(contadores), [contadores])
 
   return (
     <BrowserRouter>
@@ -428,7 +435,7 @@ export default function AppRouter() {
           path="/vendedor"
           element={
             <RutaProtegida rolesPermitidos={[ROLES.VENDEDOR]}>
-              <AppShell titulo="Vendedor" navegacion={NAV_VENDEDOR} />
+              <AppShell titulo="Vendedor" navegacion={navVendedor} />
             </RutaProtegida>
           }
         >
