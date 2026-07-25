@@ -15,7 +15,7 @@ import {
   ETIQUETA_TIPO_ENTREGA,
   ROLES,
 } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -68,10 +68,14 @@ export default function ListaPedidos({ soloPropios = false }) {
     if (!silencioso) setCargando(true)
     try {
       const hoy = new Date().toISOString().slice(0, 10)
+      // Un pedido pendiente sigue necesitando atención más allá del día en
+      // que se generó (el badge del sidebar ya lo cuenta así, sin filtro de
+      // fecha) — por eso acá se trae con .or(): pendientes de cualquier día,
+      // más el resto de los pedidos (confirmados/entregados/etc.) de hoy.
       let query = supabase
         .from('pedidos')
         .select('*, clientes(nombre)')
-        .gte('creado_at', `${hoy}T00:00:00`)
+        .or(`estado.eq.pendiente,creado_at.gte.${hoy}T00:00:00`)
         .order('creado_at', { ascending: false })
       // Esta pantalla es de Central (dueño/admin/vendedor/depósito son todos
       // roles de Casa Central) — los pedidos de sucursal tienen su propia
@@ -156,9 +160,97 @@ export default function ListaPedidos({ soloPropios = false }) {
 
   if (cargando) return <p className="text-marca/60">Cargando pedidos...</p>
 
+  // pendientes: cualquier día, nunca deben quedar invisibles solo porque
+  // pasó la medianoche (el badge del sidebar ya los cuenta así). El resto
+  // sigue siendo "de hoy" gracias al .or() de cargar().
+  const pendientes = pedidos.filter((p) => p.estado === 'pendiente')
+  const otros = pedidos.filter((p) => p.estado !== 'pendiente')
+
+  function renderPedido(p, { mostrarFecha = false } = {}) {
+    return (
+      <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
+        <div>
+          <p className="font-medium text-marca">{p.clientes?.nombre || 'Cliente'}</p>
+          {mostrarFecha && <p className="text-xs text-marca/50">{formatearFecha(p.creado_at)}</p>}
+          <p className="font-mono text-sm text-marca/60">{formatearMoneda(p.total)}</p>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Badge tono="neutro" className="inline-flex items-center gap-1">
+            {p.tipo_entrega === 'retiro_local' ? <Store size={12} /> : <Truck size={12} />}
+            {ETIQUETA_TIPO_ENTREGA[p.tipo_entrega] || p.tipo_entrega}
+          </Badge>
+          <Badge tono={TONO_ESTADO_PEDIDO[p.estado] || 'neutro'}>{ETIQUETA_ESTADO_PEDIDO[p.estado] || p.estado}</Badge>
+          <Badge tono={TONO_ESTADO_PAGO[p.estado_pago] || 'neutro'}>{ETIQUETA_ESTADO_PAGO[p.estado_pago] || p.estado_pago}</Badge>
+          {p.estado === 'pendiente' && (
+            <Button
+              tamano="sm"
+              variante="confirmar"
+              cargando={accionando === p.id}
+              onClick={() => confirmarPedido(p.id)}
+            >
+              Confirmar pedido
+            </Button>
+          )}
+          {p.estado === 'confirmado' && p.tipo_entrega === 'retiro_local' && (
+            <Button
+              tamano="sm"
+              variante="confirmar"
+              cargando={accionando === p.id}
+              onClick={() => marcarRetirado(p.id)}
+            >
+              Marcar como retirado
+            </Button>
+          )}
+          {p.estado !== 'cancelado' && p.estado_pago !== 'pagado' && (
+            <Button tamano="sm" onClick={() => setPedidoPago(p)}>
+              Registrar pago
+            </Button>
+          )}
+          {puedeVerComprobantePago && p.estado_pago !== 'pendiente' && (
+            <Button
+              tamano="sm"
+              variante="secundario"
+              cargando={imprimiendoId === p.id}
+              onClick={() => imprimirUltimoComprobante(p.id)}
+            >
+              Imprimir último comprobante
+            </Button>
+          )}
+          <Button
+            tamano="sm"
+            variante="secundario"
+            onClick={() => window.open(`/pedido/${p.id}/imprimir`, '_blank')}
+          >
+            Imprimir remito
+          </Button>
+        </div>
+        <AvisoSaldoCliente
+          nombre={p.clientes?.nombre}
+          saldo={saldosPorCliente.get(p.cliente_id)}
+          desde={fechasSaldoPorCliente.get(p.cliente_id)}
+          className="w-full"
+        />
+        {bloqueoPedidoId === p.id && (
+          <div className="w-full">
+            {puedeCargarExcepcion ? (
+              <Button tamano="sm" variante="secundario" onClick={() => setPedidoExcepcion(p)}>
+                Cargar excepción y confirmar
+              </Button>
+            ) : (
+              <p className="text-sm text-marca/70">
+                Este pedido necesita autorización de un administrador antes de poder confirmarse. Avisale al dueño o
+                administrativo.
+              </p>
+            )}
+          </div>
+        )}
+      </li>
+    )
+  }
+
   return (
     <div>
-      <h1 className="mb-4 font-display text-xl text-marca">{soloPropios ? 'Mis pedidos de hoy' : 'Pedidos de hoy'}</h1>
+      <h1 className="mb-4 font-display text-xl text-marca">{soloPropios ? 'Mis pedidos' : 'Pedidos'}</h1>
       {error && <p className="mb-3 text-sm text-perdida">{error}</p>}
       {ultimaExcepcionId && (
         <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-fresco/10 p-3 text-sm text-fresco">
@@ -176,90 +268,27 @@ export default function ListaPedidos({ soloPropios = false }) {
           </div>
         </div>
       )}
-      {pedidos.length === 0 ? (
-        <p className="text-sm text-marca/50">No hay pedidos todavía hoy.</p>
-      ) : (
-        <ul className="flex flex-col gap-2">
-          {pedidos.map((p) => (
-            <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
-              <div>
-                <p className="font-medium text-marca">{p.clientes?.nombre || 'Cliente'}</p>
-                <p className="font-mono text-sm text-marca/60">{formatearMoneda(p.total)}</p>
-              </div>
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <Badge tono="neutro" className="inline-flex items-center gap-1">
-                  {p.tipo_entrega === 'retiro_local' ? <Store size={12} /> : <Truck size={12} />}
-                  {ETIQUETA_TIPO_ENTREGA[p.tipo_entrega] || p.tipo_entrega}
-                </Badge>
-                <Badge tono={TONO_ESTADO_PEDIDO[p.estado] || 'neutro'}>{ETIQUETA_ESTADO_PEDIDO[p.estado] || p.estado}</Badge>
-                <Badge tono={TONO_ESTADO_PAGO[p.estado_pago] || 'neutro'}>{ETIQUETA_ESTADO_PAGO[p.estado_pago] || p.estado_pago}</Badge>
-                {p.estado === 'pendiente' && (
-                  <Button
-                    tamano="sm"
-                    variante="confirmar"
-                    cargando={accionando === p.id}
-                    onClick={() => confirmarPedido(p.id)}
-                  >
-                    Confirmar pedido
-                  </Button>
-                )}
-                {p.estado === 'confirmado' && p.tipo_entrega === 'retiro_local' && (
-                  <Button
-                    tamano="sm"
-                    variante="confirmar"
-                    cargando={accionando === p.id}
-                    onClick={() => marcarRetirado(p.id)}
-                  >
-                    Marcar como retirado
-                  </Button>
-                )}
-                {p.estado !== 'cancelado' && p.estado_pago !== 'pagado' && (
-                  <Button tamano="sm" onClick={() => setPedidoPago(p)}>
-                    Registrar pago
-                  </Button>
-                )}
-                {puedeVerComprobantePago && p.estado_pago !== 'pendiente' && (
-                  <Button
-                    tamano="sm"
-                    variante="secundario"
-                    cargando={imprimiendoId === p.id}
-                    onClick={() => imprimirUltimoComprobante(p.id)}
-                  >
-                    Imprimir último comprobante
-                  </Button>
-                )}
-                <Button
-                  tamano="sm"
-                  variante="secundario"
-                  onClick={() => window.open(`/pedido/${p.id}/imprimir`, '_blank')}
-                >
-                  Imprimir remito
-                </Button>
-              </div>
-              <AvisoSaldoCliente
-                nombre={p.clientes?.nombre}
-                saldo={saldosPorCliente.get(p.cliente_id)}
-                desde={fechasSaldoPorCliente.get(p.cliente_id)}
-                className="w-full"
-              />
-              {bloqueoPedidoId === p.id && (
-                <div className="w-full">
-                  {puedeCargarExcepcion ? (
-                    <Button tamano="sm" variante="secundario" onClick={() => setPedidoExcepcion(p)}>
-                      Cargar excepción y confirmar
-                    </Button>
-                  ) : (
-                    <p className="text-sm text-marca/70">
-                      Este pedido necesita autorización de un administrador antes de poder confirmarse. Avisale al dueño o
-                      administrativo.
-                    </p>
-                  )}
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+
+      {pendientes.length > 0 && (
+        <div className="mb-6">
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-medium text-marca">
+            Pendientes de confirmar
+            <Badge tono="error">{pendientes.length}</Badge>
+          </h2>
+          <ul className="flex flex-col gap-2">{pendientes.map((p) => renderPedido(p, { mostrarFecha: true }))}</ul>
+        </div>
       )}
+
+      <div>
+        {pendientes.length > 0 && <h2 className="mb-2 text-sm font-medium text-marca">Pedidos de hoy</h2>}
+        {otros.length === 0 ? (
+          <p className="text-sm text-marca/50">
+            {pendientes.length > 0 ? 'No hay más pedidos hoy.' : 'No hay pedidos todavía hoy.'}
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">{otros.map((p) => renderPedido(p))}</ul>
+        )}
+      </div>
 
       <ModalPago pedido={pedidoPago} onCerrar={() => setPedidoPago(null)} onPagado={cargar} />
       <ModalExcepcionConfirmar pedido={pedidoExcepcion} onCerrar={() => setPedidoExcepcion(null)} onConfirmado={excepcionCargada} />
