@@ -59,6 +59,8 @@ import PerdidaSucursal from '../modules/sucursal/PerdidaSucursal'
 import CajaSucursal from '../modules/sucursal/CajaSucursal'
 import ConteoSucursal from '../modules/sucursal/ConteoSucursal'
 import GestionSucursales from '../modules/administracion/GestionSucursales'
+import RendicionesEfectivo from '../modules/caja/RendicionesEfectivo'
+import ImprimirRendicion from '../modules/caja/ImprimirRendicion'
 
 function crearNavDueno(contadores, contadorComprasDiferencia) {
   const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
@@ -117,6 +119,7 @@ function crearNavDueno(contadores, contadorComprasDiferencia) {
       { to: '/dueno/caja', label: 'Caja del día' },
       { to: '/dueno/arqueo', label: 'Arqueo' },
       { to: '/dueno/historial', label: 'Historial' },
+      { to: '/dueno/rendiciones', label: 'Rendiciones' },
     ],
   },
   {
@@ -203,6 +206,7 @@ function crearNavAdmin(contadores, contadorComprasDiferencia) {
       { to: '/admin/caja', label: 'Caja del día' },
       { to: '/admin/arqueo', label: 'Arqueo' },
       { to: '/admin/historial', label: 'Historial' },
+      { to: '/admin/rendiciones', label: 'Rendiciones' },
     ],
   },
   {
@@ -264,6 +268,7 @@ const NAV_VENDEDOR = [
     ],
   },
   { grupo: 'Clientes', icono: Users, items: [{ to: '/vendedor/clientes-gestion', label: 'Gestión de clientes' }] },
+  { grupo: 'Caja', icono: Wallet, items: [{ to: '/vendedor/rendiciones', label: 'Rendiciones' }] },
 ]
 
 function InicioSesionResuelto() {
@@ -343,6 +348,7 @@ export default function AppRouter() {
           <Route path="caja" element={<CajaDiaria />} />
           <Route path="arqueo" element={<Arqueo />} />
           <Route path="historial" element={<HistorialMovimientos />} />
+          <Route path="rendiciones" element={<RendicionesEfectivo />} />
           <Route path="compras" element={<RegistrarCompra />} />
           <Route path="perdidas" element={<RegistrarPerdida />} />
           <Route path="precios" element={<ListasDePrecio />} />
@@ -382,6 +388,7 @@ export default function AppRouter() {
           <Route path="caja" element={<CajaDiaria />} />
           <Route path="arqueo" element={<Arqueo />} />
           <Route path="historial" element={<HistorialMovimientos />} />
+          <Route path="rendiciones" element={<RendicionesEfectivo />} />
           <Route path="compras" element={<RegistrarCompra />} />
           <Route path="precios" element={<ListasDePrecio />} />
           <Route path="camionetas" element={<GestionCamionetas />} />
@@ -429,6 +436,7 @@ export default function AppRouter() {
           <Route path="pedido" element={<TomarPedido />} />
           <Route path="pedidos" element={<ListaPedidos soloPropios />} />
           <Route path="clientes-gestion" element={<GestionClientes />} />
+          <Route path="rendiciones" element={<RendicionesEfectivo />} />
         </Route>
 
         <Route
@@ -526,6 +534,15 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO]}>
               <ImprimirDiferencia />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/rendicion/:id/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.VENDEDOR, ROLES.ENCARGADO_SUCURSAL]}>
+              <ImprimirRendicion />
             </RutaProtegida>
           }
         />

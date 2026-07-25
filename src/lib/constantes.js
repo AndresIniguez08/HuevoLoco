@@ -125,6 +125,19 @@ export const TONO_ESTADO_REMITO = {
   con_diferencia: 'error',
 }
 
+// rendiciones_efectivo.estado: pendiente | confirmada | confirmada_con_diferencia
+export const ETIQUETA_ESTADO_RENDICION = {
+  pendiente: 'Pendiente',
+  confirmada: 'Confirmada',
+  confirmada_con_diferencia: 'Con diferencia',
+}
+
+export const TONO_ESTADO_RENDICION = {
+  pendiente: 'neutro',
+  confirmada: 'exito',
+  confirmada_con_diferencia: 'alerta',
+}
+
 export const TIPOS_CLIENTE = [
   { value: 'mayorista', label: 'Mayorista' },
   { value: 'minorista', label: 'Minorista' },
