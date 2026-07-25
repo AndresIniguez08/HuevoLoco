@@ -156,7 +156,7 @@ export default function ConteoSucursal() {
 
   if (paso === 'listo') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-fondo p-4 text-center">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 bg-fondo p-4 text-center">
         <p className="text-3xl font-medium text-fresco">¡Listo!</p>
         <p className="text-lg text-marca/70">Quedó cargado. Central lo va a revisar y cerrar.</p>
         <Button
@@ -172,7 +172,7 @@ export default function ConteoSucursal() {
 
   if (paso === 'inicio') {
     return (
-      <div className="min-h-screen bg-fondo p-4 pb-10">
+      <div className="mx-auto min-h-screen max-w-2xl bg-fondo p-4 pb-10">
         <button onClick={() => navigate('/sucursal/stock')} className="mb-4 flex items-center gap-2 text-lg text-marca">
           <ArrowLeft size={24} /> Volver
         </button>
@@ -189,7 +189,7 @@ export default function ConteoSucursal() {
   }
 
   return (
-    <div className="min-h-screen bg-fondo p-4 pb-10">
+    <div className="mx-auto min-h-screen max-w-3xl bg-fondo p-4 pb-10">
       <button onClick={() => navigate('/sucursal/stock')} className="mb-4 flex items-center gap-2 text-lg text-marca">
         <ArrowLeft size={24} /> Volver
       </button>
@@ -198,7 +198,7 @@ export default function ConteoSucursal() {
 
       {error && <p className="mb-4 text-base text-perdida">{error}</p>}
 
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {items.map((it) => (
           <FilaProductoConteo key={it.producto_id} item={it} conteoId={conteoId} />
         ))}

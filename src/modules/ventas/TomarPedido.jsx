@@ -200,14 +200,14 @@ export default function TomarPedido() {
               value={busquedaCliente}
               onChange={(e) => setBusquedaCliente(e.target.value)}
               placeholder="Buscar cliente por nombre"
-              className="w-full rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+              className="w-full rounded-xl border border-marca/20 px-4 py-3 text-lg outline-none focus:border-marca-claro"
             />
             {resultadosCliente.length > 0 && (
               <ul className="mt-2 divide-y divide-marca/10 rounded-lg border border-marca/10">
                 {resultadosCliente.map((c) => (
                   <li
                     key={c.id}
-                    className="cursor-pointer px-3 py-2 text-sm hover:bg-marca/5"
+                    className="flex min-h-[52px] cursor-pointer items-center px-4 py-3 text-base hover:bg-marca/5"
                     onClick={() => {
                       setCliente(c)
                       setResultadosCliente([])
@@ -231,7 +231,7 @@ export default function TomarPedido() {
               <select
                 value={productoId}
                 onChange={(e) => setProductoId(e.target.value)}
-                className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+                className="min-h-[60px] rounded-xl border border-marca/20 px-4 py-3 text-lg outline-none focus:border-marca-claro"
               >
                 <option value="">Elegir...</option>
                 {productos.map((p) => (
@@ -253,15 +253,17 @@ export default function TomarPedido() {
                     type="number"
                     min="0"
                     step="0.01"
+                    inputMode="decimal"
                     placeholder={
                       cargandoPrecios ? 'Cargando...' : precioListaProducto != null ? String(precioListaProducto) : 'Sin precio de lista'
                     }
                     value={precioManual}
                     onChange={(e) => setPrecioManual(e.target.value)}
-                    className="w-32 rounded-lg border border-marca/20 px-3 py-2 font-mono outline-none focus:border-marca-claro"
+                    className="w-36 min-h-[60px] rounded-xl border border-marca/20 px-4 py-3 text-xl font-mono outline-none focus:border-marca-claro"
                   />
                 </label>
                 <Button
+                  className="min-h-[60px] text-lg"
                   onClick={agregarAlPedido}
                   disabled={cantidadSeleccion.cantidad_maple <= 0 || (precioListaProducto == null && precioManual === '')}
                 >
@@ -300,8 +302,8 @@ export default function TomarPedido() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono">{formatearMoneda(it.subtotal)}</span>
-                  <button onClick={() => quitarItem(it.id)} className="text-perdida">
-                    <Trash2 size={16} />
+                  <button onClick={() => quitarItem(it.id)} className="p-2 text-perdida">
+                    <Trash2 size={20} />
                   </button>
                 </div>
               </li>
@@ -320,7 +322,7 @@ export default function TomarPedido() {
         <select
           value={tipoEntrega}
           onChange={(e) => setTipoEntrega(e.target.value)}
-          className="w-full rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+          className="min-h-[60px] w-full rounded-xl border border-marca/20 px-4 py-3 text-lg outline-none focus:border-marca-claro"
         >
           {TIPOS_ENTREGA.map((t) => (
             <option key={t.value} value={t.value}>
@@ -342,7 +344,7 @@ export default function TomarPedido() {
         onClick={guardarPedido}
         disabled={!cliente || items.length === 0}
         cargando={guardando}
-        className="w-full"
+        className="min-h-[64px] w-full text-xl"
       >
         Guardar pedido
       </Button>

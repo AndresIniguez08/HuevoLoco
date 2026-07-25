@@ -123,7 +123,7 @@ export default function VistaChofer({ contadorEntregasPendientes }) {
         </button>
       </header>
 
-      <div className="p-4">
+      <div className="mx-auto max-w-3xl p-4">
         {!cargando && !error && contadorEntregasPendientes > 0 && (
           <p className="mb-4 rounded-xl bg-yema/15 px-4 py-3 text-center text-lg font-medium text-marca">
             Tenés {contadorEntregasPendientes} {contadorEntregasPendientes === 1 ? 'entrega pendiente' : 'entregas pendientes'}
@@ -137,61 +137,63 @@ export default function VistaChofer({ contadorEntregasPendientes }) {
           <p className="text-center text-marca/50">No tenés entregas asignadas hoy.</p>
         ) : (
           <div className="flex flex-col gap-4">
-            {pendientes.map((e) => {
-              const pagado = e.pedidos?.estado_pago === 'pagado'
-              return (
-                <div key={e.id} className="rounded-2xl bg-white p-5 shadow-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-display text-xl text-marca">{e.pedidos?.clientes?.nombre}</p>
-                    {!pagado && <Badge tono="neutro">Cobrar al entregar</Badge>}
-                  </div>
-                  {e.pedidos?.clientes?.direccion && (
-                    <p className="mt-2 flex items-center gap-2 text-base text-marca/70">
-                      <MapPin size={20} className="shrink-0 text-marca-claro" />
-                      {e.pedidos.clientes.direccion}
-                    </p>
-                  )}
-                  {e.pedidos?.clientes?.telefono && (
-                    <a
-                      href={`tel:${e.pedidos.clientes.telefono}`}
-                      className="mt-2 flex items-center gap-2 text-base text-marca-claro"
-                    >
-                      <Phone size={20} className="shrink-0" />
-                      {e.pedidos.clientes.telefono}
-                    </a>
-                  )}
-
-                  {e.pedidos?.pedido_items?.length > 0 && (
-                    <div className="mt-3 border-t border-marca/10 pt-3">
-                      <p className="text-sm font-medium text-marca/50">Entregar</p>
-                      <ul className="mt-1 flex flex-col gap-1">
-                        {e.pedidos.pedido_items.map((it) => (
-                          <li key={it.id} className="text-lg font-medium leading-snug text-marca">
-                            {etiquetaItem(it)}
-                          </li>
-                        ))}
-                      </ul>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {pendientes.map((e) => {
+                const pagado = e.pedidos?.estado_pago === 'pagado'
+                return (
+                  <div key={e.id} className="rounded-2xl bg-white p-5 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-display text-xl text-marca">{e.pedidos?.clientes?.nombre}</p>
+                      {!pagado && <Badge tono="neutro">Cobrar al entregar</Badge>}
                     </div>
-                  )}
+                    {e.pedidos?.clientes?.direccion && (
+                      <p className="mt-2 flex items-center gap-2 text-base text-marca/70">
+                        <MapPin size={20} className="shrink-0 text-marca-claro" />
+                        {e.pedidos.clientes.direccion}
+                      </p>
+                    )}
+                    {e.pedidos?.clientes?.telefono && (
+                      <a
+                        href={`tel:${e.pedidos.clientes.telefono}`}
+                        className="mt-2 flex items-center gap-2 text-base text-marca-claro"
+                      >
+                        <Phone size={20} className="shrink-0" />
+                        {e.pedidos.clientes.telefono}
+                      </a>
+                    )}
 
-                  <p className="mt-3 font-mono text-lg text-marca">{formatearMoneda(e.pedidos?.total)}</p>
-                  <Button
-                    variante="confirmar"
-                    tamano="lg"
-                    className="mt-4 w-full text-lg"
-                    cargando={actualizando === e.id}
-                    onClick={() => iniciarEntrega(e)}
-                  >
-                    {pagado ? 'Marcar como entregado' : 'Cobrar y entregar'}
-                  </Button>
-                </div>
-              )
-            })}
+                    {e.pedidos?.pedido_items?.length > 0 && (
+                      <div className="mt-3 border-t border-marca/10 pt-3">
+                        <p className="text-sm font-medium text-marca/50">Entregar</p>
+                        <ul className="mt-1 flex flex-col gap-1">
+                          {e.pedidos.pedido_items.map((it) => (
+                            <li key={it.id} className="text-lg font-medium leading-snug text-marca">
+                              {etiquetaItem(it)}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <p className="mt-3 font-mono text-lg text-marca">{formatearMoneda(e.pedidos?.total)}</p>
+                    <Button
+                      variante="confirmar"
+                      tamano="lg"
+                      className="mt-4 w-full text-lg"
+                      cargando={actualizando === e.id}
+                      onClick={() => iniciarEntrega(e)}
+                    >
+                      {pagado ? 'Marcar como entregado' : 'Cobrar y entregar'}
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
 
             {entregadas.length > 0 && (
               <div>
                 <p className="mb-2 mt-4 text-sm font-medium text-marca/50">Entregadas</p>
-                <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {entregadas.map((e) => (
                     <div key={e.id} className="rounded-xl bg-white/60 p-3 text-marca/50 shadow-sm">
                       <p className="font-medium">{e.pedidos?.clientes?.nombre}</p>

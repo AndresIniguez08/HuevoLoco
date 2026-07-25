@@ -203,7 +203,7 @@ export default function VentaSucursal() {
   // --- Pantalla de éxito ---
   if (paso === 'exito') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-fondo p-4 text-center">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 bg-fondo p-4 text-center">
         <p className="text-3xl font-medium text-fresco">¡Venta cobrada!</p>
         <p className="text-lg text-marca/70">
           {cliente?.nombre} — {formatearMoneda(total)}
@@ -221,7 +221,7 @@ export default function VentaSucursal() {
   // --- Bloqueado: necesita autorización de Central ---
   if (bloqueado) {
     return (
-      <div className="flex min-h-screen flex-col justify-center gap-6 bg-fondo p-4">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 bg-fondo p-4">
         <p className="text-center text-2xl font-medium text-perdida">
           Esta venta necesita autorización de Casa Central.
         </p>
@@ -263,7 +263,7 @@ export default function VentaSucursal() {
   // --- Cobrar ---
   if (paso === 'cobrar') {
     return (
-      <div className="min-h-screen bg-fondo p-4 pb-10">
+      <div className="mx-auto min-h-screen max-w-2xl bg-fondo p-4 pb-10">
         <button onClick={() => setPaso('venta')} className="mb-4 flex items-center gap-2 text-lg text-marca">
           <ArrowLeft size={24} /> Volver
         </button>
@@ -353,7 +353,7 @@ export default function VentaSucursal() {
 
   // --- Pantalla principal ---
   return (
-    <div className="min-h-screen bg-fondo p-4 pb-10">
+    <div className="mx-auto min-h-screen max-w-2xl bg-fondo p-4 pb-10">
       <button onClick={() => navigate('/sucursal')} className="mb-4 flex items-center gap-2 text-lg text-marca">
         <ArrowLeft size={24} /> Volver
       </button>
@@ -474,7 +474,7 @@ function PasoBuscarCliente({ sucursalId, onElegir, onNuevo, onVolver }) {
   }, [texto, sucursalId])
 
   return (
-    <div className="min-h-screen bg-fondo p-4 pb-10">
+    <div className="mx-auto min-h-screen max-w-2xl bg-fondo p-4 pb-10">
       <button onClick={onVolver} className="mb-4 flex items-center gap-2 text-lg text-marca">
         <ArrowLeft size={24} /> Volver
       </button>
@@ -545,7 +545,7 @@ function PasoNuevoCliente({ sucursalId, onCreado, onVolver }) {
   }
 
   return (
-    <div className="min-h-screen bg-fondo p-4 pb-10">
+    <div className="mx-auto min-h-screen max-w-2xl bg-fondo p-4 pb-10">
       <button onClick={onVolver} className="mb-4 flex items-center gap-2 text-lg text-marca">
         <ArrowLeft size={24} /> Volver
       </button>

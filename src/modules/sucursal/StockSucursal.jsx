@@ -25,16 +25,16 @@ export default function StockSucursal({ contadorConteo }) {
   }, [perfil?.sucursal_id])
 
   return (
-    <div className="min-h-screen bg-fondo p-4 pb-10">
+    <div className="mx-auto min-h-screen max-w-2xl bg-fondo p-4 pb-10">
       <button onClick={() => navigate('/sucursal')} className="mb-4 flex items-center gap-2 text-lg text-marca">
         <ArrowLeft size={24} /> Volver
       </button>
       <h1 className="mb-4 font-display text-2xl text-marca">Stock</h1>
 
-      <div className="mb-4 flex flex-col gap-3">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
         <button
           onClick={() => navigate('/sucursal/conteo')}
-          className="flex min-h-[60px] w-full items-center justify-center gap-2 rounded-xl border border-marca-claro text-lg font-medium text-marca-claro"
+          className="flex min-h-[60px] w-full flex-1 items-center justify-center gap-2 rounded-xl border border-marca-claro text-lg font-medium text-marca-claro"
         >
           <ClipboardList size={22} />
           Control de stock
@@ -42,7 +42,7 @@ export default function StockSucursal({ contadorConteo }) {
         </button>
         <button
           onClick={() => navigate('/sucursal/perdidas')}
-          className="flex min-h-[60px] w-full items-center justify-center gap-2 rounded-xl border border-perdida text-lg font-medium text-perdida"
+          className="flex min-h-[60px] w-full flex-1 items-center justify-center gap-2 rounded-xl border border-perdida text-lg font-medium text-perdida"
         >
           <PackageMinus size={22} />
           Reportar pérdida
@@ -56,7 +56,7 @@ export default function StockSucursal({ contadorConteo }) {
       ) : productos.length === 0 ? (
         <p className="text-center text-lg text-marca/50">No hay productos habilitados en esta sucursal.</p>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {productos.map((p) => {
             const bajoMinimo = p.minimo_cajones != null && p.cajones < p.minimo_cajones
             return (

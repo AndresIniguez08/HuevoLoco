@@ -8,7 +8,7 @@ export default function PerdidaSucursal() {
   const perfil = useAuthStore((s) => s.perfil)
 
   return (
-    <div className="min-h-screen bg-fondo p-4 pb-10">
+    <div className="mx-auto min-h-screen max-w-2xl bg-fondo p-4 pb-10">
       <button onClick={() => navigate('/sucursal/stock')} className="mb-4 flex items-center gap-2 text-lg text-marca">
         <ArrowLeft size={24} /> Volver
       </button>

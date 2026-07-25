@@ -27,7 +27,7 @@ export default function InicioSucursal({ contadorAceptarMercaderia }) {
         </button>
       </header>
 
-      <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-4">
+      <div className="mx-auto grid max-w-2xl grid-cols-2 gap-4 p-4 sm:grid-cols-4">
         {BOTONES.map((b) => {
           const contador = b.to === '/sucursal/aceptar-mercaderia' ? contadorAceptarMercaderia : null
           return (

@@ -77,7 +77,7 @@ export default function AceptarMercaderia() {
 
   if (remitoDiferencia) {
     return (
-      <div className="min-h-screen bg-fondo p-4">
+      <div className="mx-auto min-h-screen max-w-2xl bg-fondo p-4">
         <button
           onClick={() => setRemitoDiferencia(null)}
           className="mb-4 flex items-center gap-2 text-lg text-marca"
@@ -109,7 +109,7 @@ export default function AceptarMercaderia() {
   }
 
   return (
-    <div className="min-h-screen bg-fondo p-4 pb-10">
+    <div className="mx-auto min-h-screen max-w-3xl bg-fondo p-4 pb-10">
       <button onClick={() => navigate('/sucursal')} className="mb-4 flex items-center gap-2 text-lg text-marca">
         <ArrowLeft size={24} /> Volver
       </button>
@@ -123,7 +123,7 @@ export default function AceptarMercaderia() {
       ) : remitos.length === 0 ? (
         <p className="text-center text-lg text-marca/50">No hay remitos pendientes.</p>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {remitos.map((r) => (
             <div key={r.id} className="rounded-2xl bg-white p-5 shadow-sm">
               <p className="text-base text-marca/60">{new Date(r.creado_at).toLocaleDateString('es-AR')}</p>
