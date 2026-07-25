@@ -6,7 +6,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { obtenerTotalesPagadosPorPedidos } from '../../lib/cobranzas'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import { MEDIOS_PAGO, ETIQUETA_UNIDAD } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
@@ -49,13 +49,18 @@ export default function VistaChofer({ contadorEntregasPendientes }) {
     if (!silencioso) setCargando(true)
     try {
       const hoy = new Date().toISOString().slice(0, 10)
+      // Sin filtro de fecha para las que todavía no se entregaron: si una
+      // asignación quedó pendiente de un día anterior (mismo criterio que
+      // ListaPedidos.jsx/AsignarReparto.jsx), no debe volverse invisible
+      // solo porque pasó la medianoche. Las ya entregadas siguen acotadas a
+      // hoy (es la sección "Entregadas", historial del día).
       const { data, error: errorRepartos } = await supabase
         .from('reparto_asignaciones')
         .select(
           '*, pedidos(id, total, estado_pago, clientes(nombre, direccion, telefono), pedido_items(id, cantidad_unidad, unidad_vendida, productos(nombre)))'
         )
         .eq('chofer_id', usuario.id)
-        .gte('creado_at', `${hoy}T00:00:00`)
+        .or(`estado.neq.entregado,creado_at.gte.${hoy}T00:00:00`)
         .order('creado_at')
       if (errorRepartos) throw errorRepartos
       const lista = data || []
@@ -134,7 +139,7 @@ export default function VistaChofer({ contadorEntregasPendientes }) {
         ) : error ? (
           <p className="text-center text-perdida">{error}</p>
         ) : entregas.length === 0 ? (
-          <p className="text-center text-marca/50">No tenés entregas asignadas hoy.</p>
+          <p className="text-center text-marca/50">No tenés entregas pendientes.</p>
         ) : (
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -146,6 +151,7 @@ export default function VistaChofer({ contadorEntregasPendientes }) {
                       <p className="font-display text-xl text-marca">{e.pedidos?.clientes?.nombre}</p>
                       {!pagado && <Badge tono="neutro">Cobrar al entregar</Badge>}
                     </div>
+                    <p className="text-xs text-marca/50">{formatearFecha(e.creado_at)}</p>
                     {e.pedidos?.clientes?.direccion && (
                       <p className="mt-2 flex items-center gap-2 text-base text-marca/70">
                         <MapPin size={20} className="shrink-0 text-marca-claro" />

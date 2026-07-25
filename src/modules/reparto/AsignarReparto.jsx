@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { listarAsignacionesDelDia } from '../../lib/reparto'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_ESTADO_PAGO, TONO_ESTADO_PAGO } from '../../lib/constantes'
+import { formatearFecha } from '../../lib/formato'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 
@@ -50,7 +51,12 @@ export default function AsignarReparto() {
   async function cargar() {
     setCargando(true)
     try {
-      const hoy = hoyISO()
+      // Sin filtro de fecha acá: un pedido confirmado sin reparto asignado
+      // sigue esperando más allá del día en que se confirmó (el badge del
+      // sidebar, reparto_sin_asignar, ya lo cuenta así) — mismo criterio que
+      // se corrigió en ListaPedidos.jsx. Lo que sí queda acotado a hoy es la
+      // sección de abajo ("Repartos asignados hoy"), que es de otro día si
+      // corresponde a la asignación en sí, no al pedido.
       const [
         { data: pedidosData, error: errorPedidos },
         { data: choferesData, error: errorChoferes },
@@ -62,7 +68,6 @@ export default function AsignarReparto() {
           .select('*, clientes(nombre, direccion), reparto_asignaciones(id)')
           .eq('estado', 'confirmado')
           .eq('tipo_entrega', 'reparto')
-          .gte('creado_at', `${hoy}T00:00:00`)
           .order('creado_at'),
         supabase.from('perfiles').select('*').eq('rol', 'chofer'),
         supabase.from('camionetas').select('*').eq('activo', true).order('nombre'),
@@ -120,6 +125,7 @@ export default function AsignarReparto() {
               <div>
                 <p className="font-medium text-marca">{p.clientes?.nombre}</p>
                 <p className="text-sm text-marca/50">{p.clientes?.direccion || 'Sin dirección cargada'}</p>
+                <p className="text-xs text-marca/50">{formatearFecha(p.creado_at)}</p>
                 <Badge tono={TONO_ESTADO_PAGO[p.estado_pago] || 'neutro'} className="mt-1">
                   {ETIQUETA_ESTADO_PAGO[p.estado_pago] || p.estado_pago}
                 </Badge>
