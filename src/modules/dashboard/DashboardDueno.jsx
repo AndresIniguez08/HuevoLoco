@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { obtenerProductosConStock } from '../../lib/productos'
 import { obtenerMovimientosCaja, totalesPorMedio } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { formatearMoneda } from '../../lib/formato'
+
+const ETIQUETA_MEDIO = { efectivo: 'Efectivo', mercado_pago: 'Mercado Pago', transferencia: 'Transferencia' }
 
 // remitosConDiferencia / pedidosPendientes vienen de `contadores` (prop desde
 // AppRouter, fn_contadores_notificaciones) — ya centralizados y con refresco
@@ -14,6 +17,7 @@ import { formatearMoneda } from '../../lib/formato'
 export default function DashboardDueno({ contadores = {} }) {
   const [kpis, setKpis] = useState(null)
   const [error, setError] = useState(null)
+  const [cajaExpandida, setCajaExpandida] = useState(false)
 
   useEffect(() => {
     async function cargar() {
@@ -32,7 +36,7 @@ export default function DashboardDueno({ contadores = {} }) {
         const productosBajoMinimo = productos.filter(
           (p) => p.stock_minimo_maple != null && p.stock_maple < p.stock_minimo_maple
         )
-        setKpis({ totalCajaHoy, pedidosHoy: pedidosHoy || 0, productosBajoMinimo })
+        setKpis({ totalCajaHoy, totalesPorMedio: totales, pedidosHoy: pedidosHoy || 0, productosBajoMinimo })
       } catch (e) {
         setError(traducirError(e))
       }
@@ -48,26 +52,63 @@ export default function DashboardDueno({ contadores = {} }) {
       <h1 className="mb-4 font-display text-xl text-marca">Dashboard</h1>
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="rounded-xl bg-marca p-4 text-white shadow-sm">
-          <p className="text-xs text-white/70">Caja de hoy</p>
+        <button
+          type="button"
+          onClick={() => setCajaExpandida((v) => !v)}
+          className="rounded-xl bg-marca p-4 text-left text-white shadow-sm transition-colors hover:bg-marca/90"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-white/70">Caja de hoy</p>
+            {cajaExpandida ? <ChevronDown size={14} className="text-white/50" /> : <ChevronRight size={14} className="text-white/50" />}
+          </div>
           <p className="font-mono text-2xl">{formatearMoneda(kpis.totalCajaHoy)}</p>
-        </div>
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <p className="text-xs text-marca/50">Pedidos de hoy</p>
+          {cajaExpandida && (
+            <div className="mt-2 flex flex-col gap-1 border-t border-white/20 pt-2 text-xs text-white/80">
+              {Object.entries(ETIQUETA_MEDIO).map(([medio, etiqueta]) => (
+                <div key={medio} className="flex justify-between">
+                  <span>{etiqueta}</span>
+                  <span className="font-mono">{formatearMoneda(kpis.totalesPorMedio[medio] || 0)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </button>
+
+        <Link to="/dueno/pedidos" className="rounded-xl bg-white p-4 shadow-sm hover:bg-marca/5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-marca/50">Pedidos de hoy</p>
+            <ChevronRight size={14} className="text-marca/30" />
+          </div>
           <p className="font-mono text-2xl text-marca">{kpis.pedidosHoy}</p>
-        </div>
-        <div className="rounded-xl bg-white p-4 shadow-sm">
-          <p className="text-xs text-marca/50">Productos con stock bajo</p>
+        </Link>
+
+        <Link
+          to="/dueno/reporte-stock"
+          state={{ productoIds: kpis.productosBajoMinimo.map((p) => p.id) }}
+          className="rounded-xl bg-white p-4 shadow-sm hover:bg-marca/5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-marca/50">Productos con stock bajo</p>
+            <ChevronRight size={14} className="text-marca/30" />
+          </div>
           <p className="font-mono text-2xl text-perdida">{kpis.productosBajoMinimo.length}</p>
-        </div>
+        </Link>
+
         <Link to="/dueno/transferencias" className="rounded-xl bg-white p-4 shadow-sm hover:bg-marca/5">
-          <p className="text-xs text-marca/50">Remitos con diferencia sin revisar</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-marca/50">Remitos con diferencia sin revisar</p>
+            <ChevronRight size={14} className="text-marca/30" />
+          </div>
           <p className={`font-mono text-2xl ${contadores.remitos_con_diferencia > 0 ? 'text-perdida' : 'text-marca'}`}>
             {contadores.remitos_con_diferencia || 0}
           </p>
         </Link>
+
         <Link to="/dueno/pedidos" className="rounded-xl bg-white p-4 shadow-sm hover:bg-marca/5">
-          <p className="text-xs text-marca/50">Pedidos pendientes de confirmar</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-marca/50">Pedidos pendientes de confirmar</p>
+            <ChevronRight size={14} className="text-marca/30" />
+          </div>
           <p className={`font-mono text-2xl ${contadores.pedidos_pendientes > 0 ? 'text-perdida' : 'text-marca'}`}>
             {contadores.pedidos_pendientes || 0}
           </p>
@@ -96,7 +137,7 @@ export default function DashboardDueno({ contadores = {} }) {
           { to: '/dueno/compras', label: 'Compras' },
           { to: '/dueno/perdidas', label: 'Pérdidas' },
           { to: '/dueno/reparto', label: 'Reparto' },
-          { to: '/dueno/clientes', label: 'Clientes' },
+          { to: '/dueno/clientes-gestion', label: 'Clientes' },
         ].map((item) => (
           <Link
             key={item.to}
