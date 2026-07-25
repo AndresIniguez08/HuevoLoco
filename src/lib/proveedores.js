@@ -28,12 +28,6 @@ export async function actualizarEstadoProveedor(id, activo) {
   if (error) throw error
 }
 
-export async function obtenerProveedor(id) {
-  const { data, error } = await supabase.from('proveedores').select('*').eq('id', id).single()
-  if (error) throw error
-  return data
-}
-
 // saldo_proveedores es una vista (proveedor_id, nombre, saldo) — positivo
 // significa que nosotros le debemos plata al proveedor.
 export async function obtenerSaldoProveedor(proveedorId) {

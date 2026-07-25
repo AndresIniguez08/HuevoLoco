@@ -30,9 +30,18 @@ export default function GestionClientes() {
       .finally(() => setCargandoPedidos(false))
   }, [cliente])
 
+  function guardadoOk() {
+    setRefrescarBuscador((n) => n + 1)
+  }
+
   function altaOk() {
     setModalAbierto(false)
-    setRefrescarBuscador((n) => n + 1)
+    guardadoOk()
+  }
+
+  function edicionOk() {
+    setCliente(null)
+    guardadoOk()
   }
 
   return (
@@ -49,7 +58,7 @@ export default function GestionClientes() {
       {cliente && (
         <div className="flex flex-col gap-4">
           <div className="rounded-xl bg-white p-4 shadow-sm">
-            <EditarCliente cliente={cliente} onActualizado={() => setCliente(null)} onCancelar={() => setCliente(null)} />
+            <EditarCliente cliente={cliente} onActualizado={edicionOk} onCancelar={() => setCliente(null)} />
           </div>
 
           <div className="rounded-xl bg-white p-4 shadow-sm">

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { obtenerProductosConStock } from '../../lib/productos'
+import { obtenerProductosConStock, obtenerProductosConStockSucursal } from '../../lib/productos'
 import { registrarPerdida as registrarPerdidaRpc } from '../../lib/perdidas'
 import { traducirError } from '../../lib/errores'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
 
-export default function RegistrarPerdida() {
+// sucursalId opcional: cuando se abre desde una sucursal (PerdidaSucursal),
+// tiene que mostrar el stock de ESA sucursal, no el del depósito central.
+export default function RegistrarPerdida({ sucursalId = null }) {
   const [productos, setProductos] = useState([])
   const [productoId, setProductoId] = useState('')
   const [cantidadSeleccion, setCantidadSeleccion] = useState({ unidad: 'maple', cantidad: 0, cantidad_maple: 0 })
@@ -17,8 +19,9 @@ export default function RegistrarPerdida() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    obtenerProductosConStock().then(setProductos).catch((e) => setError(traducirError(e)))
-  }, [])
+    const cargar = sucursalId ? () => obtenerProductosConStockSucursal(sucursalId) : obtenerProductosConStock
+    cargar().then(setProductos).catch((e) => setError(traducirError(e)))
+  }, [sucursalId])
 
   const productoSeleccionado = productos.find((p) => p.id === productoId)
 
@@ -62,7 +65,11 @@ export default function RegistrarPerdida() {
             <option value="">Elegir...</option>
             {productos.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.nombre} ({p.stock_maple} maples disponibles)
+                {p.nombre} (
+                {sucursalId
+                  ? `${p.stock_cajones} cajones, ${p.stock_cajas} cajas, ${p.stock_maples_sueltos} maples sueltos`
+                  : `${p.stock_maple} maples disponibles`}
+                )
               </option>
             ))}
           </select>

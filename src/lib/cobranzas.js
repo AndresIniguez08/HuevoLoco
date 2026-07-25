@@ -19,7 +19,7 @@ export async function listarSaldosClientes() {
   return data.map((c) => ({ ...c, telefono: telefonoPorId[c.cliente_id] || null }))
 }
 
-// fn_reporte_deuda trae saldo (siempre real, sin filtrar) + deuda_generada_periodo
+// fn_reporte_deuda trae saldo_actual (siempre real, sin filtrar) + deuda_generada_periodo
 // (específica del rango p_desde/p_hasta) por cliente, ya cruzado con sucursal.
 // p_sucursal_id/p_desde/p_hasta en null = sin filtrar esa dimensión.
 export async function obtenerReporteDeuda(sucursalId = null, desde = null, hasta = null) {

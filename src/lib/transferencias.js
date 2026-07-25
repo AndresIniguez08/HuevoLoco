@@ -109,16 +109,6 @@ export async function reportarDiferenciaRemito(remitoId, observacion) {
   if (error) throw error
 }
 
-export async function contarRemitosDiferenciaSinRevisar() {
-  const { count, error } = await supabase
-    .from('remitos_transferencia')
-    .select('*', { count: 'exact', head: true })
-    .eq('estado', 'con_diferencia')
-    .eq('revisado', false)
-  if (error) throw error
-  return count || 0
-}
-
 export async function revisarRemito(remitoId) {
   const { error } = await supabase.rpc('fn_revisar_remito', { p_remito_id: remitoId })
   if (error) throw error

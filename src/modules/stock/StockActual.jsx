@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { obtenerStockDesgloseSucursal } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
@@ -12,12 +12,8 @@ export default function StockActual() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const cargar = useCallback(async () => {
     if (!perfil?.sucursal_id) return
-    cargar()
-  }, [perfil?.sucursal_id])
-
-  async function cargar() {
     setCargando(true)
     try {
       const data = await obtenerStockDesgloseSucursal(perfil.sucursal_id)
@@ -28,7 +24,11 @@ export default function StockActual() {
     } finally {
       setCargando(false)
     }
-  }
+  }, [perfil?.sucursal_id])
+
+  useEffect(() => {
+    cargar()
+  }, [cargar])
 
   if (cargando) return <p className="text-marca/60">Cargando stock...</p>
   if (error) return <p className="text-perdida">{error}</p>

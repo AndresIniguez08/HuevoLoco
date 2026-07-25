@@ -1,21 +1,6 @@
 import { useEffect, useState } from 'react'
-import { UNIDADES, ETIQUETA_UNIDAD } from '../lib/constantes'
-
-// Única fuente de conversión entre maple / caja / cajón. Ningún otro
-// componente debe hardcodear las equivalencias del producto.
-export function convertirAMaple(cantidad, unidad, producto) {
-  const cantidadNum = Number(cantidad) || 0
-  if (unidad === UNIDADES.CAJA) return cantidadNum * (producto.equivalencia_caja || 0)
-  if (unidad === UNIDADES.CAJON) return cantidadNum * (producto.equivalencia_cajon || 0)
-  return cantidadNum
-}
-
-export function unidadesDisponibles(producto) {
-  const disponibles = [UNIDADES.MAPLE]
-  if (producto.admite_caja) disponibles.push(UNIDADES.CAJA)
-  if (producto.equivalencia_cajon) disponibles.push(UNIDADES.CAJON)
-  return disponibles
-}
+import { ETIQUETA_UNIDAD, UNIDADES } from '../lib/constantes'
+import { convertirAMaple, unidadesDisponibles } from '../lib/unidades'
 
 export default function SelectorUnidad({ producto, onCambio, valorInicial }) {
   const [unidad, setUnidad] = useState(valorInicial?.unidad || UNIDADES.MAPLE)

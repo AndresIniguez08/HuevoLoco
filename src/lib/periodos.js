@@ -1,10 +1,10 @@
-export function inicioDeHoy() {
+function inicioDeHoy() {
   const d = new Date()
   d.setHours(0, 0, 0, 0)
   return d
 }
 
-export function inicioDeSemana() {
+function inicioDeSemana() {
   const d = new Date()
   const dia = d.getDay()
   const diff = dia === 0 ? 6 : dia - 1 // semana arranca el lunes
@@ -13,7 +13,7 @@ export function inicioDeSemana() {
   return d
 }
 
-export function inicioDeMes() {
+function inicioDeMes() {
   const d = new Date()
   return new Date(d.getFullYear(), d.getMonth(), 1)
 }

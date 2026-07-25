@@ -15,14 +15,3 @@ export async function obtenerPedidoParaImprimir(pedidoId) {
   if (error) throw error
   return data
 }
-
-// Cubre tanto los pedidos de sucursal bloqueados esperando autorización de
-// Central como cualquier pedido de Central armado y sin confirmar todavía.
-export async function contarPedidosPendientes() {
-  const { count, error } = await supabase
-    .from('pedidos')
-    .select('*', { count: 'exact', head: true })
-    .eq('estado', 'pendiente')
-  if (error) throw error
-  return count || 0
-}

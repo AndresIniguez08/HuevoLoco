@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { obtenerProductosConStock } from '../../lib/productos'
 import { obtenerMovimientosCaja, totalesPorMedio } from '../../lib/caja'
-import { contarRemitosDiferenciaSinRevisar } from '../../lib/transferencias'
-import { contarPedidosPendientes } from '../../lib/ventas'
 import { traducirError } from '../../lib/errores'
 import { formatearMoneda } from '../../lib/formato'
 
-export default function DashboardDueno() {
+// remitosConDiferencia / pedidosPendientes vienen de `contadores` (prop desde
+// AppRouter, fn_contadores_notificaciones) — ya centralizados y con refresco
+// periódico, no se recalculan acá para no mostrar un número desincronizado
+// del badge del sidebar. pedidosHoy sí es un KPI propio del dashboard, sin
+// equivalente en esa RPC.
+export default function DashboardDueno({ contadores = {} }) {
   const [kpis, setKpis] = useState(null)
   const [error, setError] = useState(null)
 
@@ -16,22 +19,20 @@ export default function DashboardDueno() {
     async function cargar() {
       try {
         const hoy = new Date().toISOString().slice(0, 10)
-        const [productos, movimientosCaja, { count: pedidosHoy }, remitosConDiferencia, pedidosPendientes] = await Promise.all([
+        const [productos, movimientosCaja, { count: pedidosHoy }] = await Promise.all([
           obtenerProductosConStock(),
           obtenerMovimientosCaja(),
           supabase
             .from('pedidos')
             .select('*', { count: 'exact', head: true })
             .gte('creado_at', `${hoy}T00:00:00`),
-          contarRemitosDiferenciaSinRevisar(),
-          contarPedidosPendientes(),
         ])
         const totales = totalesPorMedio(movimientosCaja)
         const totalCajaHoy = Object.values(totales).reduce((a, b) => a + b, 0)
         const productosBajoMinimo = productos.filter(
           (p) => p.stock_minimo_maple != null && p.stock_maple < p.stock_minimo_maple
         )
-        setKpis({ totalCajaHoy, pedidosHoy: pedidosHoy || 0, productosBajoMinimo, remitosConDiferencia, pedidosPendientes })
+        setKpis({ totalCajaHoy, pedidosHoy: pedidosHoy || 0, productosBajoMinimo })
       } catch (e) {
         setError(traducirError(e))
       }
@@ -61,14 +62,14 @@ export default function DashboardDueno() {
         </div>
         <Link to="/dueno/transferencias" className="rounded-xl bg-white p-4 shadow-sm hover:bg-marca/5">
           <p className="text-xs text-marca/50">Remitos con diferencia sin revisar</p>
-          <p className={`font-mono text-2xl ${kpis.remitosConDiferencia > 0 ? 'text-perdida' : 'text-marca'}`}>
-            {kpis.remitosConDiferencia}
+          <p className={`font-mono text-2xl ${contadores.remitos_con_diferencia > 0 ? 'text-perdida' : 'text-marca'}`}>
+            {contadores.remitos_con_diferencia || 0}
           </p>
         </Link>
         <Link to="/dueno/pedidos" className="rounded-xl bg-white p-4 shadow-sm hover:bg-marca/5">
           <p className="text-xs text-marca/50">Pedidos pendientes de confirmar</p>
-          <p className={`font-mono text-2xl ${kpis.pedidosPendientes > 0 ? 'text-perdida' : 'text-marca'}`}>
-            {kpis.pedidosPendientes}
+          <p className={`font-mono text-2xl ${contadores.pedidos_pendientes > 0 ? 'text-perdida' : 'text-marca'}`}>
+            {contadores.pedidos_pendientes || 0}
           </p>
         </Link>
       </div>

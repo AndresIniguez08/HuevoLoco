@@ -327,7 +327,7 @@ export default function AppRouter() {
             </RutaProtegida>
           }
         >
-          <Route index element={<DashboardDueno />} />
+          <Route index element={<DashboardDueno contadores={contadores} />} />
           <Route path="stock" element={<StockActual />} />
           <Route path="reporte-stock" element={<ReporteStock />} />
           <Route path="conteo" element={<ConteoStock />} />

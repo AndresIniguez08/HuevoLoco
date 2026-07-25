@@ -58,6 +58,29 @@ export async function obtenerProductosHabilitadosSucursal(sucursalId) {
     .sort((a, b) => a.nombre.localeCompare(b.nombre))
 }
 
+// Catálogo + stock de una sucursal puntual, para pantallas donde un
+// encargado de sucursal necesita ver SU PROPIO stock disponible (no el del
+// depósito central, que es lo que trae obtenerProductosConStock). A
+// diferencia de stock_actual, stock_desglose no viene pre-convertido a un
+// único "stock_maple" — se muestran los 3 baldes tal cual (cajones, cajas,
+// maples sueltos), igual que en StockSucursal/StockActual.
+export async function obtenerProductosConStockSucursal(sucursalId) {
+  const [productos, desglose] = await Promise.all([
+    obtenerProductosHabilitadosSucursal(sucursalId),
+    obtenerStockDesgloseSucursal(sucursalId),
+  ])
+  const stockPorProducto = Object.fromEntries(desglose.map((d) => [d.producto_id, d]))
+  return productos.map((p) => {
+    const stock = stockPorProducto[p.id]
+    return {
+      ...p,
+      stock_cajones: stock?.cajones ?? 0,
+      stock_cajas: stock?.cajas ?? 0,
+      stock_maples_sueltos: stock?.maples_sueltos ?? 0,
+    }
+  })
+}
+
 // Para la pantalla de gestión: por defecto solo activos, con opción de
 // incluir inactivos vía el filtro "mostrar inactivos".
 export async function listarProductosGestion({ texto = '', incluirInactivos = false } = {}) {

@@ -24,17 +24,9 @@ export async function crearUsuario({ email, password, nombre, rol, sucursal_id }
   } = await supabase.auth.getSession()
   if (!session) throw new Error('Tu sesión expiró, iniciá sesión de nuevo.')
 
-  const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crear-usuario`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify({ email, password, nombre, rol, sucursal_id: sucursal_id || null }),
+  const { data, error } = await supabase.functions.invoke('crear-usuario', {
+    body: { email, password, nombre, rol, sucursal_id: sucursal_id || null },
   })
-
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error || 'No se pudo crear el usuario.')
+  if (error) throw new Error(error.message || 'No se pudo crear el usuario.')
   return data
 }
