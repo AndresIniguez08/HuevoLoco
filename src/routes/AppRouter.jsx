@@ -82,7 +82,7 @@ function crearNavDueno(contadores, contadorComprasDiferencia) {
     icono: ShoppingCart,
     items: [
       { to: '/dueno/ventas', label: 'Tomar pedido' },
-      { to: '/dueno/pedidos', label: 'Pedidos', contador: contadores.pedidos_pendientes },
+      { to: '/dueno/pedidos', label: 'Cobrar pedidos', contador: contadores.pedidos_pendientes },
       { to: '/dueno/aprobaciones', label: 'Aprobaciones', contador: contadorAprobaciones },
     ],
   },
@@ -169,7 +169,7 @@ function crearNavAdmin(contadores, contadorComprasDiferencia) {
     icono: ShoppingCart,
     items: [
       { to: '/admin/ventas', label: 'Tomar pedido' },
-      { to: '/admin/pedidos', label: 'Pedidos', end: true, contador: contadores.pedidos_pendientes },
+      { to: '/admin/pedidos', label: 'Cobrar pedidos', end: true, contador: contadores.pedidos_pendientes },
       { to: '/admin/aprobaciones', label: 'Aprobaciones', contador: contadorAprobaciones },
     ],
   },
@@ -244,7 +244,7 @@ function crearNavDeposito(contadores) {
         { to: '/deposito/perdidas', label: 'Pérdidas' },
       ],
     },
-    { grupo: 'Ventas', icono: ShoppingCart, items: [{ to: '/deposito/pedidos', label: 'Pedidos' }] },
+    { grupo: 'Ventas', icono: ShoppingCart, items: [{ to: '/deposito/pedidos', label: 'Cobrar pedidos' }] },
     { grupo: 'Compras', icono: Truck, items: [{ to: '/deposito/recepcion-compra', label: 'Recepción de compra' }] },
     {
       grupo: 'Reparto',
@@ -258,24 +258,21 @@ function crearNavDeposito(contadores) {
   ]
 }
 
-function crearNavVendedor(contadores) {
-  return [
-    {
-      grupo: 'Ventas',
-      icono: ShoppingCart,
-      items: [
-        { to: '/vendedor/pedido', label: 'Tomar pedido', end: true },
-        { to: '/vendedor/pedidos', label: 'Mis pedidos' },
-      ],
-    },
-    { grupo: 'Clientes', icono: Users, items: [{ to: '/vendedor/clientes-gestion', label: 'Gestión de clientes' }] },
-    {
-      grupo: 'Caja',
-      icono: Wallet,
-      items: [{ to: '/vendedor/rendiciones', label: 'Rendiciones', contador: contadores.rendiciones_efectivo_pendientes }],
-    },
-  ]
-}
+// Vendedor no ve el grupo "Caja" (Caja del día/Arqueo/Historial/Rendiciones)
+// — eso es de dueño/administrativo únicamente. fn_confirmar_rendicion_efectivo
+// ya lo bloquea en el backend; acá se saca también la ruta y el link, no solo
+// el ítem del menú (si no, seguía siendo accesible tipeando la URL a mano).
+const NAV_VENDEDOR = [
+  {
+    grupo: 'Ventas',
+    icono: ShoppingCart,
+    items: [
+      { to: '/vendedor/pedido', label: 'Tomar pedido', end: true },
+      { to: '/vendedor/pedidos', label: 'Mis pedidos' },
+    ],
+  },
+  { grupo: 'Clientes', icono: Users, items: [{ to: '/vendedor/clientes-gestion', label: 'Gestión de clientes' }] },
+]
 
 function InicioSesionResuelto() {
   const perfil = useAuthStore((s) => s.perfil)
@@ -323,7 +320,6 @@ export default function AppRouter() {
     [contadores, contadorComprasDiferencia]
   )
   const navDeposito = useMemo(() => crearNavDeposito(contadores), [contadores])
-  const navVendedor = useMemo(() => crearNavVendedor(contadores), [contadores])
 
   return (
     <BrowserRouter>
@@ -435,7 +431,7 @@ export default function AppRouter() {
           path="/vendedor"
           element={
             <RutaProtegida rolesPermitidos={[ROLES.VENDEDOR]}>
-              <AppShell titulo="Vendedor" navegacion={navVendedor} />
+              <AppShell titulo="Vendedor" navegacion={NAV_VENDEDOR} />
             </RutaProtegida>
           }
         >
@@ -443,7 +439,6 @@ export default function AppRouter() {
           <Route path="pedido" element={<TomarPedido />} />
           <Route path="pedidos" element={<ListaPedidos soloPropios />} />
           <Route path="clientes-gestion" element={<GestionClientes />} />
-          <Route path="rendiciones" element={<RendicionesEfectivo />} />
         </Route>
 
         <Route

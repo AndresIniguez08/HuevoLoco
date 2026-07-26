@@ -250,7 +250,7 @@ export default function ListaPedidos({ soloPropios = false }) {
 
   return (
     <div>
-      <h1 className="mb-4 font-display text-xl text-marca">{soloPropios ? 'Mis pedidos' : 'Pedidos'}</h1>
+      <h1 className="mb-4 font-display text-xl text-marca">{soloPropios ? 'Cobrar mis pedidos' : 'Cobrar pedidos'}</h1>
       {error && <p className="mb-3 text-sm text-perdida">{error}</p>}
       {ultimaExcepcionId && (
         <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-fresco/10 p-3 text-sm text-fresco">
