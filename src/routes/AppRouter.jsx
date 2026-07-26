@@ -61,6 +61,8 @@ import ConteoSucursal from '../modules/sucursal/ConteoSucursal'
 import GestionSucursales from '../modules/administracion/GestionSucursales'
 import RendicionesEfectivo from '../modules/caja/RendicionesEfectivo'
 import ImprimirRendicion from '../modules/caja/ImprimirRendicion'
+import InicioVendedor from '../modules/vendedor/InicioVendedor'
+import InicioDeposito from '../modules/deposito/InicioDeposito'
 
 function crearNavDueno(contadores, contadorComprasDiferencia) {
   const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
@@ -231,49 +233,6 @@ function crearNavAdmin(contadores, contadorComprasDiferencia) {
   ]
 }
 
-function crearNavDeposito(contadores) {
-  return [
-    {
-      grupo: 'Stock',
-      icono: Package,
-      items: [
-        { to: '/deposito/stock', label: 'Stock actual', end: true },
-        { to: '/deposito/reporte-stock', label: 'Reporte de stock' },
-        { to: '/deposito/conteo', label: 'Conteo de stock', contador: contadores.conteos_abiertos },
-        { to: '/deposito/auditorias', label: 'Auditorías' },
-        { to: '/deposito/perdidas', label: 'Pérdidas' },
-      ],
-    },
-    { grupo: 'Ventas', icono: ShoppingCart, items: [{ to: '/deposito/pedidos', label: 'Cobrar pedidos' }] },
-    { grupo: 'Compras', icono: Truck, items: [{ to: '/deposito/recepcion-compra', label: 'Recepción de compra' }] },
-    {
-      grupo: 'Reparto',
-      icono: Truck,
-      items: [
-        { to: '/deposito/reparto', label: 'Asignar reparto', end: true, contador: contadores.reparto_sin_asignar },
-        { to: '/deposito/camionetas', label: 'Camionetas' },
-        { to: '/deposito/transferencias', label: 'Transferencias a sucursal', contador: contadores.remitos_con_diferencia },
-      ],
-    },
-  ]
-}
-
-// Vendedor no ve el grupo "Caja" (Caja del día/Arqueo/Historial/Rendiciones)
-// — eso es de dueño/administrativo únicamente. fn_confirmar_rendicion_efectivo
-// ya lo bloquea en el backend; acá se saca también la ruta y el link, no solo
-// el ítem del menú (si no, seguía siendo accesible tipeando la URL a mano).
-const NAV_VENDEDOR = [
-  {
-    grupo: 'Ventas',
-    icono: ShoppingCart,
-    items: [
-      { to: '/vendedor/pedido', label: 'Tomar pedido', end: true },
-      { to: '/vendedor/pedidos', label: 'Mis pedidos' },
-    ],
-  },
-  { grupo: 'Clientes', icono: Users, items: [{ to: '/vendedor/clientes-gestion', label: 'Gestión de clientes' }] },
-]
-
 function InicioSesionResuelto() {
   const perfil = useAuthStore((s) => s.perfil)
   return <Navigate to={perfil ? RUTA_RAIZ_POR_ROL[perfil.rol] || '/login' : '/login'} replace />
@@ -319,8 +278,6 @@ export default function AppRouter() {
     () => crearNavAdmin(contadores, contadorComprasDiferencia),
     [contadores, contadorComprasDiferencia]
   )
-  const navDeposito = useMemo(() => crearNavDeposito(contadores), [contadores])
-
   return (
     <BrowserRouter>
       <Routes>
@@ -405,41 +362,118 @@ export default function AppRouter() {
           <Route path="sucursales" element={<GestionSucursales />} />
         </Route>
 
+        {/* Depósito: sin sidebar, entra por InicioDeposito (3 botones grandes) — mismo
+            criterio que /sucursal. Cada pantalla de destino se reutiliza tal cual (no
+            se reconstruyen), envuelta en el padding que antes daba AppShell y con su
+            propio botón "Volver" (BotonVolverInicio, adentro de cada componente). */}
         <Route
           path="/deposito"
           element={
             <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
-              <AppShell titulo="Depósito" navegacion={navDeposito} />
+              <InicioDeposito />
             </RutaProtegida>
           }
-        >
-          <Route index element={<Navigate to="stock" replace />} />
-          <Route path="stock" element={<StockActual />} />
-          <Route path="reporte-stock" element={<ReporteStock />} />
-          <Route path="conteo" element={<ConteoStock />} />
-          <Route path="conteo/:id" element={<DetalleConteo />} />
-          <Route path="auditorias" element={<AuditoriasConteo />} />
-          <Route path="perdidas" element={<RegistrarPerdida />} />
-          <Route path="pedidos" element={<ListaPedidos />} />
-          <Route path="recepcion-compra" element={<RecepcionCompra />} />
-          <Route path="reparto" element={<AsignarReparto />} />
-          <Route path="camionetas" element={<GestionCamionetas />} />
-          <Route path="transferencias" element={<TransferenciasSucursal />} />
-        </Route>
+        />
+        <Route
+          path="/deposito/stock"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
+              <div className="p-4 sm:p-6">
+                <StockActual />
+              </div>
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/deposito/conteo"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
+              <div className="p-4 sm:p-6">
+                <ConteoStock />
+              </div>
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/deposito/conteo/:id"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
+              <div className="p-4 sm:p-6">
+                <DetalleConteo />
+              </div>
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/deposito/perdidas"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
+              <div className="p-4 sm:p-6">
+                <RegistrarPerdida />
+              </div>
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/deposito/recepcion-compra"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
+              <div className="p-4 sm:p-6">
+                <RecepcionCompra />
+              </div>
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/deposito/reparto"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
+              <div className="p-4 sm:p-6">
+                <AsignarReparto />
+              </div>
+            </RutaProtegida>
+          }
+        />
 
+        {/* Vendedor: mismo criterio, entra por InicioVendedor. */}
         <Route
           path="/vendedor"
           element={
             <RutaProtegida rolesPermitidos={[ROLES.VENDEDOR]}>
-              <AppShell titulo="Vendedor" navegacion={NAV_VENDEDOR} />
+              <InicioVendedor />
             </RutaProtegida>
           }
-        >
-          <Route index element={<Navigate to="pedido" replace />} />
-          <Route path="pedido" element={<TomarPedido />} />
-          <Route path="pedidos" element={<ListaPedidos soloPropios />} />
-          <Route path="clientes-gestion" element={<GestionClientes />} />
-        </Route>
+        />
+        <Route
+          path="/vendedor/vender"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.VENDEDOR]}>
+              <div className="p-4 sm:p-6">
+                <TomarPedido />
+              </div>
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/vendedor/pedidos"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.VENDEDOR]}>
+              <div className="p-4 sm:p-6">
+                <ListaPedidos soloPropios />
+              </div>
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/vendedor/clientes"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.VENDEDOR]}>
+              <div className="p-4 sm:p-6">
+                <GestionClientes />
+              </div>
+            </RutaProtegida>
+          }
+        />
 
         <Route
           path="/conteo/:id/imprimir"

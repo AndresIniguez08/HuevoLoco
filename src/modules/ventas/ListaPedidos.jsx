@@ -22,6 +22,7 @@ import Modal from '../../components/ui/Modal'
 import Input from '../../components/ui/Input'
 import AvisoSaldoCliente from '../../components/AvisoSaldoCliente'
 import ModalExcepcionConfirmar from '../../components/ModalExcepcionConfirmar'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 
 // fn_confirmar_pedido devuelve estos mensajes en lenguaje claro cuando la
 // confirmación chocaría con la cuenta corriente del cliente — se detectan
@@ -40,6 +41,10 @@ export default function ListaPedidos({ soloPropios = false }) {
   // corresponde a depósito, que solo maneja logística de entrega/retiro.
   const puedeVerComprobantePago =
     perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO || perfil?.rol === ROLES.VENDEDOR
+  // fn_registrar_pago ya no acepta el rol vendedor a nivel backend — acá se
+  // saca también el botón, para que su vista quede de solo lectura (puede
+  // ver el estado de sus pedidos, pero ninguna acción de cobro).
+  const puedeRegistrarPago = perfil?.rol !== ROLES.VENDEDOR
   const [pedidos, setPedidos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
@@ -201,7 +206,7 @@ export default function ListaPedidos({ soloPropios = false }) {
               Marcar como retirado
             </Button>
           )}
-          {p.estado !== 'cancelado' && p.estado_pago !== 'pagado' && (
+          {puedeRegistrarPago && p.estado !== 'cancelado' && p.estado_pago !== 'pagado' && (
             <Button tamano="sm" onClick={() => setPedidoPago(p)}>
               Registrar pago
             </Button>
@@ -248,9 +253,14 @@ export default function ListaPedidos({ soloPropios = false }) {
     )
   }
 
+  // Para vendedor, que ya no puede registrar pagos acá, "Cobrar" sería
+  // engañoso — el título vuelve a la versión simple en ese caso.
+  const titulo = puedeRegistrarPago ? (soloPropios ? 'Cobrar mis pedidos' : 'Cobrar pedidos') : soloPropios ? 'Mis pedidos' : 'Pedidos'
+
   return (
     <div>
-      <h1 className="mb-4 font-display text-xl text-marca">{soloPropios ? 'Cobrar mis pedidos' : 'Cobrar pedidos'}</h1>
+      <BotonVolverInicio />
+      <h1 className="mb-4 font-display text-xl text-marca">{titulo}</h1>
       {error && <p className="mb-3 text-sm text-perdida">{error}</p>}
       {ultimaExcepcionId && (
         <div className="mb-3 flex items-center justify-between gap-3 rounded-lg bg-fresco/10 p-3 text-sm text-fresco">

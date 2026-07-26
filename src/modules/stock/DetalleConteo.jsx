@@ -10,6 +10,7 @@ import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { ROLES } from '../../lib/constantes'
 import { formatearFecha } from '../../lib/formato'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -166,6 +167,7 @@ export default function DetalleConteo() {
 
   return (
     <div className="mx-auto max-w-4xl">
+      <BotonVolverInicio />
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="font-display text-xl text-marca">

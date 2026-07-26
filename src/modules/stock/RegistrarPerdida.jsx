@@ -3,6 +3,7 @@ import { obtenerProductosConStock, obtenerProductosConStockSucursal } from '../.
 import { registrarPerdida as registrarPerdidaRpc } from '../../lib/perdidas'
 import { traducirError } from '../../lib/errores'
 import SelectorUnidad from '../../components/SelectorUnidad'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Button from '../../components/ui/Button'
 
 // sucursalId opcional: cuando se abre desde una sucursal (PerdidaSucursal),
@@ -53,6 +54,7 @@ export default function RegistrarPerdida({ sucursalId = null }) {
 
   return (
     <div className="mx-auto max-w-md">
+      <BotonVolverInicio />
       <h1 className="mb-4 font-display text-xl text-marca">Registrar pérdida</h1>
       <div className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm">
         <label className="flex flex-col gap-1 text-sm">
@@ -60,7 +62,7 @@ export default function RegistrarPerdida({ sucursalId = null }) {
           <select
             value={productoId}
             onChange={(e) => setProductoId(e.target.value)}
-            className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+            className="min-h-[52px] rounded-xl border border-marca/20 px-4 py-3 text-base outline-none focus:border-marca-claro"
           >
             <option value="">Elegir...</option>
             {productos.map((p) => (
@@ -84,7 +86,7 @@ export default function RegistrarPerdida({ sucursalId = null }) {
             onChange={(e) => setMotivo(e.target.value)}
             rows={3}
             placeholder="Ej: roturas en el traslado"
-            className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+            className="rounded-xl border border-marca/20 px-4 py-3 text-base outline-none focus:border-marca-claro"
           />
         </label>
 
@@ -96,7 +98,7 @@ export default function RegistrarPerdida({ sucursalId = null }) {
           onClick={registrarPerdida}
           disabled={!productoSeleccionado || cantidadSeleccion.cantidad_maple <= 0 || !motivo.trim()}
           cargando={enviando}
-          className="w-full"
+          className="min-h-[56px] w-full text-lg"
         >
           Registrar pérdida
         </Button>
@@ -105,7 +107,7 @@ export default function RegistrarPerdida({ sucursalId = null }) {
           <Button
             variante="secundario"
             onClick={() => window.open(`/perdida/${perdidaId}/imprimir`, '_blank')}
-            className="w-full"
+            className="min-h-[56px] w-full text-lg"
           >
             Imprimir comprobante
           </Button>

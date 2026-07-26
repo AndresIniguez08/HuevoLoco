@@ -4,6 +4,7 @@ import { traducirError } from '../../lib/errores'
 import { ETIQUETA_ESTADO_PEDIDO, TONO_ESTADO_PEDIDO, ETIQUETA_ESTADO_PAGO, TONO_ESTADO_PAGO } from '../../lib/constantes'
 import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import BuscadorCliente from '../../components/BuscadorCliente'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import Button from '../../components/ui/Button'
@@ -46,6 +47,7 @@ export default function GestionClientes() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <BotonVolverInicio />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-display text-xl text-marca">Gestión de clientes</h1>
         <Button onClick={() => setModalAbierto(true)}>Nuevo cliente</Button>

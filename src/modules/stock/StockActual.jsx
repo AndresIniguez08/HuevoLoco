@@ -1,13 +1,23 @@
 import { useCallback, useEffect, useState } from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, ClipboardList, PackageMinus } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { obtenerStockDesgloseSucursal } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
+import { ROLES } from '../../lib/constantes'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 import GrillaCajon from '../../components/GrillaCajon'
 import Badge from '../../components/ui/Badge'
 
 export default function StockActual() {
   const perfil = useAuthStore((s) => s.perfil)
+  const navigate = useNavigate()
+  // Depósito llega acá desde su pantalla de inicio simplificada (sin
+  // sidebar) — se le agregan los accesos a Control de stock/Reportar
+  // pérdida acá mismo, mismo patrón que StockSucursal.jsx agrupando
+  // acciones relacionadas en una sola pantalla. Dueño/admin ya los tienen
+  // como ítems propios del sidebar, no hace falta duplicarlos para ellos.
+  const esDeposito = perfil?.rol === ROLES.DEPOSITO
   const [productos, setProductos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
@@ -35,7 +45,26 @@ export default function StockActual() {
 
   return (
     <div>
+      <BotonVolverInicio />
       <h1 className="mb-4 font-display text-xl text-marca">Stock actual</h1>
+
+      {esDeposito && (
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+          <button
+            onClick={() => navigate('/deposito/conteo')}
+            className="flex min-h-[56px] w-full flex-1 items-center justify-center gap-2 rounded-xl border border-marca-claro text-base font-medium text-marca-claro"
+          >
+            <ClipboardList size={20} /> Control de stock
+          </button>
+          <button
+            onClick={() => navigate('/deposito/perdidas')}
+            className="flex min-h-[56px] w-full flex-1 items-center justify-center gap-2 rounded-xl border border-perdida text-base font-medium text-perdida"
+          >
+            <PackageMinus size={20} /> Reportar pérdida
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {productos.map((p) => {
           const bajoMinimo = p.minimo_cajones != null && p.cajones < p.minimo_cajones

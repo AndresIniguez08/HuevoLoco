@@ -12,6 +12,7 @@ import { usePedidoStore } from '../../stores/pedidoStore'
 import { useAuthStore } from '../../stores/authStore'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import AvisoSaldoCliente from '../../components/AvisoSaldoCliente'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 
@@ -170,6 +171,7 @@ export default function TomarPedido() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <BotonVolverInicio />
       <h1 className="mb-4 font-display text-xl text-marca">Tomar pedido</h1>
 
       <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">

@@ -4,6 +4,7 @@ import { listarAsignacionesDelDia } from '../../lib/reparto'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_ESTADO_PAGO, TONO_ESTADO_PAGO } from '../../lib/constantes'
 import { formatearFecha } from '../../lib/formato'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 
@@ -114,6 +115,7 @@ export default function AsignarReparto() {
 
   return (
     <div>
+      <BotonVolverInicio />
       <h1 className="mb-4 font-display text-xl text-marca">Asignar reparto</h1>
       {error && <p className="mb-3 text-sm text-perdida">{error}</p>}
       {pedidos.length === 0 ? (
@@ -134,7 +136,7 @@ export default function AsignarReparto() {
                 <select
                   value={seleccion[p.id]?.camioneta_id || ''}
                   onChange={(e) => actualizarSeleccion(p.id, 'camioneta_id', e.target.value)}
-                  className="rounded-lg border border-marca/20 px-3 py-2 text-sm outline-none focus:border-marca-claro"
+                  className="min-h-[52px] rounded-xl border border-marca/20 px-4 py-3 text-base outline-none focus:border-marca-claro"
                 >
                   <option value="">Elegir camioneta...</option>
                   {camionetas.map((c) => (
@@ -146,7 +148,7 @@ export default function AsignarReparto() {
                 <select
                   value={seleccion[p.id]?.chofer_id || ''}
                   onChange={(e) => actualizarSeleccion(p.id, 'chofer_id', e.target.value)}
-                  className="rounded-lg border border-marca/20 px-3 py-2 text-sm outline-none focus:border-marca-claro"
+                  className="min-h-[52px] rounded-xl border border-marca/20 px-4 py-3 text-base outline-none focus:border-marca-claro"
                 >
                   <option value="">Elegir chofer...</option>
                   {choferes.map((c) => (
@@ -156,7 +158,7 @@ export default function AsignarReparto() {
                   ))}
                 </select>
                 <Button
-                  tamano="sm"
+                  className="min-h-[52px] text-base"
                   disabled={!seleccion[p.id]?.chofer_id || !seleccion[p.id]?.camioneta_id}
                   cargando={asignando === p.id}
                   onClick={() => asignar(p.id)}

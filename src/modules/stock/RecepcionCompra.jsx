@@ -4,6 +4,7 @@ import { listarComprasPendientes, recibirCompra, reportarDiferenciaCompra } from
 import { traducirError } from '../../lib/errores'
 import { formatearCantidadItemCompra } from '../../lib/constantes'
 import { formatearFecha } from '../../lib/formato'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Button from '../../components/ui/Button'
 
 // Mismo patrón que AceptarMercaderia.jsx (sucursal): depósito solo confirma
@@ -102,6 +103,7 @@ export default function RecepcionCompra() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <BotonVolverInicio />
       <h1 className="mb-4 font-display text-xl text-marca">Recepción de compra</h1>
 
       {cargando ? (

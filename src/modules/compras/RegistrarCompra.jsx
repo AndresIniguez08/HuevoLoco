@@ -7,6 +7,7 @@ import { ETIQUETA_UNIDAD } from '../../lib/constantes'
 import { formatearMoneda, formatearFecha } from '../../lib/formato'
 import { convertirAMaple } from '../../lib/unidades'
 import SelectorUnidad from '../../components/SelectorUnidad'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
 import ProveedorSelector from './ProveedorSelector'
@@ -148,6 +149,7 @@ export default function RegistrarCompra() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <BotonVolverInicio />
       <div className="mb-4 flex items-center gap-2">
         <h1 className="font-display text-xl text-marca">Registrar compra</h1>
         {diferenciasPendientes.length > 0 && <Badge tono="error">{diferenciasPendientes.length} con diferencia</Badge>}
@@ -201,7 +203,7 @@ export default function RegistrarCompra() {
             <select
               value={productoId}
               onChange={(e) => setProductoId(e.target.value)}
-              className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+              className="min-h-[52px] rounded-xl border border-marca/20 px-4 py-3 text-base outline-none focus:border-marca-claro"
             >
               <option value="">Elegir...</option>
               {productos.map((p) => (
@@ -223,12 +225,15 @@ export default function RegistrarCompra() {
                   type="number"
                   min="0"
                   step="0.01"
+                  inputMode="decimal"
                   value={costoManual}
                   onChange={(e) => setCostoManual(e.target.value)}
-                  className="w-28 rounded-lg border border-marca/20 px-3 py-2 font-mono outline-none focus:border-marca-claro"
+                  className="min-h-[52px] w-32 rounded-xl border border-marca/20 px-4 py-3 text-base font-mono outline-none focus:border-marca-claro"
                 />
               </label>
-              <Button onClick={agregarItem}>Agregar</Button>
+              <Button className="min-h-[52px] text-base" onClick={agregarItem}>
+                Agregar
+              </Button>
             </>
           )}
         </div>
@@ -273,7 +278,7 @@ export default function RegistrarCompra() {
         onClick={registrarCompra}
         disabled={!proveedorId || items.length === 0}
         cargando={enviando}
-        className="w-full"
+        className="min-h-[56px] w-full text-lg"
       >
         Registrar compra
       </Button>
@@ -282,7 +287,7 @@ export default function RegistrarCompra() {
         <Button
           variante="secundario"
           onClick={() => window.open(`/compra/${compraId}/imprimir`, '_blank')}
-          className="mt-3 w-full"
+          className="mt-3 min-h-[56px] w-full text-lg"
         >
           Imprimir comprobante
         </Button>

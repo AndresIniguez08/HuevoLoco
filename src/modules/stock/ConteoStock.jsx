@@ -5,6 +5,7 @@ import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { RUTA_RAIZ_POR_ROL } from '../../lib/constantes'
 import { formatearFecha } from '../../lib/formato'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 
@@ -55,9 +56,10 @@ export default function ConteoStock() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <BotonVolverInicio />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-display text-xl text-marca">Conteo de stock</h1>
-        <Button onClick={iniciarConteo} cargando={creando}>
+        <Button className="min-h-[52px] text-base" onClick={iniciarConteo} cargando={creando}>
           Iniciar nuevo conteo
         </Button>
       </div>
@@ -65,15 +67,15 @@ export default function ConteoStock() {
       {conteoNuevo && (
         <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
           <p className="mb-3 text-sm text-marca">Conteo iniciado. Imprimí la hoja para recorrer el depósito, o cargá los resultados directamente.</p>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Button
               variante="secundario"
-              className="flex-1"
+              className="min-h-[52px] flex-1 text-base"
               onClick={() => window.open(`/conteo/${conteoNuevo}/imprimir`, '_blank')}
             >
               Imprimir hoja de conteo
             </Button>
-            <Button className="flex-1" onClick={() => navigate(`${base}/conteo/${conteoNuevo}`)}>
+            <Button className="min-h-[52px] flex-1 text-base" onClick={() => navigate(`${base}/conteo/${conteoNuevo}`)}>
               Cargar resultados
             </Button>
           </div>
