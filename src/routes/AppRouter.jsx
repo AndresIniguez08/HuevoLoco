@@ -390,6 +390,16 @@ export default function AppRouter() {
           }
         />
         <Route
+          path="/deposito/reporte-stock"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
+              <div className="p-4 sm:p-6">
+                <ReporteStock />
+              </div>
+            </RutaProtegida>
+          }
+        />
+        <Route
           path="/deposito/conteo"
           element={
             <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>

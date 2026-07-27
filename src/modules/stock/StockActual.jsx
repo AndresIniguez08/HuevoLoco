@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { AlertTriangle, ClipboardList, PackageMinus } from 'lucide-react'
+import { AlertTriangle, ClipboardList, FileText, PackageMinus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { obtenerStockDesgloseSucursal } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
@@ -50,6 +50,12 @@ export default function StockActual() {
 
       {esDeposito && (
         <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+          <button
+            onClick={() => navigate('/deposito/reporte-stock')}
+            className="flex min-h-[56px] w-full flex-1 items-center justify-center gap-2 rounded-xl border border-marca-claro text-base font-medium text-marca-claro"
+          >
+            <FileText size={20} /> Reporte de stock
+          </button>
           <button
             onClick={() => navigate('/deposito/conteo')}
             className="flex min-h-[56px] w-full flex-1 items-center justify-center gap-2 rounded-xl border border-marca-claro text-base font-medium text-marca-claro"

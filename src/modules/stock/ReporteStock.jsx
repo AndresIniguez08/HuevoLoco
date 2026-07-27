@@ -4,6 +4,7 @@ import { X } from 'lucide-react'
 import { obtenerStockDesgloseSucursal } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
+import BotonVolverInicio from '../../components/BotonVolverInicio'
 
 export default function ReporteStock() {
   const perfil = useAuthStore((s) => s.perfil)
@@ -33,6 +34,7 @@ export default function ReporteStock() {
 
   return (
     <div>
+      <BotonVolverInicio />
       <h1 className="mb-4 font-display text-xl text-marca">Reporte de stock</h1>
 
       {filtroIds && (
