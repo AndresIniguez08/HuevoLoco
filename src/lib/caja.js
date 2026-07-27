@@ -45,6 +45,29 @@ async function obtenerMapaPorId(tabla, columnas, ids) {
   return new Map(data.map((fila) => [fila.id, fila]))
 }
 
+// fn_registrar_movimiento_caja_manual ya resuelve sola la sucursal (Casa
+// Central para dueño/administrativo, la propia para encargado_sucursal) —
+// no se le pasa como parámetro. Como caja_movimientos ya es la fuente de
+// "Caja de hoy" y del esperado del arqueo, no hace falta tocar esas
+// pantallas para que el movimiento quede reflejado ahí.
+export async function crearMovimientoCajaManual(tipo, monto, concepto, medio) {
+  const { error } = await supabase.rpc('fn_registrar_movimiento_caja_manual', {
+    p_tipo: tipo,
+    p_monto: monto,
+    p_concepto: concepto,
+    p_medio: medio,
+  })
+  if (error) throw error
+}
+
+// Solo lo cargado a mano hoy (referencia_tipo = 'manual'). Reutiliza
+// obtenerMovimientosCaja (ya trae solo el día de hoy, filtrado por sucursal,
+// con la descripción ya armada) y filtra el resultado.
+export async function listarMovimientosManualesHoy(sucursalId) {
+  const movimientos = await obtenerMovimientosCaja({ sucursalId })
+  return movimientos.filter((m) => m.referencia_tipo === 'manual')
+}
+
 export function totalesPorMedio(movimientos) {
   const totales = {}
   for (const m of movimientos) {

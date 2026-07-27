@@ -63,6 +63,7 @@ import RendicionesEfectivo from '../modules/caja/RendicionesEfectivo'
 import ImprimirRendicion from '../modules/caja/ImprimirRendicion'
 import InicioVendedor from '../modules/vendedor/InicioVendedor'
 import InicioDeposito from '../modules/deposito/InicioDeposito'
+import MovimientosCaja from '../modules/caja/MovimientosCaja'
 
 function crearNavDueno(contadores, contadorComprasDiferencia) {
   const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
@@ -121,6 +122,7 @@ function crearNavDueno(contadores, contadorComprasDiferencia) {
       { to: '/dueno/caja', label: 'Caja del día' },
       { to: '/dueno/arqueo', label: 'Arqueo' },
       { to: '/dueno/historial', label: 'Historial' },
+      { to: '/dueno/movimientos-caja', label: 'Movimientos de caja' },
       { to: '/dueno/rendiciones', label: 'Rendiciones', contador: contadores.rendiciones_efectivo_pendientes },
     ],
   },
@@ -208,6 +210,7 @@ function crearNavAdmin(contadores, contadorComprasDiferencia) {
       { to: '/admin/caja', label: 'Caja del día' },
       { to: '/admin/arqueo', label: 'Arqueo' },
       { to: '/admin/historial', label: 'Historial' },
+      { to: '/admin/movimientos-caja', label: 'Movimientos de caja' },
       { to: '/admin/rendiciones', label: 'Rendiciones', contador: contadores.rendiciones_efectivo_pendientes },
     ],
   },
@@ -308,6 +311,7 @@ export default function AppRouter() {
           <Route path="caja" element={<CajaDiaria />} />
           <Route path="arqueo" element={<Arqueo />} />
           <Route path="historial" element={<HistorialMovimientos />} />
+          <Route path="movimientos-caja" element={<MovimientosCaja />} />
           <Route path="rendiciones" element={<RendicionesEfectivo />} />
           <Route path="compras" element={<RegistrarCompra />} />
           <Route path="perdidas" element={<RegistrarPerdida />} />
@@ -348,6 +352,7 @@ export default function AppRouter() {
           <Route path="caja" element={<CajaDiaria />} />
           <Route path="arqueo" element={<Arqueo />} />
           <Route path="historial" element={<HistorialMovimientos />} />
+          <Route path="movimientos-caja" element={<MovimientosCaja />} />
           <Route path="rendiciones" element={<RendicionesEfectivo />} />
           <Route path="compras" element={<RegistrarCompra />} />
           <Route path="precios" element={<ListasDePrecio />} />
