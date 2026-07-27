@@ -21,6 +21,7 @@ function ModalRegistrarMovimiento({ abierto, onCerrar, onRegistrado }) {
   const [medio, setMedio] = useState('efectivo')
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
+  const [movimientoId, setMovimientoId] = useState(null)
 
   useEffect(() => {
     if (abierto) {
@@ -29,6 +30,7 @@ function ModalRegistrarMovimiento({ abierto, onCerrar, onRegistrado }) {
       setConcepto('')
       setMedio('efectivo')
       setError(null)
+      setMovimientoId(null)
     }
   }, [abierto])
 
@@ -39,8 +41,8 @@ function ModalRegistrarMovimiento({ abierto, onCerrar, onRegistrado }) {
     setEnviando(true)
     setError(null)
     try {
-      await crearMovimientoCajaManual(tipo, Number(monto), concepto.trim(), medio)
-      onRegistrado()
+      const id = await crearMovimientoCajaManual(tipo, Number(monto), concepto.trim(), medio)
+      setMovimientoId(id)
     } catch (e) {
       setError(traducirError(e))
     } finally {
@@ -48,68 +50,88 @@ function ModalRegistrarMovimiento({ abierto, onCerrar, onRegistrado }) {
     }
   }
 
+  function cerrarYRefrescar() {
+    onRegistrado()
+  }
+
   return (
     <Modal abierto={abierto} onCerrar={onCerrar} titulo="Registrar movimiento">
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setTipo('ingreso')}
-            className={`flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${
-              tipo === 'ingreso' ? 'border-fresco bg-fresco/10 text-fresco' : 'border-marca/20 text-marca/60 hover:bg-marca/5'
-            }`}
+      {movimientoId ? (
+        <div className="flex flex-col gap-4 text-center">
+          <p className="text-lg font-medium text-fresco">Movimiento registrado</p>
+          <Button
+            variante="secundario"
+            className="w-full"
+            onClick={() => window.open(`/movimiento-caja/${movimientoId}/imprimir`, '_blank')}
           >
-            Ingreso
-          </button>
-          <button
-            type="button"
-            onClick={() => setTipo('egreso')}
-            className={`flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${
-              tipo === 'egreso' ? 'border-perdida bg-perdida/10 text-perdida' : 'border-marca/20 text-marca/60 hover:bg-marca/5'
-            }`}
-          >
-            Egreso
-          </button>
+            Imprimir comprobante
+          </Button>
+          <Button className="w-full" onClick={cerrarYRefrescar}>
+            Cerrar
+          </Button>
         </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setTipo('ingreso')}
+              className={`flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${
+                tipo === 'ingreso' ? 'border-fresco bg-fresco/10 text-fresco' : 'border-marca/20 text-marca/60 hover:bg-marca/5'
+              }`}
+            >
+              Ingreso
+            </button>
+            <button
+              type="button"
+              onClick={() => setTipo('egreso')}
+              className={`flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${
+                tipo === 'egreso' ? 'border-perdida bg-perdida/10 text-perdida' : 'border-marca/20 text-marca/60 hover:bg-marca/5'
+              }`}
+            >
+              Egreso
+            </button>
+          </div>
 
-        <Input
-          label="Monto"
-          tipo="number"
-          numerico
-          min="0"
-          step="0.01"
-          value={monto}
-          onChange={(e) => setMonto(e.target.value)}
-        />
+          <Input
+            label="Monto"
+            tipo="number"
+            numerico
+            min="0"
+            step="0.01"
+            value={monto}
+            onChange={(e) => setMonto(e.target.value)}
+          />
 
-        <Input
-          label="Concepto"
-          value={concepto}
-          onChange={(e) => setConcepto(e.target.value)}
-          placeholder="Ej: Compra de yerba"
-        />
+          <Input
+            label="Concepto"
+            value={concepto}
+            onChange={(e) => setConcepto(e.target.value)}
+            placeholder="Ej: Compra de yerba"
+          />
 
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="font-medium text-marca">Medio de pago</span>
-          <select
-            value={medio}
-            onChange={(e) => setMedio(e.target.value)}
-            className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
-          >
-            {MEDIOS_MOVIMIENTO.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-marca">Medio de pago</span>
+            <select
+              value={medio}
+              onChange={(e) => setMedio(e.target.value)}
+              className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+            >
+              {MEDIOS_MOVIMIENTO.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        {error && <p className="text-sm text-perdida">{error}</p>}
+          {error && <p className="text-sm text-perdida">{error}</p>}
 
-        <Button onClick={confirmar} disabled={!puedeConfirmar} cargando={enviando} className="w-full">
-          Registrar
-        </Button>
-      </div>
+          <Button onClick={confirmar} disabled={!puedeConfirmar} cargando={enviando} className="w-full">
+            Registrar
+          </Button>
+        </div>
+      )}
     </Modal>
   )
 }

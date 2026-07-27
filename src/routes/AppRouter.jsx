@@ -61,6 +61,7 @@ import ConteoSucursal from '../modules/sucursal/ConteoSucursal'
 import GestionSucursales from '../modules/administracion/GestionSucursales'
 import RendicionesEfectivo from '../modules/caja/RendicionesEfectivo'
 import ImprimirRendicion from '../modules/caja/ImprimirRendicion'
+import ImprimirMovimientoCaja from '../modules/caja/ImprimirMovimientoCaja'
 import InicioVendedor from '../modules/vendedor/InicioVendedor'
 import InicioDeposito from '../modules/deposito/InicioDeposito'
 import MovimientosCaja from '../modules/caja/MovimientosCaja'
@@ -594,6 +595,15 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.VENDEDOR, ROLES.ENCARGADO_SUCURSAL]}>
               <ImprimirRendicion />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/movimiento-caja/:id/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.ENCARGADO_SUCURSAL]}>
+              <ImprimirMovimientoCaja />
             </RutaProtegida>
           }
         />
