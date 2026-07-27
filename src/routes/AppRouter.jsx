@@ -65,6 +65,7 @@ import ImprimirMovimientoCaja from '../modules/caja/ImprimirMovimientoCaja'
 import InicioVendedor from '../modules/vendedor/InicioVendedor'
 import InicioDeposito from '../modules/deposito/InicioDeposito'
 import MovimientosCaja from '../modules/caja/MovimientosCaja'
+import GestionCategorias from '../modules/catalogo/GestionCategorias'
 
 function crearNavDueno(contadores, contadorComprasDiferencia) {
   const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
@@ -143,6 +144,7 @@ function crearNavDueno(contadores, contadorComprasDiferencia) {
     icono: Egg,
     items: [
       { to: '/dueno/productos', label: 'Productos' },
+      { to: '/dueno/categorias', label: 'Categorías' },
       { to: '/dueno/disponibilidad-sucursal', label: 'Disponibilidad por sucursal' },
     ],
   },
@@ -230,6 +232,7 @@ function crearNavAdmin(contadores, contadorComprasDiferencia) {
     icono: Egg,
     items: [
       { to: '/admin/productos', label: 'Productos' },
+      { to: '/admin/categorias', label: 'Categorías' },
       { to: '/admin/disponibilidad-sucursal', label: 'Disponibilidad por sucursal' },
     ],
   },
@@ -325,6 +328,7 @@ export default function AppRouter() {
           <Route path="proveedores" element={<ListaProveedores />} />
           <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
+          <Route path="categorias" element={<GestionCategorias />} />
           <Route path="disponibilidad-sucursal" element={<DisponibilidadSucursal />} />
           <Route path="usuarios" element={<ListaUsuarios />} />
           <Route path="sucursales" element={<GestionSucursales />} />
@@ -364,6 +368,7 @@ export default function AppRouter() {
           <Route path="proveedores" element={<ListaProveedores />} />
           <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
+          <Route path="categorias" element={<GestionCategorias />} />
           <Route path="disponibilidad-sucursal" element={<DisponibilidadSucursal />} />
           <Route path="sucursales" element={<GestionSucursales />} />
         </Route>

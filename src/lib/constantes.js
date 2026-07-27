@@ -144,18 +144,7 @@ export const TIPOS_CLIENTE = [
   { value: 'otro', label: 'Otro' },
 ]
 
-// productos.categoria_huevo — solo aplica cuando es_huevo = true
-export const CATEGORIAS_HUEVO = [
-  { value: '4', label: 'Categoría 4' },
-  { value: '3', label: 'Categoría 3' },
-  { value: '2', label: 'Categoría 2' },
-  { value: '1', label: 'Categoría 1' },
-  { value: 'jumbo', label: 'Jumbo' },
-  { value: 'manchado', label: 'Manchado' },
-  { value: 'crack', label: 'Crack' },
-]
-
-export const ETIQUETA_CATEGORIA_HUEVO = Object.fromEntries(CATEGORIAS_HUEVO.map((c) => [c.value, c.label]))
-
-// Regla de negocio: solo estas categorías admiten venta por caja
-export const CATEGORIAS_HUEVO_ADMITEN_CAJA = ['3', '2', '1']
+// Las categorías de producto (antes una lista fija acá) ahora viven en la
+// tabla categorias_producto, gestionables desde Catálogo > Categorías — ver
+// lib/categoriasProducto.js. productos.categoria_huevo_obsoleta quedó sin
+// usar, no tocar.
