@@ -38,13 +38,16 @@ export default function ListaPedidos({ soloPropios = false }) {
   const perfil = useAuthStore((s) => s.perfil)
   const puedeCargarExcepcion = perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO
   // Comprobante de pago: documento financiero (medio de cobro, monto) — no le
-  // corresponde a depósito, que solo maneja logística de entrega/retiro.
-  const puedeVerComprobantePago =
-    perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO || perfil?.rol === ROLES.VENDEDOR
-  // fn_registrar_pago ya no acepta el rol vendedor a nivel backend — acá se
-  // saca también el botón, para que su vista quede de solo lectura (puede
-  // ver el estado de sus pedidos, pero ninguna acción de cobro).
-  const puedeRegistrarPago = perfil?.rol !== ROLES.VENDEDOR
+  // corresponde a depósito, que solo maneja logística de entrega/retiro, ni a
+  // vendedor (ver esVendedor más abajo).
+  const puedeVerComprobantePago = perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO
+  // fn_confirmar_pedido y fn_registrar_pago ya no aceptan el rol vendedor a
+  // nivel backend (confirmar es lo que genera la deuda real en cuenta
+  // corriente — eso queda en manos de quien controla caja). Acá su vista
+  // queda de solo lectura: ve estado/tipo de entrega/estado de pago como
+  // badges, pero ni un botón de acción ni información extra (saldo del
+  // cliente, excepciones) en toda la pantalla.
+  const esVendedor = perfil?.rol === ROLES.VENDEDOR
   const [pedidos, setPedidos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
@@ -186,76 +189,84 @@ export default function ListaPedidos({ soloPropios = false }) {
           </Badge>
           <Badge tono={TONO_ESTADO_PEDIDO[p.estado] || 'neutro'}>{ETIQUETA_ESTADO_PEDIDO[p.estado] || p.estado}</Badge>
           <Badge tono={TONO_ESTADO_PAGO[p.estado_pago] || 'neutro'}>{ETIQUETA_ESTADO_PAGO[p.estado_pago] || p.estado_pago}</Badge>
-          {p.estado === 'pendiente' && (
-            <Button
-              tamano="sm"
-              variante="confirmar"
-              cargando={accionando === p.id}
-              onClick={() => confirmarPedido(p.id)}
-            >
-              Confirmar pedido
-            </Button>
-          )}
-          {p.estado === 'confirmado' && p.tipo_entrega === 'retiro_local' && (
-            <Button
-              tamano="sm"
-              variante="confirmar"
-              cargando={accionando === p.id}
-              onClick={() => marcarRetirado(p.id)}
-            >
-              Marcar como retirado
-            </Button>
-          )}
-          {puedeRegistrarPago && p.estado !== 'cancelado' && p.estado_pago !== 'pagado' && (
-            <Button tamano="sm" onClick={() => setPedidoPago(p)}>
-              Registrar pago
-            </Button>
-          )}
-          {puedeVerComprobantePago && p.estado_pago !== 'pendiente' && (
-            <Button
-              tamano="sm"
-              variante="secundario"
-              cargando={imprimiendoId === p.id}
-              onClick={() => imprimirUltimoComprobante(p.id)}
-            >
-              Imprimir último comprobante
-            </Button>
-          )}
-          <Button
-            tamano="sm"
-            variante="secundario"
-            onClick={() => window.open(`/pedido/${p.id}/imprimir`, '_blank')}
-          >
-            Imprimir remito
-          </Button>
-        </div>
-        <AvisoSaldoCliente
-          nombre={p.clientes?.nombre}
-          saldo={saldosPorCliente.get(p.cliente_id)}
-          desde={fechasSaldoPorCliente.get(p.cliente_id)}
-          className="w-full"
-        />
-        {bloqueoPedidoId === p.id && (
-          <div className="w-full">
-            {puedeCargarExcepcion ? (
-              <Button tamano="sm" variante="secundario" onClick={() => setPedidoExcepcion(p)}>
-                Cargar excepción y confirmar
+          {!esVendedor && (
+            <>
+              {p.estado === 'pendiente' && (
+                <Button
+                  tamano="sm"
+                  variante="confirmar"
+                  cargando={accionando === p.id}
+                  onClick={() => confirmarPedido(p.id)}
+                >
+                  Confirmar pedido
+                </Button>
+              )}
+              {p.estado === 'confirmado' && p.tipo_entrega === 'retiro_local' && (
+                <Button
+                  tamano="sm"
+                  variante="confirmar"
+                  cargando={accionando === p.id}
+                  onClick={() => marcarRetirado(p.id)}
+                >
+                  Marcar como retirado
+                </Button>
+              )}
+              {p.estado !== 'cancelado' && p.estado_pago !== 'pagado' && (
+                <Button tamano="sm" onClick={() => setPedidoPago(p)}>
+                  Registrar pago
+                </Button>
+              )}
+              {puedeVerComprobantePago && p.estado_pago !== 'pendiente' && (
+                <Button
+                  tamano="sm"
+                  variante="secundario"
+                  cargando={imprimiendoId === p.id}
+                  onClick={() => imprimirUltimoComprobante(p.id)}
+                >
+                  Imprimir último comprobante
+                </Button>
+              )}
+              <Button
+                tamano="sm"
+                variante="secundario"
+                onClick={() => window.open(`/pedido/${p.id}/imprimir`, '_blank')}
+              >
+                Imprimir remito
               </Button>
-            ) : (
-              <p className="text-sm text-marca/70">
-                Este pedido necesita autorización de un administrador antes de poder confirmarse. Avisale al dueño o
-                administrativo.
-              </p>
+            </>
+          )}
+        </div>
+        {!esVendedor && (
+          <>
+            <AvisoSaldoCliente
+              nombre={p.clientes?.nombre}
+              saldo={saldosPorCliente.get(p.cliente_id)}
+              desde={fechasSaldoPorCliente.get(p.cliente_id)}
+              className="w-full"
+            />
+            {bloqueoPedidoId === p.id && (
+              <div className="w-full">
+                {puedeCargarExcepcion ? (
+                  <Button tamano="sm" variante="secundario" onClick={() => setPedidoExcepcion(p)}>
+                    Cargar excepción y confirmar
+                  </Button>
+                ) : (
+                  <p className="text-sm text-marca/70">
+                    Este pedido necesita autorización de un administrador antes de poder confirmarse. Avisale al dueño o
+                    administrativo.
+                  </p>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </li>
     )
   }
 
-  // Para vendedor, que ya no puede registrar pagos acá, "Cobrar" sería
-  // engañoso — el título vuelve a la versión simple en ese caso.
-  const titulo = puedeRegistrarPago ? (soloPropios ? 'Cobrar mis pedidos' : 'Cobrar pedidos') : soloPropios ? 'Mis pedidos' : 'Pedidos'
+  // Para vendedor, que ya no puede registrar pagos ni confirmar acá, "Cobrar"
+  // sería engañoso — el título vuelve a la versión simple en ese caso.
+  const titulo = esVendedor ? (soloPropios ? 'Mis pedidos' : 'Pedidos') : soloPropios ? 'Cobrar mis pedidos' : 'Cobrar pedidos'
 
   return (
     <div>

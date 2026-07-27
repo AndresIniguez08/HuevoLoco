@@ -1,5 +1,5 @@
 // supabase/functions/crear-usuario/index.ts
-// v3: ahora acepta sucursal_id (obligatorio si el rol es encargado_sucursal)
+// v4: default automático a Casa Central para cualquier rol que no sea encargado_sucursal
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -111,6 +111,19 @@ Deno.serve(async (req) => {
       serviceRoleKey,
     );
 
+    // Resolver la sucursal final ANTES de crear nada:
+    // - encargado_sucursal: la que vino del formulario (ya validada arriba, obligatoria)
+    // - cualquier otro rol: si no mandaron sucursal_id, default a Casa Central
+    let sucursalFinal = sucursal_id || null;
+    if (rol !== "encargado_sucursal" && !sucursalFinal) {
+      const { data: central } = await supabaseAdmin
+        .from("sucursales")
+        .select("id")
+        .eq("nombre", "Casa Central")
+        .single();
+      sucursalFinal = central?.id || null;
+    }
+
     const { data: nuevoUsuario, error: errorAuth } =
       await supabaseAdmin.auth.admin.createUser({
         email,
@@ -130,7 +143,7 @@ Deno.serve(async (req) => {
       nombre,
       rol,
       activo: true,
-      sucursal_id: sucursal_id || null,
+      sucursal_id: sucursalFinal,
     });
 
     if (errorPerfil) {
