@@ -2,9 +2,12 @@ import { supabase } from './supabase'
 
 // La vista `stock_actual` (producto_id, stock_maple, stock_cajas, stock_cajones)
 // ya trae el stock convertido a cada unidad; no recalcular acá.
+// Usa `productos_publico` (sin costo_promedio) en vez de `productos`: esta
+// función alimenta selectores de producto (TomarPedido, RegistrarCompra) que
+// no necesitan el costo y no deben poder filtrarlo sin querer con un select('*').
 export async function obtenerProductosConStock() {
   const { data: productos, error: errorProductos } = await supabase
-    .from('productos')
+    .from('productos_publico')
     .select('*')
     .eq('activo', true)
     .order('nombre')
@@ -44,18 +47,28 @@ export async function obtenerStockDesgloseSucursal(sucursalId) {
 
 // Catálogo de una sucursal: solo los productos que Central habilitó para
 // venderse ahí (producto_sucursal.habilitado). Distinto del catálogo
-// completo que usa Central en TomarPedido/RegistrarCompra.
+// completo que usa Central en TomarPedido/RegistrarCompra. Se arma con dos
+// consultas (en vez de un embed producto_sucursal->productos) para poder
+// traer los datos desde `productos_publico` y no desde `productos`: un embed
+// sigue la FK real hacia `productos`, que incluye costo_promedio.
 export async function obtenerProductosHabilitadosSucursal(sucursalId) {
-  const { data, error } = await supabase
+  const { data: filas, error: errorFilas } = await supabase
     .from('producto_sucursal')
-    .select('productos(*)')
+    .select('producto_id')
     .eq('sucursal_id', sucursalId)
     .eq('habilitado', true)
-  if (error) throw error
-  return (data || [])
-    .map((fila) => fila.productos)
-    .filter(Boolean)
-    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+  if (errorFilas) throw errorFilas
+
+  const idsProducto = (filas || []).map((f) => f.producto_id)
+  if (idsProducto.length === 0) return []
+
+  const { data: productos, error: errorProductos } = await supabase
+    .from('productos_publico')
+    .select('*')
+    .in('id', idsProducto)
+    .order('nombre')
+  if (errorProductos) throw errorProductos
+  return productos || []
 }
 
 // Catálogo + stock de una sucursal puntual, para pantallas donde un

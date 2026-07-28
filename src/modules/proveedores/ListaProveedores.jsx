@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { listarProveedores, actualizarEstadoProveedor, obtenerSaldosProveedores } from '../../lib/proveedores'
 import { traducirError } from '../../lib/errores'
+import { ROLES } from '../../lib/constantes'
 import { formatearMoneda } from '../../lib/formato'
+import { useAuthStore } from '../../stores/authStore'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -9,6 +11,7 @@ import AltaProveedor from './AltaProveedor'
 import EditarProveedor from './EditarProveedor'
 
 export default function ListaProveedores() {
+  const esDueno = useAuthStore((s) => s.perfil?.rol) === ROLES.DUENO
   const [texto, setTexto] = useState('')
   const [incluirInactivos, setIncluirInactivos] = useState(false)
   const [proveedores, setProveedores] = useState([])
@@ -30,7 +33,7 @@ export default function ListaProveedores() {
     try {
       const [data, mapaSaldos] = await Promise.all([
         listarProveedores({ texto, incluirInactivos }),
-        obtenerSaldosProveedores(),
+        esDueno ? obtenerSaldosProveedores() : Promise.resolve(new Map()),
       ])
       setProveedores(data)
       setSaldos(mapaSaldos)
@@ -115,12 +118,14 @@ export default function ListaProveedores() {
                     <p className="text-marca/50">{detalle}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-xs text-marca/50">Saldo adeudado</p>
-                      <p className={`font-mono ${saldos.get(p.id) > 0 ? 'text-perdida' : 'text-marca'}`}>
-                        {formatearMoneda(saldos.get(p.id) || 0)}
-                      </p>
-                    </div>
+                    {esDueno && (
+                      <div className="text-right">
+                        <p className="text-xs text-marca/50">Saldo adeudado</p>
+                        <p className={`font-mono ${saldos.get(p.id) > 0 ? 'text-perdida' : 'text-marca'}`}>
+                          {formatearMoneda(saldos.get(p.id) || 0)}
+                        </p>
+                      </div>
+                    )}
                     <Badge tono={p.activo ? 'exito' : 'error'}>{p.activo ? 'Activo' : 'Inactivo'}</Badge>
                     <Button
                       tamano="sm"

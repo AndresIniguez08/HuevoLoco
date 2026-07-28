@@ -35,7 +35,7 @@ function TooltipFacturacion({ active, payload }) {
   )
 }
 
-function TarjetaResumen({ r }) {
+function TarjetaResumen({ r, esDueno }) {
   const deuda = Number(r.deuda_total) || 0
   return (
     <div className="rounded-xl bg-marca/5 p-4">
@@ -53,16 +53,18 @@ function TarjetaResumen({ r }) {
           <p className="text-xs text-marca/50">Deuda total de clientes</p>
           <p className={`font-mono ${deuda > 0 ? 'text-perdida' : 'text-marca'}`}>{formatearMoneda(deuda)}</p>
         </div>
-        <div>
-          <p className="text-xs text-marca/50">Valor de stock</p>
-          <p className="font-mono text-marca">{formatearMoneda(r.valor_stock)}</p>
-        </div>
+        {esDueno && (
+          <div>
+            <p className="text-xs text-marca/50">Valor de stock</p>
+            <p className="font-mono text-marca">{formatearMoneda(r.valor_stock)}</p>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-function ModalResumenSucursales({ abierto, onCerrar }) {
+function ModalResumenSucursales({ abierto, onCerrar, esDueno }) {
   const [resumen, setResumen] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
@@ -109,7 +111,7 @@ function ModalResumenSucursales({ abierto, onCerrar }) {
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {resumen.map((r) => (
-              <TarjetaResumen key={r.sucursal_id || r.nombre} r={r} />
+              <TarjetaResumen key={r.sucursal_id || r.nombre} r={r} esDueno={esDueno} />
             ))}
           </div>
 
@@ -225,7 +227,8 @@ function TarjetaSucursal({ sucursal, onGuardado }) {
 
 export default function GestionSucursales() {
   const perfil = useAuthStore((s) => s.perfil)
-  const puedeVerResumen = perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO
+  const esDueno = perfil?.rol === ROLES.DUENO
+  const puedeVerResumen = esDueno || perfil?.rol === ROLES.ADMINISTRATIVO
   const [sucursales, setSucursales] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
@@ -280,7 +283,7 @@ export default function GestionSucursales() {
       )}
 
       {puedeVerResumen && (
-        <ModalResumenSucursales abierto={resumenAbierto} onCerrar={() => setResumenAbierto(false)} />
+        <ModalResumenSucursales abierto={resumenAbierto} onCerrar={() => setResumenAbierto(false)} esDueno={esDueno} />
       )}
     </div>
   )

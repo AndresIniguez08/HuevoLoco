@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { obtenerCompraParaImprimir } from '../../lib/compras'
+import { obtenerRecepcionParaImprimir } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
 import { formatearCantidadItemCompra } from '../../lib/constantes'
-import { formatearMoneda, formatearFecha } from '../../lib/formato'
+import { formatearFecha } from '../../lib/formato'
 
 const BORDE = 'border-[#333]'
 
+// Comprobante de recepción — sin costo, ver comentario en
+// obtenerRecepcionParaImprimir. Lo puede imprimir dueño, administrativo o
+// depósito, los tres roles que pueden registrar una recepción.
 export default function ImprimirRecepcion() {
   const { id } = useParams()
   const [compra, setCompra] = useState(null)
@@ -14,7 +17,7 @@ export default function ImprimirRecepcion() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    obtenerCompraParaImprimir(id)
+    obtenerRecepcionParaImprimir(id)
       .then(setCompra)
       .catch((e) => setError(traducirError(e)))
       .finally(() => setCargando(false))
@@ -56,8 +59,6 @@ export default function ImprimirRecepcion() {
           <tr>
             <th className={`${BORDE} border p-2.5`}>Producto</th>
             <th className={`${BORDE} border p-2.5`}>Cantidad</th>
-            <th className={`${BORDE} border p-2.5`}>Costo unitario</th>
-            <th className={`${BORDE} border p-2.5`}>Subtotal</th>
           </tr>
         </thead>
         <tbody>
@@ -65,16 +66,10 @@ export default function ImprimirRecepcion() {
             <tr key={item.id}>
               <td className={`${BORDE} border p-2.5`}>{item.productos?.nombre || 'Producto'}</td>
               <td className={`${BORDE} border p-2.5`}>{formatearCantidadItemCompra(item)}</td>
-              <td className={`${BORDE} border p-2.5`}>{formatearMoneda(item.costo_unitario)}</td>
-              <td className={`${BORDE} border p-2.5`}>
-                {formatearMoneda(Number(item.costo_unitario) * Number(item.cantidad_maple))}
-              </td>
             </tr>
           ))}
         </tbody>
       </table>
-
-      <p className="mt-4 text-right font-mono text-lg font-medium">Total: {formatearMoneda(compra.total)}</p>
 
       <div className="mt-10 flex justify-between text-sm">
         <span>Recibido por: _______________________________</span>

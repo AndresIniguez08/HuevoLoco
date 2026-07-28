@@ -1,104 +1,101 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
-import { listarComprasPendientes, recibirCompra, reportarDiferenciaCompra } from '../../lib/compras'
+import { Trash2 } from 'lucide-react'
+import { obtenerProductosConStock } from '../../lib/productos'
+import { registrarRecepcionCompra, listarRecepcionesRecientes } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
 import { formatearCantidadItemCompra } from '../../lib/constantes'
 import { formatearFecha } from '../../lib/formato'
+import SelectorUnidad from '../../components/SelectorUnidad'
+import ProveedorSelector from '../compras/ProveedorSelector'
 import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Button from '../../components/ui/Button'
 
-// Mismo patrón que AceptarMercaderia.jsx (sucursal): depósito solo confirma
-// cantidades, nunca ve proveedor-selector ni costo — eso ya quedó fijado
-// cuando Compras creó la orden con fn_crear_compra.
+// Reemplaza el viejo flujo en dos pasos (orden de compra con costo + depósito
+// confirmando cantidades, con reporte de diferencias). Ahora dueño,
+// administrativo y depósito comparten esta misma pantalla: registran acá
+// mismo lo que llegó del proveedor, sin costo — fn_registrar_recepcion_compra
+// crea la compra directo en estado 'recibida'. El costo lo carga dueño
+// después, en Compras > Cargar costo (CargarCostoCompra.jsx).
 export default function RecepcionCompra() {
-  const [compras, setCompras] = useState([])
-  const [cargando, setCargando] = useState(true)
+  const [productos, setProductos] = useState([])
+  const [proveedorId, setProveedorId] = useState('')
+  const [productoId, setProductoId] = useState('')
+  const [cantidadSeleccion, setCantidadSeleccion] = useState({ unidad: 'maple', cantidad: 0, cantidad_maple: 0 })
+  const [items, setItems] = useState([])
+
+  const [enviando, setEnviando] = useState(false)
+  const [mensaje, setMensaje] = useState(null)
+  const [compraId, setCompraId] = useState(null)
   const [error, setError] = useState(null)
-  const [procesandoId, setProcesandoId] = useState(null)
-  const [compraDiferencia, setCompraDiferencia] = useState(null)
-  const [observacion, setObservacion] = useState('')
+
+  const [recientes, setRecientes] = useState([])
+  const [cargandoRecientes, setCargandoRecientes] = useState(true)
 
   useEffect(() => {
-    cargar()
+    obtenerProductosConStock().then(setProductos).catch((e) => setError(traducirError(e)))
+    cargarRecientes()
   }, [])
 
-  async function cargar() {
-    setCargando(true)
+  async function cargarRecientes() {
+    setCargandoRecientes(true)
     try {
-      const data = await listarComprasPendientes()
-      setCompras(data)
-      setError(null)
+      setRecientes(await listarRecepcionesRecientes())
     } catch (e) {
       setError(traducirError(e))
     } finally {
-      setCargando(false)
+      setCargandoRecientes(false)
     }
   }
 
-  async function aceptar(compraId) {
-    setProcesandoId(compraId)
+  const productoSeleccionado = productos.find((p) => p.id === productoId)
+
+  function agregarItem() {
+    if (!productoSeleccionado || cantidadSeleccion.cantidad_maple <= 0) return
+    setItems([
+      ...items,
+      {
+        id: crypto.randomUUID(),
+        producto_id: productoSeleccionado.id,
+        nombre: productoSeleccionado.nombre,
+        unidad: cantidadSeleccion.unidad,
+        cantidad: cantidadSeleccion.cantidad,
+        cantidad_maple: cantidadSeleccion.cantidad_maple,
+      },
+    ])
+    setProductoId('')
+    setCantidadSeleccion({ unidad: 'maple', cantidad: 0, cantidad_maple: 0 })
+  }
+
+  function quitarItem(id) {
+    setItems(items.filter((it) => it.id !== id))
+  }
+
+  async function registrar() {
+    if (!proveedorId || items.length === 0) return
+    setEnviando(true)
     setError(null)
+    setMensaje(null)
+    setCompraId(null)
     try {
-      await recibirCompra(compraId)
-      await cargar()
+      const id = await registrarRecepcionCompra(
+        proveedorId,
+        items.map((it) => ({
+          producto_id: it.producto_id,
+          cantidad_maple: it.cantidad_maple,
+          unidad_transaccion: it.unidad,
+          cantidad_unidad_transaccion: it.cantidad,
+        }))
+      )
+      setMensaje('Recepción registrada. Dueño va a cargar el costo más adelante.')
+      setCompraId(id)
+      setItems([])
+      setProveedorId('')
+      cargarRecientes()
     } catch (e) {
       setError(traducirError(e))
     } finally {
-      setProcesandoId(null)
+      setEnviando(false)
     }
-  }
-
-  function abrirDiferencia(compraId) {
-    setCompraDiferencia(compraId)
-    setObservacion('')
-  }
-
-  async function enviarDiferencia() {
-    if (!observacion.trim()) return
-    setProcesandoId(compraDiferencia)
-    setError(null)
-    try {
-      await reportarDiferenciaCompra(compraDiferencia, observacion.trim())
-      setCompraDiferencia(null)
-      await cargar()
-    } catch (e) {
-      setError(traducirError(e))
-    } finally {
-      setProcesandoId(null)
-    }
-  }
-
-  if (compraDiferencia) {
-    return (
-      <div className="mx-auto max-w-2xl">
-        <button
-          onClick={() => setCompraDiferencia(null)}
-          className="mb-4 flex items-center gap-2 text-lg text-marca"
-        >
-          <ArrowLeft size={24} /> Volver
-        </button>
-
-        <p className="mb-3 text-2xl font-medium text-marca">¿Qué encontraste distinto?</p>
-        <textarea
-          value={observacion}
-          onChange={(e) => setObservacion(e.target.value)}
-          rows={5}
-          placeholder="Ej: faltaron 2 maples del pedido"
-          className="w-full rounded-xl border border-marca/20 px-4 py-3 text-lg outline-none focus:border-marca-claro"
-          autoFocus
-        />
-        {error && <p className="mt-3 text-base text-perdida">{error}</p>}
-        <Button
-          variante="confirmar"
-          className="mt-4 min-h-[64px] w-full text-xl"
-          disabled={!observacion.trim()}
-          cargando={procesandoId === compraDiferencia}
-          onClick={enviarDiferencia}
-        >
-          Enviar
-        </Button>
-      </div>
-    )
   }
 
   return (
@@ -106,48 +103,120 @@ export default function RecepcionCompra() {
       <BotonVolverInicio />
       <h1 className="mb-4 font-display text-xl text-marca">Recepción de compra</h1>
 
-      {cargando ? (
-        <p className="text-center text-lg text-marca/60">Cargando...</p>
-      ) : error ? (
-        <p className="text-center text-lg text-perdida">{error}</p>
-      ) : compras.length === 0 ? (
-        <p className="text-center text-lg text-marca/50">No hay compras pendientes.</p>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {compras.map((c) => (
-            <div key={c.id} className="rounded-2xl bg-white p-5 shadow-sm">
-              <p className="text-xl font-medium text-marca">{c.proveedores?.nombre || 'Proveedor'}</p>
-              <p className="text-base text-marca/60">{formatearFecha(c.creado_at)}</p>
-              <ul className="mt-2 flex flex-col gap-1">
-                {(c.compra_items || []).map((it) => (
-                  <li key={it.id} className="text-xl font-medium leading-snug text-marca">
-                    {it.productos?.nombre || 'Producto'} — {formatearCantidadItemCompra(it)}
-                  </li>
-                ))}
-              </ul>
+      <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
+        <ProveedorSelector proveedorId={proveedorId} onCambio={setProveedorId} />
+      </div>
 
-              <div className="mt-4 flex flex-col gap-3">
-                <Button
-                  variante="confirmar"
-                  className="min-h-[64px] w-full text-xl"
-                  cargando={procesandoId === c.id}
-                  onClick={() => aceptar(c.id)}
-                >
-                  Aceptar
-                </Button>
-                <Button
-                  variante="secundario"
-                  className="min-h-[64px] w-full text-xl"
-                  disabled={procesandoId === c.id}
-                  onClick={() => abrirDiferencia(c.id)}
-                >
-                  Reportar diferencia
-                </Button>
-              </div>
-            </div>
-          ))}
+      <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-sm font-medium text-marca">Agregar producto</h2>
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-marca">Producto</span>
+            <select
+              value={productoId}
+              onChange={(e) => setProductoId(e.target.value)}
+              className="min-h-[52px] rounded-xl border border-marca/20 px-4 py-3 text-base outline-none focus:border-marca-claro"
+            >
+              <option value="">Elegir...</option>
+              {productos.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {productoSeleccionado && (
+            <>
+              <SelectorUnidad producto={productoSeleccionado} onCambio={setCantidadSeleccion} />
+              <Button className="min-h-[52px] text-base" onClick={agregarItem} disabled={cantidadSeleccion.cantidad_maple <= 0}>
+                Agregar
+              </Button>
+            </>
+          )}
         </div>
+      </div>
+
+      <div className="mb-4 rounded-xl bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-sm font-medium text-marca">Productos recibidos</h2>
+        {items.length === 0 ? (
+          <p className="text-sm text-marca/50">Todavía no agregaste productos.</p>
+        ) : (
+          <ul className="divide-y divide-marca/10">
+            {items.map((it) => (
+              <li key={it.id} className="flex items-center justify-between py-2 text-sm">
+                <div>
+                  <p className="font-medium text-marca">{it.nombre}</p>
+                  <p className="text-marca/50">
+                    {it.cantidad} {it.unidad} ({it.cantidad_maple} maples)
+                  </p>
+                </div>
+                <button onClick={() => quitarItem(it.id)} className="text-perdida">
+                  <Trash2 size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {error && <p className="mb-3 text-sm text-perdida">{error}</p>}
+      {mensaje && <p className="mb-3 text-sm text-fresco">{mensaje}</p>}
+
+      <Button
+        onClick={registrar}
+        disabled={!proveedorId || items.length === 0}
+        cargando={enviando}
+        className="min-h-[56px] w-full text-lg"
+      >
+        Registrar recepción
+      </Button>
+
+      {compraId && (
+        <Button
+          variante="secundario"
+          onClick={() => window.open(`/compra/${compraId}/imprimir`, '_blank')}
+          className="mt-3 min-h-[56px] w-full text-lg"
+        >
+          Imprimir comprobante
+        </Button>
       )}
+
+      <div className="mt-6 rounded-xl bg-white shadow-sm">
+        <h2 className="p-4 pb-0 text-sm font-medium text-marca">Recepciones recientes</h2>
+        {cargandoRecientes ? (
+          <p className="p-4 text-sm text-marca/60">Cargando...</p>
+        ) : recientes.length === 0 ? (
+          <p className="p-4 text-sm text-marca/50">Todavía no hay recepciones registradas.</p>
+        ) : (
+          <ul className="divide-y divide-marca/10">
+            {recientes.map((r) => (
+              <li key={r.id} className="flex flex-col gap-1 p-4 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-medium text-marca">{r.proveedores?.nombre || 'Proveedor'}</p>
+                  <span className="text-xs text-marca/50">{formatearFecha(r.creado_at)}</span>
+                </div>
+                <ul className="text-marca/60">
+                  {r.items.map((it) => (
+                    <li key={it.id}>
+                      {it.productos?.nombre || 'Producto'} — {formatearCantidadItemCompra(it)}
+                    </li>
+                  ))}
+                </ul>
+                {r.estado === 'costeada' ? (
+                  <span className="mt-1 w-fit rounded-full bg-fresco/10 px-2 py-0.5 text-xs font-medium text-fresco">
+                    Costeada
+                  </span>
+                ) : (
+                  <span className="mt-1 w-fit rounded-full bg-yema/15 px-2 py-0.5 text-xs font-medium text-yema">
+                    Pendiente de costear
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   )
 }

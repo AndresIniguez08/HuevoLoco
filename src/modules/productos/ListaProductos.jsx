@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { listarProductosGestion, actualizarEstadoProducto } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
-import { ETIQUETA_CATEGORIA_HUEVO } from '../../lib/constantes'
+import { ETIQUETA_CATEGORIA_HUEVO, ROLES } from '../../lib/constantes'
 import { formatearMoneda } from '../../lib/formato'
+import { useAuthStore } from '../../stores/authStore'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -10,6 +11,7 @@ import AltaProducto from './AltaProducto'
 import EditarProducto from './EditarProducto'
 
 export default function ListaProductos() {
+  const esDueno = useAuthStore((s) => s.perfil?.rol) === ROLES.DUENO
   const [texto, setTexto] = useState('')
   const [incluirInactivos, setIncluirInactivos] = useState(false)
   const [productos, setProductos] = useState([])
@@ -115,7 +117,7 @@ export default function ListaProductos() {
                     {detalle && <p className="text-marca/50">{detalle}</p>}
                   </div>
                   <div className="flex items-center gap-3">
-                    {p.costo_promedio != null && (
+                    {esDueno && p.costo_promedio != null && (
                       <span className="font-mono text-marca/70">{formatearMoneda(p.costo_promedio)}</span>
                     )}
                     <Badge tono={p.activo ? 'exito' : 'error'}>{p.activo ? 'Activo' : 'Inactivo'}</Badge>

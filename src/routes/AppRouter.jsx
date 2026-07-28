@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Package, ShoppingCart, Users, Truck, PackageSearch, Tag, Wallet, Egg, Settings, Receipt } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { ROLES, RUTA_RAIZ_POR_ROL } from '../lib/constantes'
-import { contarComprasDiferenciaSinRevisar } from '../lib/compras'
+import { contarComprasPendientesCosteo } from '../lib/compras'
 import { useNotificaciones } from '../hooks/useNotificaciones'
 import { useRefrescoPeriodico } from '../hooks/useRefrescoPeriodico'
 import RutaProtegida from '../components/RutaProtegida'
@@ -28,6 +28,7 @@ import Arqueo from '../modules/caja/Arqueo'
 import ImprimirArqueo from '../modules/caja/ImprimirArqueo'
 import HistorialMovimientos from '../modules/caja/HistorialMovimientos'
 import RegistrarCompra from '../modules/compras/RegistrarCompra'
+import CargarCostoCompra from '../modules/compras/CargarCostoCompra'
 import ListasDePrecio from '../modules/precios/ListasDePrecio'
 import AsignarReparto from '../modules/reparto/AsignarReparto'
 import VistaChofer from '../modules/reparto/VistaChofer'
@@ -64,7 +65,7 @@ import ImprimirRendicion from '../modules/caja/ImprimirRendicion'
 import InicioVendedor from '../modules/vendedor/InicioVendedor'
 import InicioDeposito from '../modules/deposito/InicioDeposito'
 
-function crearNavDueno(contadores, contadorComprasDiferencia) {
+function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
   const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
   return [
   { to: '/dueno', label: 'Dashboard', end: true },
@@ -108,7 +109,8 @@ function crearNavDueno(contadores, contadorComprasDiferencia) {
     grupo: 'Compras',
     icono: PackageSearch,
     items: [
-      { to: '/dueno/compras', label: 'Registrar compra', contador: contadorComprasDiferencia },
+      { to: '/dueno/compras', label: 'Recepción de compra' },
+      { to: '/dueno/cargar-costo', label: 'Cargar costo', contador: contadorComprasPendientesCosteo },
       { to: '/dueno/proveedores', label: 'Proveedores' },
       { to: '/dueno/cuenta-corriente-proveedores', label: 'Cuenta corriente' },
     ],
@@ -154,7 +156,7 @@ function crearNavDueno(contadores, contadorComprasDiferencia) {
   ]
 }
 
-function crearNavAdmin(contadores, contadorComprasDiferencia) {
+function crearNavAdmin(contadores) {
   const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
   return [
   {
@@ -195,9 +197,8 @@ function crearNavAdmin(contadores, contadorComprasDiferencia) {
     grupo: 'Compras',
     icono: PackageSearch,
     items: [
-      { to: '/admin/compras', label: 'Registrar compra', contador: contadorComprasDiferencia },
+      { to: '/admin/compras', label: 'Recepción de compra' },
       { to: '/admin/proveedores', label: 'Proveedores' },
-      { to: '/admin/cuenta-corriente-proveedores', label: 'Cuenta corriente' },
     ],
   },
   { grupo: 'Precios', icono: Tag, items: [{ to: '/admin/precios', label: 'Listas de precio' }] },
@@ -262,22 +263,21 @@ function useContadorPeriodico(activo, obtenerContador) {
 
 export default function AppRouter() {
   const perfil = useAuthStore((s) => s.perfil)
-  const puedeVerDiferencias = perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO
+  const esDueno = perfil?.rol === ROLES.DUENO
 
   // Contadores de badges centralizados: una sola consulta (fn_contadores_notificaciones)
   // llamada una única vez acá arriba, repartida por props a todo lo demás en
   // vez de que cada pantalla dispare su propia query cada 20s.
   const contadores = useNotificaciones(!!perfil)
-  const contadorComprasDiferencia = useContadorPeriodico(puedeVerDiferencias, contarComprasDiferenciaSinRevisar)
+  // Fuera de fn_contadores_notificaciones (no la tocamos): cuántas compras
+  // recibidas están sin costear, exclusivo de dueño (nadie más ve costos).
+  const contadorComprasPendientesCosteo = useContadorPeriodico(esDueno, contarComprasPendientesCosteo)
 
   const navDueno = useMemo(
-    () => crearNavDueno(contadores, contadorComprasDiferencia),
-    [contadores, contadorComprasDiferencia]
+    () => crearNavDueno(contadores, contadorComprasPendientesCosteo),
+    [contadores, contadorComprasPendientesCosteo]
   )
-  const navAdmin = useMemo(
-    () => crearNavAdmin(contadores, contadorComprasDiferencia),
-    [contadores, contadorComprasDiferencia]
-  )
+  const navAdmin = useMemo(() => crearNavAdmin(contadores), [contadores])
   return (
     <BrowserRouter>
       <Routes>
@@ -310,6 +310,7 @@ export default function AppRouter() {
           <Route path="historial" element={<HistorialMovimientos />} />
           <Route path="rendiciones" element={<RendicionesEfectivo />} />
           <Route path="compras" element={<RegistrarCompra />} />
+          <Route path="cargar-costo" element={<CargarCostoCompra />} />
           <Route path="perdidas" element={<RegistrarPerdida />} />
           <Route path="precios" element={<ListasDePrecio />} />
           <Route path="reparto" element={<AsignarReparto />} />
@@ -356,7 +357,6 @@ export default function AppRouter() {
           <Route path="diferencias-cobro" element={<DiferenciasCobro />} />
           <Route path="transferencias" element={<TransferenciasSucursal />} />
           <Route path="proveedores" element={<ListaProveedores />} />
-          <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
           <Route path="disponibilidad-sucursal" element={<DisponibilidadSucursal />} />
           <Route path="sucursales" element={<GestionSucursales />} />
@@ -550,7 +550,7 @@ export default function AppRouter() {
         <Route
           path="/pago-proveedor/:id/imprimir"
           element={
-            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO]}>
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO]}>
               <ImprimirPagoProveedor />
             </RutaProtegida>
           }

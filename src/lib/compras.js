@@ -1,9 +1,11 @@
 import { supabase } from './supabase'
 
-// Compras/Administrativo crea la orden (sin tocar stock ni costo promedio);
-// Depósito la confirma después con fn_recibir_compra al recibir la mercadería.
-export async function crearCompra(proveedorId, items) {
-  const { data, error } = await supabase.rpc('fn_crear_compra', {
+// Paso 1 (dueño/administrativo/depósito): registra lo que llegó del
+// proveedor, sin costo — fn_registrar_recepcion_compra crea la compra
+// directamente en estado 'recibida'. Ya no hay una orden previa esperando
+// confirmación: quien recibe la mercadería carga acá mismo lo que llegó.
+export async function registrarRecepcionCompra(proveedorId, items) {
+  const { data, error } = await supabase.rpc('fn_registrar_recepcion_compra', {
     p_proveedor_id: proveedorId,
     p_items: items,
   })
@@ -11,77 +13,115 @@ export async function crearCompra(proveedorId, items) {
   return data
 }
 
-export async function obtenerCompraParaImprimir(compraId) {
-  const { data, error } = await supabase
-    .from('compras')
-    .select(
-      '*, proveedores(nombre), compra_items(id, cantidad_maple, unidad_transaccion, cantidad_unidad, costo_unitario, productos(nombre))'
-    )
+// recepciones_compra / recepcion_compra_items son vistas sin columna de
+// costo — las usan dueño/administrativo/depósito para ver qué se recibió,
+// sin ningún riesgo de exponer precios. Se arman los joins a mano (en vez
+// de embeds de PostgREST) porque acá son vistas, no tablas con FK real.
+export async function listarRecepcionesRecientes(limite = 20) {
+  const { data: recepciones, error } = await supabase
+    .from('recepciones_compra')
+    .select('*')
+    .order('creado_at', { ascending: false })
+    .limit(limite)
+  if (error) throw error
+  if (!recepciones || recepciones.length === 0) return []
+
+  const idsProveedor = [...new Set(recepciones.map((r) => r.proveedor_id))]
+  const idsCompra = recepciones.map((r) => r.id)
+
+  const [{ data: proveedores, error: errorProv }, { data: items, error: errorItems }] = await Promise.all([
+    supabase.from('proveedores').select('id, nombre').in('id', idsProveedor),
+    supabase.from('recepcion_compra_items').select('*').in('compra_id', idsCompra),
+  ])
+  if (errorProv) throw errorProv
+  if (errorItems) throw errorItems
+
+  const idsProducto = [...new Set((items || []).map((it) => it.producto_id))]
+  const { data: productos, error: errorProd } = await supabase
+    .from('productos_publico')
+    .select('id, nombre')
+    .in('id', idsProducto)
+  if (errorProd) throw errorProd
+
+  const proveedorPorId = new Map((proveedores || []).map((p) => [p.id, p]))
+  const productoPorId = new Map((productos || []).map((p) => [p.id, p]))
+  const itemsPorCompra = new Map()
+  for (const it of items || []) {
+    const lista = itemsPorCompra.get(it.compra_id) || []
+    lista.push({ ...it, productos: productoPorId.get(it.producto_id) })
+    itemsPorCompra.set(it.compra_id, lista)
+  }
+
+  return recepciones.map((r) => ({
+    ...r,
+    proveedores: proveedorPorId.get(r.proveedor_id),
+    items: itemsPorCompra.get(r.id) || [],
+  }))
+}
+
+// Comprobante de una recepción puntual (para /compra/:id/imprimir), también
+// sin costo — se imprime justo después de recibir, antes de que dueño cargue
+// el costo.
+export async function obtenerRecepcionParaImprimir(compraId) {
+  const { data: recepcion, error } = await supabase
+    .from('recepciones_compra')
+    .select('*')
     .eq('id', compraId)
     .single()
   if (error) throw error
-  return data
+
+  const [{ data: proveedor, error: errorProv }, { data: items, error: errorItems }] = await Promise.all([
+    supabase.from('proveedores').select('nombre').eq('id', recepcion.proveedor_id).single(),
+    supabase.from('recepcion_compra_items').select('*').eq('compra_id', compraId),
+  ])
+  if (errorProv) throw errorProv
+  if (errorItems) throw errorItems
+
+  const idsProducto = [...new Set((items || []).map((it) => it.producto_id))]
+  const { data: productos, error: errorProd } = await supabase
+    .from('productos_publico')
+    .select('id, nombre')
+    .in('id', idsProducto)
+  if (errorProd) throw errorProd
+  const productoPorId = new Map((productos || []).map((p) => [p.id, p]))
+
+  return {
+    ...recepcion,
+    proveedores: proveedor,
+    compra_items: (items || []).map((it) => ({ ...it, productos: productoPorId.get(it.producto_id) })),
+  }
 }
 
-// Cola de recepción de depósito: solo lo que todavía no confirmaron. Sin
-// costo_unitario — depósito confirma cantidades, no precios.
-export async function listarComprasPendientes() {
+// Paso 2, exclusivo de dueño: compras ya recibidas y todavía sin costear.
+// Acá sí se consulta compras/compra_items directo (con costo), porque solo
+// entra dueño a esta pantalla.
+export async function listarComprasPendientesCosteo() {
   const { data, error } = await supabase
     .from('compras')
     .select(
-      '*, proveedores(nombre), compra_items(id, cantidad_maple, unidad_transaccion, cantidad_unidad, productos(nombre))'
+      '*, proveedores(nombre), compra_items(id, producto_id, cantidad_maple, unidad_transaccion, cantidad_unidad, productos(nombre))'
     )
-    .eq('estado', 'pendiente')
+    .eq('estado', 'recibida')
     .order('creado_at', { ascending: true })
   if (error) throw error
   return data
 }
 
-export async function recibirCompra(compraId) {
-  const { error } = await supabase.rpc('fn_recibir_compra', { p_compra_id: compraId })
-  if (error) throw error
-}
-
-export async function reportarDiferenciaCompra(compraId, observacion) {
-  const { error } = await supabase.rpc('fn_reportar_diferencia_compra', {
-    p_compra_id: compraId,
-    p_observacion: observacion,
-  })
-  if (error) throw error
-}
-
-export async function contarComprasDiferenciaSinRevisar() {
+export async function contarComprasPendientesCosteo() {
   const { count, error } = await supabase
     .from('compras')
     .select('*', { count: 'exact', head: true })
-    .eq('estado', 'con_diferencia')
-    .eq('revisado', false)
+    .eq('estado', 'recibida')
   if (error) throw error
   return count || 0
 }
 
-// compras tiene tres FKs hacia perfiles (usuario_id, recibido_por,
-// revisado_por) — sin el hint !fk_constraint, PostgREST no puede resolver
-// el embed y tira PGRST201 (mismo caso que remitos_transferencia).
-export async function listarComprasDiferencia() {
-  const { data, error } = await supabase
-    .from('compras')
-    .select(
-      `
-      *,
-      proveedores(nombre),
-      receptor:perfiles!compras_recibido_por_fkey (nombre),
-      revisor:perfiles!compras_revisado_por_fkey (nombre)
-    `
-    )
-    .eq('estado', 'con_diferencia')
-    .order('revisado', { ascending: true })
-    .order('creado_at', { ascending: false })
-  if (error) throw error
-  return data
-}
-
-export async function revisarCompra(compraId) {
-  const { error } = await supabase.rpc('fn_revisar_compra', { p_compra_id: compraId })
+// Carga el costo unitario (por maple) de cada producto recibido. La compra
+// pasa a 'costeada' y ahí recién se genera la deuda real con el proveedor.
+export async function cargarCostoCompra(compraId, items) {
+  const { error } = await supabase.rpc('fn_cargar_costo_compra', {
+    p_compra_id: compraId,
+    p_items: items,
+  })
   if (error) throw error
 }
