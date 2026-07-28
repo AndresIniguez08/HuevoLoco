@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { obtenerNombresProductos } from './productos'
 
 export async function listarSucursales() {
   const { data, error } = await supabase.from('sucursales').select('*').order('nombre')
@@ -69,16 +70,27 @@ export async function listarRemitosTransferencia() {
   return data
 }
 
+// Accesible por dueño/administrativo y por la sucursal receptora (no solo
+// dueño) — ver comentario en obtenerNombresProductos sobre por qué no se
+// embebe productos(nombre) acá.
 export async function obtenerRemitoTransferencia(id) {
   const { data, error } = await supabase
     .from('remitos_transferencia')
     .select(
-      `${SELECT_REMITO}, remito_transferencia_items(id, cantidad_maple, unidad_transaccion, cantidad_unidad, productos(nombre))`
+      `${SELECT_REMITO}, remito_transferencia_items(id, producto_id, cantidad_maple, unidad_transaccion, cantidad_unidad)`
     )
     .eq('id', id)
     .single()
   if (error) throw error
-  return data
+
+  const nombresPorId = await obtenerNombresProductos((data.remito_transferencia_items || []).map((it) => it.producto_id))
+  return {
+    ...data,
+    remito_transferencia_items: (data.remito_transferencia_items || []).map((it) => ({
+      ...it,
+      productos: nombresPorId.get(it.producto_id),
+    })),
+  }
 }
 
 // Cola de recepción de la sucursal: solo lo que todavía está en tránsito.
@@ -86,14 +98,22 @@ export async function obtenerRemitoTransferencia(id) {
 export async function listarRemitosPendientesSucursal(sucursalId) {
   const { data, error } = await supabase
     .from('remitos_transferencia')
-    .select(
-      '*, remito_transferencia_items(id, cantidad_maple, unidad_transaccion, cantidad_unidad, productos(nombre))'
-    )
+    .select('*, remito_transferencia_items(id, producto_id, cantidad_maple, unidad_transaccion, cantidad_unidad)')
     .eq('sucursal_destino_id', sucursalId)
     .eq('estado', 'enviado')
     .order('creado_at', { ascending: true })
   if (error) throw error
-  return data
+
+  const idsProducto = (data || []).flatMap((r) => (r.remito_transferencia_items || []).map((it) => it.producto_id))
+  const nombresPorId = await obtenerNombresProductos(idsProducto)
+
+  return (data || []).map((r) => ({
+    ...r,
+    remito_transferencia_items: (r.remito_transferencia_items || []).map((it) => ({
+      ...it,
+      productos: nombresPorId.get(it.producto_id),
+    })),
+  }))
 }
 
 export async function aceptarRemito(remitoId) {

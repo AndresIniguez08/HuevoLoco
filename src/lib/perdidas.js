@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { obtenerNombresProductos } from './productos'
 
 export async function registrarPerdida({ productoId, cantidadMaple, motivo, unidad, cantidad }) {
   const { data, error } = await supabase.rpc('fn_registrar_perdida', {
@@ -12,12 +13,17 @@ export async function registrarPerdida({ productoId, cantidadMaple, motivo, unid
   return data
 }
 
+// Ruta de impresión accesible por depósito/encargado de sucursal (no solo
+// dueño) — ver comentario en obtenerNombresProductos sobre por qué no se
+// embebe productos(nombre) acá.
 export async function obtenerPerdida(id) {
   const { data, error } = await supabase
     .from('perdidas')
-    .select('*, productos(nombre), perfiles(nombre)')
+    .select('*, perfiles(nombre)')
     .eq('id', id)
     .single()
   if (error) throw error
-  return data
+
+  const nombresPorId = await obtenerNombresProductos([data.producto_id])
+  return { ...data, productos: nombresPorId.get(data.producto_id) }
 }

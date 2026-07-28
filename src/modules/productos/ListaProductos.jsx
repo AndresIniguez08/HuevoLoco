@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listarProductosGestion, actualizarEstadoProducto } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
-import { ETIQUETA_CATEGORIA_HUEVO, ROLES } from '../../lib/constantes'
+import { ROLES } from '../../lib/constantes'
 import { formatearMoneda } from '../../lib/formato'
 import { useAuthStore } from '../../stores/authStore'
 import Badge from '../../components/ui/Badge'

@@ -1,5 +1,19 @@
 import { supabase } from './supabase'
 
+// Para pantallas fuera de dueño que necesitan el nombre de un producto ya
+// asociado a otro registro (ítem de pedido, remito, pérdida, conteo...): la
+// RLS de `productos` ahora es exclusiva de dueño, así que un embed
+// `productos(nombre)` por FK vuelve null para el resto de los roles. Esta
+// función arma el mapa id->{nombre} a mano contra `productos_publico`, para
+// pegar en JS en vez de embeber.
+export async function obtenerNombresProductos(ids) {
+  const idsUnicos = [...new Set(ids)].filter(Boolean)
+  if (idsUnicos.length === 0) return new Map()
+  const { data, error } = await supabase.from('productos_publico').select('id, nombre').in('id', idsUnicos)
+  if (error) throw error
+  return new Map((data || []).map((p) => [p.id, p]))
+}
+
 // La vista `stock_actual` (producto_id, stock_maple, stock_cajas, stock_cajones)
 // ya trae el stock convertido a cada unidad; no recalcular acá.
 // Usa `productos_publico` (sin costo_promedio) en vez de `productos`: esta
@@ -95,14 +109,33 @@ export async function obtenerProductosConStockSucursal(sucursalId) {
 }
 
 // Para la pantalla de gestión: por defecto solo activos, con opción de
-// incluir inactivos vía el filtro "mostrar inactivos".
+// incluir inactivos vía el filtro "mostrar inactivos". Dueño y administrativo
+// entran acá, así que usa `productos_publico` (RLS de `productos` ahora es
+// exclusiva de dueño). El nombre de categoría se trae aparte y se pega en JS
+// en vez de embeber `categorias_producto(nombre)`: un embed sigue la FK real
+// hacia `productos`, y sobre la vista puede no resolver.
 export async function listarProductosGestion({ texto = '', incluirInactivos = false } = {}) {
-  let query = supabase.from('productos').select('*, categorias_producto(nombre)').order('nombre')
+  let query = supabase.from('productos_publico').select('*').order('nombre')
   if (!incluirInactivos) query = query.eq('activo', true)
   if (texto) query = query.ilike('nombre', `%${texto}%`)
-  const { data, error } = await query
+  const { data: productos, error } = await query
   if (error) throw error
-  return data
+  if (!productos || productos.length === 0) return []
+
+  const idsCategoria = [...new Set(productos.map((p) => p.categoria_id).filter(Boolean))]
+  if (idsCategoria.length === 0) return productos
+
+  const { data: categorias, error: errorCategorias } = await supabase
+    .from('categorias_producto')
+    .select('id, nombre')
+    .in('id', idsCategoria)
+  if (errorCategorias) throw errorCategorias
+  const categoriaPorId = new Map((categorias || []).map((c) => [c.id, c]))
+
+  return productos.map((p) => ({
+    ...p,
+    categorias_producto: p.categoria_id ? categoriaPorId.get(p.categoria_id) : null,
+  }))
 }
 
 export async function crearProducto(datos) {
@@ -124,11 +157,12 @@ export async function actualizarEstadoProducto(id, activo) {
 // (menos Casa Central, que ya vende todo el catálogo por defecto) y las
 // filas de producto_sucursal que ya existan. La ausencia de una fila para
 // un par producto+sucursal significa "no habilitado" — no todas las
-// combinaciones se crean de antemano.
+// combinaciones se crean de antemano. Dueño y administrativo entran acá, por
+// eso `productos_publico` en vez de `productos`.
 export async function listarDisponibilidadSucursal() {
   const [{ data: productos, error: errorProductos }, { data: sucursales, error: errorSucursales }, { data: filas, error: errorFilas }] =
     await Promise.all([
-      supabase.from('productos').select('id, nombre').eq('activo', true).order('nombre'),
+      supabase.from('productos_publico').select('id, nombre').eq('activo', true).order('nombre'),
       supabase
         .from('sucursales')
         .select('id, nombre, permite_venta_sin_stock')

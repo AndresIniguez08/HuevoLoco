@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { MapPin, Phone, LogOut } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { obtenerNombresProductos } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { obtenerTotalesPagadosPorPedidos } from '../../lib/cobranzas'
@@ -57,13 +58,30 @@ export default function VistaChofer({ contadorEntregasPendientes }) {
       const { data, error: errorRepartos } = await supabase
         .from('reparto_asignaciones')
         .select(
-          '*, pedidos(id, total, estado_pago, clientes(nombre, direccion, telefono), pedido_items(id, cantidad_unidad, unidad_vendida, productos(nombre)))'
+          '*, pedidos(id, total, estado_pago, clientes(nombre, direccion, telefono), pedido_items(id, producto_id, cantidad_unidad, unidad_vendida))'
         )
         .eq('chofer_id', usuario.id)
         .or(`estado.neq.entregado,creado_at.gte.${hoy}T00:00:00`)
         .order('creado_at')
       if (errorRepartos) throw errorRepartos
-      const lista = data || []
+
+      // productos(nombre) no se puede embeber acá: la RLS de `productos` es
+      // exclusiva de dueño y el chofer no lo es. Se pega a mano desde
+      // productos_publico.
+      const idsProducto = (data || []).flatMap((e) => (e.pedidos?.pedido_items || []).map((it) => it.producto_id))
+      const nombresPorId = await obtenerNombresProductos(idsProducto)
+      const lista = (data || []).map((e) => ({
+        ...e,
+        pedidos: e.pedidos
+          ? {
+              ...e.pedidos,
+              pedido_items: (e.pedidos.pedido_items || []).map((it) => ({
+                ...it,
+                productos: nombresPorId.get(it.producto_id),
+              })),
+            }
+          : e.pedidos,
+      }))
       setEntregas(lista)
 
       const idsPendientes = lista.filter((e) => e.estado !== 'entregado' && e.pedidos).map((e) => e.pedido_id)

@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { formatearFecha } from './formato'
+import { obtenerNombresProductos } from './productos'
 
 // Por defecto excluye clientes inactivos: esta función alimenta los
 // selectores de pantallas de operación (TomarPedido, CuentaCorriente, etc.).
@@ -150,12 +151,16 @@ async function obtenerMapaPorId(tabla, columnas, ids) {
 }
 
 // Detalle de líneas de una venta, para el desplegable de un movimiento tipo
-// "venta" en la cuenta corriente del cliente.
+// "venta" en la cuenta corriente del cliente. Accesible por administrativo
+// (no solo dueño) — ver comentario en obtenerNombresProductos sobre por qué
+// no se embebe productos(nombre) acá.
 export async function obtenerItemsPedido(pedidoId) {
   const { data, error } = await supabase
     .from('pedido_items')
-    .select('id, cantidad_unidad, unidad_vendida, precio_aplicado, es_precio_especial, productos(nombre)')
+    .select('id, producto_id, cantidad_unidad, unidad_vendida, precio_aplicado, es_precio_especial')
     .eq('pedido_id', pedidoId)
   if (error) throw error
-  return data
+
+  const nombresPorId = await obtenerNombresProductos((data || []).map((it) => it.producto_id))
+  return (data || []).map((it) => ({ ...it, productos: nombresPorId.get(it.producto_id) }))
 }

@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { obtenerNombresProductos } from './productos'
 
 // fn_crear_conteo_stock no toma parámetros: usa auth.uid() para usuario_id
 // y guarda la foto de lo esperado (cajones/cajas) en conteo_stock_items.
@@ -23,13 +24,15 @@ export async function obtenerConteo(id) {
   return data
 }
 
+// Accesible por administrativo/depósito (no solo dueño) — ver comentario en
+// obtenerNombresProductos sobre por qué no se embebe producto:productos(nombre) acá.
 export async function listarItemsConteo(conteoId) {
-  const { data, error } = await supabase
-    .from('conteo_stock_items')
-    .select('*, producto:productos(nombre)')
-    .eq('conteo_id', conteoId)
+  const { data, error } = await supabase.from('conteo_stock_items').select('*').eq('conteo_id', conteoId)
   if (error) throw error
-  return (data || []).slice().sort((a, b) => (a.producto?.nombre || '').localeCompare(b.producto?.nombre || ''))
+
+  const nombresPorId = await obtenerNombresProductos((data || []).map((it) => it.producto_id))
+  const items = (data || []).map((it) => ({ ...it, producto: nombresPorId.get(it.producto_id) }))
+  return items.sort((a, b) => (a.producto?.nombre || '').localeCompare(b.producto?.nombre || ''))
 }
 
 // Nombres de parámetros confirmados contra el schema cache de PostgREST

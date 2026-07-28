@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { obtenerNombresProductos } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { formatearMoneda } from '../../lib/formato'
@@ -35,7 +36,7 @@ export default function AprobarPrecioEspecial() {
       const [itemsRes, bloqueadosRes] = await Promise.all([
         supabase
           .from('pedido_items')
-          .select('*, productos(nombre), pedidos(id, estado, clientes(nombre))')
+          .select('*, pedidos(id, estado, clientes(nombre))')
           .eq('es_precio_especial', true)
           .is('aprobado_por', null),
         perfil?.sucursal_id
@@ -50,8 +51,13 @@ export default function AprobarPrecioEspecial() {
       if (itemsRes.error) throw itemsRes.error
       if (bloqueadosRes.error) throw bloqueadosRes.error
 
+      // Accesible por administrativo (no solo dueño): productos(nombre) no se
+      // embebe por la RLS de `productos`, se pega acá desde productos_publico.
+      const nombresPorId = await obtenerNombresProductos(itemsRes.data.map((it) => it.producto_id))
+      const itemsConProducto = itemsRes.data.map((it) => ({ ...it, productos: nombresPorId.get(it.producto_id) }))
+
       const porPedido = new Map()
-      for (const item of itemsRes.data) {
+      for (const item of itemsConProducto) {
         if (!item.pedidos || item.pedidos.estado === 'cancelado') continue
         const pedidoId = item.pedidos.id
         if (!porPedido.has(pedidoId)) {
