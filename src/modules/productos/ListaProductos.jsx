@@ -111,7 +111,7 @@ export default function ListaProductos() {
                         {p.nombre}
                       </button>
                       {p.es_huevo && (
-                        <Badge tono="neutro">{ETIQUETA_CATEGORIA_HUEVO[p.categoria_huevo] || 'Sin categoría'}</Badge>
+                        <Badge tono="neutro">{p.categorias_producto?.nombre || 'Sin categoría'}</Badge>
                       )}
                     </div>
                     {detalle && <p className="text-marca/50">{detalle}</p>}

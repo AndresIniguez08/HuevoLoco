@@ -62,8 +62,11 @@ import ConteoSucursal from '../modules/sucursal/ConteoSucursal'
 import GestionSucursales from '../modules/administracion/GestionSucursales'
 import RendicionesEfectivo from '../modules/caja/RendicionesEfectivo'
 import ImprimirRendicion from '../modules/caja/ImprimirRendicion'
+import ImprimirMovimientoCaja from '../modules/caja/ImprimirMovimientoCaja'
 import InicioVendedor from '../modules/vendedor/InicioVendedor'
 import InicioDeposito from '../modules/deposito/InicioDeposito'
+import MovimientosCaja from '../modules/caja/MovimientosCaja'
+import GestionCategorias from '../modules/catalogo/GestionCategorias'
 
 function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
   const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
@@ -123,6 +126,7 @@ function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
       { to: '/dueno/caja', label: 'Caja del día' },
       { to: '/dueno/arqueo', label: 'Arqueo' },
       { to: '/dueno/historial', label: 'Historial' },
+      { to: '/dueno/movimientos-caja', label: 'Movimientos de caja' },
       { to: '/dueno/rendiciones', label: 'Rendiciones', contador: contadores.rendiciones_efectivo_pendientes },
     ],
   },
@@ -142,6 +146,7 @@ function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
     icono: Egg,
     items: [
       { to: '/dueno/productos', label: 'Productos' },
+      { to: '/dueno/categorias', label: 'Categorías' },
       { to: '/dueno/disponibilidad-sucursal', label: 'Disponibilidad por sucursal' },
     ],
   },
@@ -209,6 +214,7 @@ function crearNavAdmin(contadores) {
       { to: '/admin/caja', label: 'Caja del día' },
       { to: '/admin/arqueo', label: 'Arqueo' },
       { to: '/admin/historial', label: 'Historial' },
+      { to: '/admin/movimientos-caja', label: 'Movimientos de caja' },
       { to: '/admin/rendiciones', label: 'Rendiciones', contador: contadores.rendiciones_efectivo_pendientes },
     ],
   },
@@ -227,6 +233,7 @@ function crearNavAdmin(contadores) {
     icono: Egg,
     items: [
       { to: '/admin/productos', label: 'Productos' },
+      { to: '/admin/categorias', label: 'Categorías' },
       { to: '/admin/disponibilidad-sucursal', label: 'Disponibilidad por sucursal' },
     ],
   },
@@ -308,6 +315,7 @@ export default function AppRouter() {
           <Route path="caja" element={<CajaDiaria />} />
           <Route path="arqueo" element={<Arqueo />} />
           <Route path="historial" element={<HistorialMovimientos />} />
+          <Route path="movimientos-caja" element={<MovimientosCaja />} />
           <Route path="rendiciones" element={<RendicionesEfectivo />} />
           <Route path="compras" element={<RegistrarCompra />} />
           <Route path="cargar-costo" element={<CargarCostoCompra />} />
@@ -321,6 +329,7 @@ export default function AppRouter() {
           <Route path="proveedores" element={<ListaProveedores />} />
           <Route path="cuenta-corriente-proveedores" element={<CuentaCorrienteProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
+          <Route path="categorias" element={<GestionCategorias />} />
           <Route path="disponibilidad-sucursal" element={<DisponibilidadSucursal />} />
           <Route path="usuarios" element={<ListaUsuarios />} />
           <Route path="sucursales" element={<GestionSucursales />} />
@@ -349,6 +358,7 @@ export default function AppRouter() {
           <Route path="caja" element={<CajaDiaria />} />
           <Route path="arqueo" element={<Arqueo />} />
           <Route path="historial" element={<HistorialMovimientos />} />
+          <Route path="movimientos-caja" element={<MovimientosCaja />} />
           <Route path="rendiciones" element={<RendicionesEfectivo />} />
           <Route path="compras" element={<RegistrarCompra />} />
           <Route path="precios" element={<ListasDePrecio />} />
@@ -358,6 +368,7 @@ export default function AppRouter() {
           <Route path="transferencias" element={<TransferenciasSucursal />} />
           <Route path="proveedores" element={<ListaProveedores />} />
           <Route path="productos" element={<ListaProductos />} />
+          <Route path="categorias" element={<GestionCategorias />} />
           <Route path="disponibilidad-sucursal" element={<DisponibilidadSucursal />} />
           <Route path="sucursales" element={<GestionSucursales />} />
         </Route>
@@ -380,6 +391,16 @@ export default function AppRouter() {
             <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
               <div className="p-4 sm:p-6">
                 <StockActual />
+              </div>
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/deposito/reporte-stock"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
+              <div className="p-4 sm:p-6">
+                <ReporteStock />
               </div>
             </RutaProtegida>
           }
@@ -579,6 +600,15 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.VENDEDOR, ROLES.ENCARGADO_SUCURSAL]}>
               <ImprimirRendicion />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/movimiento-caja/:id/imprimir"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.ENCARGADO_SUCURSAL]}>
+              <ImprimirMovimientoCaja />
             </RutaProtegida>
           }
         />

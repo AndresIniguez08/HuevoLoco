@@ -7,6 +7,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { RUTA_RAIZ_POR_ROL } from '../../lib/constantes'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
+import logoHuevoLoco from '../../assets/huevo-loco-logo.png'
 
 const esquema = z.object({
   email: z.string().email('Ingresá un email válido'),
@@ -39,8 +40,11 @@ export default function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-fondo px-4">
       <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-sm">
-        <h1 className="mb-1 font-display text-2xl text-marca">Huevo Loco</h1>
-        <p className="mb-6 text-sm text-marca/60">Iniciá sesión para continuar</p>
+        <div className="mb-2 flex justify-center">
+          <img src={logoHuevoLoco} alt="Huevo Loco" className="h-28 w-auto" />
+        </div>
+        <h1 className="mb-1 text-center font-display text-2xl text-marca">Huevo Loco</h1>
+        <p className="mb-6 text-center text-sm text-marca/60">Iniciá sesión para continuar</p>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
           <Input
             label="Email"

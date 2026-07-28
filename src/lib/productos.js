@@ -97,7 +97,7 @@ export async function obtenerProductosConStockSucursal(sucursalId) {
 // Para la pantalla de gestión: por defecto solo activos, con opción de
 // incluir inactivos vía el filtro "mostrar inactivos".
 export async function listarProductosGestion({ texto = '', incluirInactivos = false } = {}) {
-  let query = supabase.from('productos').select('*').order('nombre')
+  let query = supabase.from('productos').select('*, categorias_producto(nombre)').order('nombre')
   if (!incluirInactivos) query = query.eq('activo', true)
   if (texto) query = query.ilike('nombre', `%${texto}%`)
   const { data, error } = await query

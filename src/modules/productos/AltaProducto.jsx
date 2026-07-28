@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { CheckCircle } from 'lucide-react'
 import { crearProducto } from '../../lib/productos'
+import { listarCategoriasActivas } from '../../lib/categoriasProducto'
 import { traducirError } from '../../lib/errores'
-import { CATEGORIAS_HUEVO, CATEGORIAS_HUEVO_ADMITEN_CAJA } from '../../lib/constantes'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 
@@ -13,19 +13,20 @@ const esquema = z
   .object({
     nombre: z.string().min(1, 'Ingresá un nombre'),
     es_huevo: z.boolean(),
-    categoria_huevo: z.string().optional(),
+    categoria_id: z.string().optional(),
     admite_caja: z.boolean(),
     unidad_base: z.string().min(1, 'Ingresá la unidad base'),
     equivalencia_caja: z.string().optional(),
     equivalencia_cajon: z.string().optional(),
     stock_minimo_maple: z.string().optional(),
   })
-  .refine((datos) => !datos.es_huevo || !!datos.categoria_huevo, {
-    message: 'Elegí una categoría de huevo',
-    path: ['categoria_huevo'],
+  .refine((datos) => !datos.es_huevo || !!datos.categoria_id, {
+    message: 'Elegí una categoría',
+    path: ['categoria_id'],
   })
 
 export default function AltaProducto({ onCreado, onCancelar }) {
+  const [categorias, setCategorias] = useState([])
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
   const [creado, setCreado] = useState(null)
@@ -33,14 +34,13 @@ export default function AltaProducto({ onCreado, onCancelar }) {
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(esquema),
     defaultValues: {
       nombre: '',
       es_huevo: true,
-      categoria_huevo: '',
+      categoria_id: '',
       admite_caja: false,
       unidad_base: 'maple',
       equivalencia_caja: '',
@@ -49,14 +49,12 @@ export default function AltaProducto({ onCreado, onCancelar }) {
     },
   })
 
-  const esHuevo = watch('es_huevo')
-  const categoriaHuevo = watch('categoria_huevo')
-  const admiteCaja = watch('admite_caja')
-  const categoriaAdmiteCaja = CATEGORIAS_HUEVO_ADMITEN_CAJA.includes(categoriaHuevo)
-
   useEffect(() => {
-    if (!categoriaAdmiteCaja && admiteCaja) setValue('admite_caja', false)
-  }, [categoriaAdmiteCaja, admiteCaja, setValue])
+    listarCategoriasActivas().then(setCategorias).catch(() => {})
+  }, [])
+
+  const esHuevo = watch('es_huevo')
+  const admiteCaja = watch('admite_caja')
 
   async function onSubmit(datos) {
     setEnviando(true)
@@ -65,8 +63,8 @@ export default function AltaProducto({ onCreado, onCancelar }) {
       await crearProducto({
         nombre: datos.nombre,
         es_huevo: datos.es_huevo,
-        categoria_huevo: datos.es_huevo ? datos.categoria_huevo : null,
-        admite_caja: datos.es_huevo && categoriaAdmiteCaja && datos.admite_caja,
+        categoria_id: datos.es_huevo && datos.categoria_id ? datos.categoria_id : null,
+        admite_caja: datos.admite_caja,
         unidad_base: datos.unidad_base,
         equivalencia_caja:
           datos.admite_caja && datos.equivalencia_caja !== '' ? Number(datos.equivalencia_caja) : null,
@@ -116,42 +114,32 @@ export default function AltaProducto({ onCreado, onCancelar }) {
 
           {esHuevo && (
             <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-marca">Categoría de huevo</span>
+              <span className="font-medium text-marca">Categoría</span>
               <select
                 className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
-                {...register('categoria_huevo')}
+                {...register('categoria_id')}
               >
                 <option value="">Elegir...</option>
-                {CATEGORIAS_HUEVO.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
+                {categorias.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
                   </option>
                 ))}
               </select>
-              {errors.categoria_huevo && (
-                <span className="text-xs text-perdida">{errors.categoria_huevo.message}</span>
-              )}
+              {errors.categoria_id && <span className="text-xs text-perdida">{errors.categoria_id.message}</span>}
             </label>
           )}
 
-          <label className={`flex items-center gap-2 text-sm ${categoriaAdmiteCaja ? 'text-marca' : 'text-marca/30'}`}>
-            <input
-              type="checkbox"
-              className="accent-marca"
-              disabled={!categoriaAdmiteCaja}
-              {...register('admite_caja')}
-            />
+          <label className="flex items-center gap-2 text-sm text-marca">
+            <input type="checkbox" className="accent-marca" {...register('admite_caja')} />
             Admite venta por caja
           </label>
-          {esHuevo && !categoriaAdmiteCaja && (
-            <p className="-mt-2 text-xs text-marca/50">Solo las categorías 3, 2 y 1 admiten venta por caja.</p>
-          )}
         </div>
       </div>
 
       <Input label="Unidad base" error={errors.unidad_base?.message} {...register('unidad_base')} />
 
-      {admiteCaja && categoriaAdmiteCaja && (
+      {admiteCaja && (
         <Input
           label="Equivalencia por caja (en maples)"
           tipo="number"
