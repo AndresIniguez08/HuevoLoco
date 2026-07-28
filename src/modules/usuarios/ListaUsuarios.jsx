@@ -71,7 +71,9 @@ export default function ListaUsuarios() {
                   <p className="font-medium text-marca">{u.nombre}</p>
                   <p className="text-marca/50">
                     {ETIQUETA_ROL[u.rol] || u.rol}
-                    {u.rol === ROLES.ENCARGADO_SUCURSAL && u.sucursales?.nombre && ` — ${u.sucursales.nombre}`}
+                    {(u.rol === ROLES.ENCARGADO_SUCURSAL || u.rol === ROLES.CAJERO_MOSTRADOR) &&
+                      u.sucursales?.nombre &&
+                      ` — ${u.sucursales.nombre}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">

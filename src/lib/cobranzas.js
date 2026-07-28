@@ -83,12 +83,44 @@ export async function obtenerUltimoPagoPedido(pedidoId) {
   return data
 }
 
+// pagos.cliente_id está siempre poblado (fn_registrar_pago lo pide como
+// parámetro obligatorio, tenga o no pedido asociado) — se embebe directo
+// desde ahí en vez de a través de pedidos, así el comprobante también
+// muestra el cliente en los pagos generales de cuenta corriente (sin pedido).
 export async function obtenerPago(id) {
   const { data, error } = await supabase
     .from('pagos')
-    .select('*, pedidos(cliente_id, clientes(nombre))')
+    .select('*, clientes(nombre)')
     .eq('id', id)
     .single()
+  if (error) throw error
+  return data
+}
+
+// Cobro contra la cuenta corriente del cliente, sin pedido asociado
+// (p_pedido_id null — fn_registrar_pago ya lo soporta).
+export async function registrarPagoGeneral(clienteId, monto, medio) {
+  const { error } = await supabase.rpc('fn_registrar_pago', {
+    p_pedido_id: null,
+    p_cliente_id: clienteId,
+    p_monto: monto,
+    p_medio: medio,
+  })
+  if (error) throw error
+}
+
+// Para ofrecer "Imprimir comprobante" después de cobrar: mismo criterio que
+// obtenerUltimoPagoPedido, pero para pagos generales (sin pedido) de un
+// cliente puntual, ya que acá no hay un pedido_id del que colgarse.
+export async function obtenerUltimoPagoGeneralCliente(clienteId) {
+  const { data, error } = await supabase
+    .from('pagos')
+    .select('id, monto, medio, creado_at, cliente_id, pedido_id')
+    .eq('cliente_id', clienteId)
+    .is('pedido_id', null)
+    .order('creado_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
   if (error) throw error
   return data
 }

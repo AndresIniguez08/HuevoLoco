@@ -54,7 +54,7 @@ export default function ComprobantePago() {
         </div>
         <div className="flex justify-between border-b border-[#333] py-2">
           <span>Cliente</span>
-          <span>{pago.pedidos?.clientes?.nombre || '—'}</span>
+          <span>{pago.clientes?.nombre || '—'}</span>
         </div>
         <div className="flex justify-between border-b border-[#333] py-2">
           <span>Medio de pago</span>

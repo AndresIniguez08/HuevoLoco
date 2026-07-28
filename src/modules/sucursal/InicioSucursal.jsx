@@ -1,4 +1,4 @@
-import { LogOut, PackageCheck, PackageSearch, ShoppingCart, Wallet } from 'lucide-react'
+import { LogOut, PackageCheck, PackageSearch, Receipt, ShoppingCart, Wallet } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import BadgeContador from '../../components/ui/BadgeContador'
@@ -8,6 +8,7 @@ const BOTONES = [
   { to: '/sucursal/aceptar-mercaderia', label: 'Aceptar mercadería', icono: PackageCheck, clase: 'bg-fresco' },
   { to: '/sucursal/stock', label: 'Stock', icono: PackageSearch, clase: 'bg-yema' },
   { to: '/sucursal/caja', label: 'Caja', icono: Wallet, clase: 'bg-marca-claro' },
+  { to: '/sucursal/cobrar-cc', label: 'Cobrar cuenta corriente', icono: Receipt, clase: 'bg-marca-claro' },
 ]
 
 export default function InicioSucursal({ contadorAceptarMercaderia }) {

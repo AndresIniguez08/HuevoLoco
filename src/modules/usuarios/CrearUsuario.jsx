@@ -23,6 +23,7 @@ const esquema = z
 
 export default function CrearUsuario({ onCreado, onCancelar }) {
   const [sucursales, setSucursales] = useState([])
+  const [casaCentralId, setCasaCentralId] = useState(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
   const {
@@ -35,11 +36,16 @@ export default function CrearUsuario({ onCreado, onCancelar }) {
   const rolSeleccionado = watch('rol')
 
   useEffect(() => {
-    // Casa Central ya tiene sus propios roles (dueño/administrativo/depósito/
-    // vendedor) — este selector es solo para las sucursales que usan la
-    // interfaz simplificada de encargado_sucursal.
+    // El selector de sucursal (visible en el form) es solo para las sucursales
+    // que usan la interfaz simplificada de encargado_sucursal — Casa Central
+    // ya tiene sus propios roles (dueño/administrativo/depósito/vendedor) y no
+    // aparece ahí. Pero cajero_mostrador SIEMPRE es Casa Central (no se elige),
+    // así que igual hace falta su id para asignarlo solo al enviar el form.
     listarSucursales()
-      .then((data) => setSucursales(data.filter((s) => s.nombre !== 'Casa Central')))
+      .then((data) => {
+        setSucursales(data.filter((s) => s.nombre !== 'Casa Central'))
+        setCasaCentralId(data.find((s) => s.nombre === 'Casa Central')?.id || null)
+      })
       .catch(() => {})
   }, [])
 
@@ -47,10 +53,11 @@ export default function CrearUsuario({ onCreado, onCancelar }) {
     setEnviando(true)
     setError(null)
     try {
-      await crearUsuario({
-        ...datos,
-        sucursal_id: datos.rol === ROLES.ENCARGADO_SUCURSAL ? datos.sucursal_id : null,
-      })
+      let sucursal_id = null
+      if (datos.rol === ROLES.ENCARGADO_SUCURSAL) sucursal_id = datos.sucursal_id
+      else if (datos.rol === ROLES.CAJERO_MOSTRADOR) sucursal_id = casaCentralId
+
+      await crearUsuario({ ...datos, sucursal_id })
       onCreado()
     } catch (e) {
       setError(e.message)

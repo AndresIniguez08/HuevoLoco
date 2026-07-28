@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
       "vendedor",
       "chofer",
       "encargado_sucursal",
+      "cajero_mostrador",
     ];
     if (!rolesValidos.includes(rol)) {
       return new Response(JSON.stringify({ error: "Rol inválido" }), {

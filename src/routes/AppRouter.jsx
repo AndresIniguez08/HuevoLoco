@@ -41,6 +41,8 @@ import ReporteDeuda from '../modules/cobranzas/ReporteDeuda'
 import InformeCobranzas from '../modules/cobranzas/InformeCobranzas'
 import ImprimirInformeCobranzas from '../modules/cobranzas/ImprimirInformeCobranzas'
 import ComprobantePago from '../modules/cobranzas/ComprobantePago'
+import CobrarCuentaCorriente from '../modules/cobranzas/CobrarCuentaCorriente'
+import CobrarCuentaCorrienteSucursal from '../modules/sucursal/CobrarCuentaCorrienteSucursal'
 import GestionCamionetas from '../modules/reparto/GestionCamionetas'
 import RendicionChoferes from '../modules/reparto/RendicionChoferes'
 import DiferenciasCobro from '../modules/reparto/DiferenciasCobro'
@@ -67,6 +69,8 @@ import InicioVendedor from '../modules/vendedor/InicioVendedor'
 import InicioDeposito from '../modules/deposito/InicioDeposito'
 import MovimientosCaja from '../modules/caja/MovimientosCaja'
 import GestionCategorias from '../modules/catalogo/GestionCategorias'
+import InicioCajero from '../modules/cajero/InicioCajero'
+import CajaMostrador from '../modules/cajero/CajaMostrador'
 
 function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
   const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
@@ -104,6 +108,7 @@ function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
     grupo: 'Cobranzas',
     icono: Receipt,
     items: [
+      { to: '/dueno/cobranzas/cobrar', label: 'Cobrar cuenta corriente' },
       { to: '/dueno/cobranzas/deuda', label: 'Reporte de deuda' },
       { to: '/dueno/cobranzas/informe', label: 'Informe de cobranzas' },
     ],
@@ -194,6 +199,7 @@ function crearNavAdmin(contadores) {
     grupo: 'Cobranzas',
     icono: Receipt,
     items: [
+      { to: '/admin/cobranzas/cobrar', label: 'Cobrar cuenta corriente' },
       { to: '/admin/cobranzas/deuda', label: 'Reporte de deuda' },
       { to: '/admin/cobranzas/informe', label: 'Informe de cobranzas' },
     ],
@@ -310,6 +316,7 @@ export default function AppRouter() {
           <Route path="aprobaciones" element={<AprobarPrecioEspecial />} />
           <Route path="clientes-gestion" element={<GestionClientes />} />
           <Route path="cuenta-corriente" element={<CuentaCorriente />} />
+          <Route path="cobranzas/cobrar" element={<CobrarCuentaCorriente />} />
           <Route path="cobranzas/deuda" element={<ReporteDeuda />} />
           <Route path="cobranzas/informe" element={<InformeCobranzas />} />
           <Route path="caja" element={<CajaDiaria />} />
@@ -353,6 +360,7 @@ export default function AppRouter() {
           <Route path="aprobaciones" element={<AprobarPrecioEspecial />} />
           <Route path="clientes-gestion" element={<GestionClientes />} />
           <Route path="cuenta-corriente" element={<CuentaCorriente />} />
+          <Route path="cobranzas/cobrar" element={<CobrarCuentaCorriente />} />
           <Route path="cobranzas/deuda" element={<ReporteDeuda />} />
           <Route path="cobranzas/informe" element={<InformeCobranzas />} />
           <Route path="caja" element={<CajaDiaria />} />
@@ -508,7 +516,9 @@ export default function AppRouter() {
         <Route
           path="/arqueo/:id/imprimir"
           element={
-            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.ENCARGADO_SUCURSAL]}>
+            <RutaProtegida
+              rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.ENCARGADO_SUCURSAL, ROLES.CAJERO_MOSTRADOR]}
+            >
               <ImprimirArqueo />
             </RutaProtegida>
           }
@@ -526,7 +536,7 @@ export default function AppRouter() {
         <Route
           path="/pago/:id/imprimir"
           element={
-            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.VENDEDOR]}>
+            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.VENDEDOR, ROLES.ENCARGADO_SUCURSAL]}>
               <ComprobantePago />
             </RutaProtegida>
           }
@@ -607,7 +617,9 @@ export default function AppRouter() {
         <Route
           path="/movimiento-caja/:id/imprimir"
           element={
-            <RutaProtegida rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.ENCARGADO_SUCURSAL]}>
+            <RutaProtegida
+              rolesPermitidos={[ROLES.DUENO, ROLES.ADMINISTRATIVO, ROLES.ENCARGADO_SUCURSAL, ROLES.CAJERO_MOSTRADOR]}
+            >
               <ImprimirMovimientoCaja />
             </RutaProtegida>
           }
@@ -681,6 +693,35 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
               <CajaSucursal />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/sucursal/cobrar-cc"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
+              <CobrarCuentaCorrienteSucursal />
+            </RutaProtegida>
+          }
+        />
+
+        {/* Cajero mostrador: sin sidebar, misma sucursal siempre (Casa Central).
+            "Vender" es un modal dentro de InicioCajero, no una ruta aparte. */}
+        <Route
+          path="/cajero"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.CAJERO_MOSTRADOR]}>
+              <InicioCajero />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/cajero/caja"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.CAJERO_MOSTRADOR]}>
+              <CajaMostrador />
             </RutaProtegida>
           }
         />

@@ -5,6 +5,7 @@ export const ROLES = {
   VENDEDOR: 'vendedor',
   CHOFER: 'chofer',
   ENCARGADO_SUCURSAL: 'encargado_sucursal',
+  CAJERO_MOSTRADOR: 'cajero_mostrador',
 }
 
 export const RUTA_RAIZ_POR_ROL = {
@@ -14,6 +15,7 @@ export const RUTA_RAIZ_POR_ROL = {
   [ROLES.VENDEDOR]: '/vendedor',
   [ROLES.CHOFER]: '/chofer',
   [ROLES.ENCARGADO_SUCURSAL]: '/sucursal',
+  [ROLES.CAJERO_MOSTRADOR]: '/cajero',
 }
 
 export const ETIQUETA_ROL = {
@@ -23,6 +25,7 @@ export const ETIQUETA_ROL = {
   [ROLES.VENDEDOR]: 'Vendedor',
   [ROLES.CHOFER]: 'Chofer',
   [ROLES.ENCARGADO_SUCURSAL]: 'Encargado de sucursal',
+  [ROLES.CAJERO_MOSTRADOR]: 'Cajero mostrador',
 }
 
 export const ROLES_ASIGNABLES = [
@@ -32,6 +35,7 @@ export const ROLES_ASIGNABLES = [
   ROLES.VENDEDOR,
   ROLES.CHOFER,
   ROLES.ENCARGADO_SUCURSAL,
+  ROLES.CAJERO_MOSTRADOR,
 ].map((value) => ({ value, label: ETIQUETA_ROL[value] }))
 
 export const MEDIOS_PAGO = [
