@@ -213,7 +213,7 @@ export default function RecepcionCompra() {
         ) : (
           <ul className="divide-y divide-marca/10">
             {recientes.map((r) => (
-              <li key={r.id} className="flex flex-col gap-1 p-4 text-sm">
+              <li key={r.compra_id} className="flex flex-col gap-1 p-4 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium text-marca">{r.proveedores?.nombre || 'Proveedor'}</p>
                   <span className="text-xs text-marca/50">{formatearFecha(r.creado_at)}</span>

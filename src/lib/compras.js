@@ -15,8 +15,11 @@ export async function registrarRecepcionCompra(proveedorId, items) {
 
 // recepciones_compra / recepcion_compra_items son vistas sin columna de
 // costo — las usan dueño/administrativo/depósito para ver qué se recibió,
-// sin ningún riesgo de exponer precios. Se arman los joins a mano (en vez
-// de embeds de PostgREST) porque acá son vistas, no tablas con FK real.
+// sin ningún riesgo de exponer precios. Se arma el join con los items a mano
+// (en vez de un embed de PostgREST) porque acá es una vista, no una tabla con
+// FK real. OJO: recepciones_compra no tiene columna `id` — el identificador
+// de la compra es `compra_id`, y ya trae `proveedor_nombre` resuelto (no hay
+// que salir a buscarlo a `proveedores`).
 export async function listarRecepcionesRecientes(limite = 20) {
   const { data: recepciones, error } = await supabase
     .from('recepciones_compra')
@@ -26,14 +29,12 @@ export async function listarRecepcionesRecientes(limite = 20) {
   if (error) throw error
   if (!recepciones || recepciones.length === 0) return []
 
-  const idsProveedor = [...new Set(recepciones.map((r) => r.proveedor_id))]
-  const idsCompra = recepciones.map((r) => r.id)
+  const idsCompra = recepciones.map((r) => r.compra_id)
 
-  const [{ data: proveedores, error: errorProv }, { data: items, error: errorItems }] = await Promise.all([
-    supabase.from('proveedores').select('id, nombre').in('id', idsProveedor),
-    supabase.from('recepcion_compra_items').select('*').in('compra_id', idsCompra),
-  ])
-  if (errorProv) throw errorProv
+  const { data: items, error: errorItems } = await supabase
+    .from('recepcion_compra_items')
+    .select('*')
+    .in('compra_id', idsCompra)
   if (errorItems) throw errorItems
 
   const idsProducto = [...new Set((items || []).map((it) => it.producto_id))]
@@ -43,7 +44,6 @@ export async function listarRecepcionesRecientes(limite = 20) {
     .in('id', idsProducto)
   if (errorProd) throw errorProd
 
-  const proveedorPorId = new Map((proveedores || []).map((p) => [p.id, p]))
   const productoPorId = new Map((productos || []).map((p) => [p.id, p]))
   const itemsPorCompra = new Map()
   for (const it of items || []) {
@@ -54,27 +54,27 @@ export async function listarRecepcionesRecientes(limite = 20) {
 
   return recepciones.map((r) => ({
     ...r,
-    proveedores: proveedorPorId.get(r.proveedor_id),
-    items: itemsPorCompra.get(r.id) || [],
+    proveedores: { nombre: r.proveedor_nombre },
+    items: itemsPorCompra.get(r.compra_id) || [],
   }))
 }
 
 // Comprobante de una recepción puntual (para /compra/:id/imprimir), también
 // sin costo — se imprime justo después de recibir, antes de que dueño cargue
-// el costo.
+// el costo. Mismo cuidado que en listarRecepcionesRecientes: filtrar por
+// compra_id, no por id.
 export async function obtenerRecepcionParaImprimir(compraId) {
   const { data: recepcion, error } = await supabase
     .from('recepciones_compra')
     .select('*')
-    .eq('id', compraId)
+    .eq('compra_id', compraId)
     .single()
   if (error) throw error
 
-  const [{ data: proveedor, error: errorProv }, { data: items, error: errorItems }] = await Promise.all([
-    supabase.from('proveedores').select('nombre').eq('id', recepcion.proveedor_id).single(),
-    supabase.from('recepcion_compra_items').select('*').eq('compra_id', compraId),
-  ])
-  if (errorProv) throw errorProv
+  const { data: items, error: errorItems } = await supabase
+    .from('recepcion_compra_items')
+    .select('*')
+    .eq('compra_id', compraId)
   if (errorItems) throw errorItems
 
   const idsProducto = [...new Set((items || []).map((it) => it.producto_id))]
@@ -87,7 +87,7 @@ export async function obtenerRecepcionParaImprimir(compraId) {
 
   return {
     ...recepcion,
-    proveedores: proveedor,
+    proveedores: { nombre: recepcion.proveedor_nombre },
     compra_items: (items || []).map((it) => ({ ...it, productos: productoPorId.get(it.producto_id) })),
   }
 }
