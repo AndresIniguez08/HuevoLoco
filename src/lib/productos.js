@@ -59,6 +59,24 @@ export async function obtenerStockDesgloseSucursal(sucursalId) {
   return data
 }
 
+// Stock para StockGeneral.jsx: TODOS los productos activos (huevo y no),
+// con su stock resuelto según corresponda. Huevo sigue viniendo del
+// desglose por sucursal (cajones/cajas/maples_sueltos, igual que siempre en
+// StockSucursal/StockActual) — no-huevo no tiene ese desglose, así que se
+// queda con el total simple de stock_actual (stock_maple, reutilizado acá
+// como "cantidad en unidad_base") que ya trae obtenerProductosConStock.
+export async function obtenerStockGeneral(sucursalId) {
+  const [productos, desglose] = await Promise.all([
+    obtenerProductosConStock(),
+    obtenerStockDesgloseSucursal(sucursalId),
+  ])
+  const desglosePorProducto = Object.fromEntries(desglose.map((d) => [d.producto_id, d]))
+  return productos.map((p) => ({
+    ...p,
+    desglose: desglosePorProducto[p.id] || null,
+  }))
+}
+
 // Catálogo de una sucursal: solo los productos que Central habilitó para
 // venderse ahí (producto_sucursal.habilitado). Distinto del catálogo
 // completo que usa Central en TomarPedido/RegistrarCompra. Se arma con dos

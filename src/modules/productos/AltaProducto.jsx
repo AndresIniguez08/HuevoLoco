@@ -6,6 +6,7 @@ import { CheckCircle } from 'lucide-react'
 import { crearProducto } from '../../lib/productos'
 import { listarCategoriasActivas } from '../../lib/categoriasProducto'
 import { traducirError } from '../../lib/errores'
+import { UNIDADES_BASE_GENERALES, ETIQUETA_UNIDAD } from '../../lib/constantes'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 
@@ -15,7 +16,7 @@ const esquema = z
     es_huevo: z.boolean(),
     categoria_id: z.string().optional(),
     admite_caja: z.boolean(),
-    unidad_base: z.string().min(1, 'Ingresá la unidad base'),
+    unidad_base: z.string().optional(),
     equivalencia_caja: z.string().optional(),
     equivalencia_cajon: z.string().optional(),
     stock_minimo_maple: z.string().optional(),
@@ -23,6 +24,10 @@ const esquema = z
   .refine((datos) => !datos.es_huevo || !!datos.categoria_id, {
     message: 'Elegí una categoría',
     path: ['categoria_id'],
+  })
+  .refine((datos) => datos.es_huevo || !!datos.unidad_base, {
+    message: 'Elegí una unidad',
+    path: ['unidad_base'],
   })
 
 export default function AltaProducto({ onCreado, onCancelar }) {
@@ -42,7 +47,7 @@ export default function AltaProducto({ onCreado, onCancelar }) {
       es_huevo: true,
       categoria_id: '',
       admite_caja: false,
-      unidad_base: 'maple',
+      unidad_base: '',
       equivalencia_caja: '',
       equivalencia_cajon: '',
       stock_minimo_maple: '',
@@ -55,6 +60,8 @@ export default function AltaProducto({ onCreado, onCancelar }) {
 
   const esHuevo = watch('es_huevo')
   const admiteCaja = watch('admite_caja')
+  const unidadBase = watch('unidad_base')
+  const etiquetaStockMinimo = esHuevo ? 'maples' : ETIQUETA_UNIDAD[unidadBase]?.plural || 'unidades'
 
   async function onSubmit(datos) {
     setEnviando(true)
@@ -64,11 +71,14 @@ export default function AltaProducto({ onCreado, onCancelar }) {
         nombre: datos.nombre,
         es_huevo: datos.es_huevo,
         categoria_id: datos.es_huevo && datos.categoria_id ? datos.categoria_id : null,
-        admite_caja: datos.admite_caja,
-        unidad_base: datos.unidad_base,
+        admite_caja: datos.es_huevo && datos.admite_caja,
+        unidad_base: datos.es_huevo ? 'maple' : datos.unidad_base,
         equivalencia_caja:
-          datos.admite_caja && datos.equivalencia_caja !== '' ? Number(datos.equivalencia_caja) : null,
-        equivalencia_cajon: datos.equivalencia_cajon !== '' ? Number(datos.equivalencia_cajon) : null,
+          datos.es_huevo && datos.admite_caja && datos.equivalencia_caja !== ''
+            ? Number(datos.equivalencia_caja)
+            : null,
+        equivalencia_cajon:
+          datos.es_huevo && datos.equivalencia_cajon !== '' ? Number(datos.equivalencia_cajon) : null,
         stock_minimo_maple: datos.stock_minimo_maple !== '' ? Number(datos.stock_minimo_maple) : null,
         activo: true,
       })
@@ -130,16 +140,34 @@ export default function AltaProducto({ onCreado, onCancelar }) {
             </label>
           )}
 
-          <label className="flex items-center gap-2 text-sm text-marca">
-            <input type="checkbox" className="accent-marca" {...register('admite_caja')} />
-            Admite venta por caja
-          </label>
+          {esHuevo && (
+            <label className="flex items-center gap-2 text-sm text-marca">
+              <input type="checkbox" className="accent-marca" {...register('admite_caja')} />
+              Admite venta por caja
+            </label>
+          )}
+
+          {!esHuevo && (
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="font-medium text-marca">Unidad</span>
+              <select
+                className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+                {...register('unidad_base')}
+              >
+                <option value="">Elegir...</option>
+                {UNIDADES_BASE_GENERALES.map((u) => (
+                  <option key={u.value} value={u.value}>
+                    {u.label}
+                  </option>
+                ))}
+              </select>
+              {errors.unidad_base && <span className="text-xs text-perdida">{errors.unidad_base.message}</span>}
+            </label>
+          )}
         </div>
       </div>
 
-      <Input label="Unidad base" error={errors.unidad_base?.message} {...register('unidad_base')} />
-
-      {admiteCaja && (
+      {esHuevo && admiteCaja && (
         <Input
           label="Equivalencia por caja (en maples)"
           tipo="number"
@@ -150,17 +178,19 @@ export default function AltaProducto({ onCreado, onCancelar }) {
         />
       )}
 
-      <Input
-        label="Equivalencia por cajón (en maples)"
-        tipo="number"
-        numerico
-        min="0"
-        step="1"
-        {...register('equivalencia_cajon')}
-      />
+      {esHuevo && (
+        <Input
+          label="Equivalencia por cajón (en maples)"
+          tipo="number"
+          numerico
+          min="0"
+          step="1"
+          {...register('equivalencia_cajon')}
+        />
+      )}
 
       <Input
-        label="Stock mínimo (en maples)"
+        label={`Stock mínimo (en ${etiquetaStockMinimo})`}
         tipo="number"
         numerico
         min="0"

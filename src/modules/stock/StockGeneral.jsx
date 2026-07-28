@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { AlertTriangle, ClipboardList, FileText, PackageMinus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { obtenerStockDesgloseSucursal } from '../../lib/productos'
+import { obtenerStockGeneral } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
-import { ROLES } from '../../lib/constantes'
+import { ROLES, etiquetaCantidadUnidad } from '../../lib/constantes'
 import BotonVolverInicio from '../../components/BotonVolverInicio'
 import GrillaCajon from '../../components/GrillaCajon'
 import Badge from '../../components/ui/Badge'
 
-export default function StockActual() {
+export default function StockGeneral() {
   const perfil = useAuthStore((s) => s.perfil)
   const navigate = useNavigate()
   // Depósito llega acá desde su pantalla de inicio simplificada (sin
@@ -26,7 +26,7 @@ export default function StockActual() {
     if (!perfil?.sucursal_id) return
     setCargando(true)
     try {
-      const data = await obtenerStockDesgloseSucursal(perfil.sucursal_id)
+      const data = await obtenerStockGeneral(perfil.sucursal_id)
       setProductos(data)
       setError(null)
     } catch (e) {
@@ -73,9 +73,42 @@ export default function StockActual() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {productos.map((p) => {
-          const bajoMinimo = p.minimo_cajones != null && p.cajones < p.minimo_cajones
+          const esHuevo = p.es_huevo !== false
+          if (esHuevo) {
+            const desglose = p.desglose
+            const cajones = desglose?.cajones ?? 0
+            const cajas = desglose?.cajas ?? 0
+            const maplesSueltos = desglose?.maples_sueltos ?? 0
+            const minimoCajones = desglose?.minimo_cajones ?? null
+            const bajoMinimo = minimoCajones != null && cajones < minimoCajones
+            return (
+              <div key={p.id} className="rounded-xl bg-white p-4 shadow-sm">
+                <div className="mb-2 flex items-start justify-between">
+                  <h2 className="font-medium text-marca">{p.nombre}</h2>
+                  {bajoMinimo && (
+                    <Badge tono="alerta">
+                      <AlertTriangle size={12} className="mr-1 inline" />
+                      Stock bajo
+                    </Badge>
+                  )}
+                </div>
+                <div className="mb-3 flex items-baseline gap-4">
+                  <p className="font-mono text-2xl text-yema">
+                    {cajones} <span className="text-sm text-marca/50">cajones</span>
+                  </p>
+                  <p className="font-mono text-2xl text-yema">
+                    {cajas} <span className="text-sm text-marca/50">cajas</span>
+                  </p>
+                </div>
+                <GrillaCajon stockMaple={maplesSueltos} />
+                {minimoCajones != null && <p className="mt-3 text-xs text-marca/50">Mínimo: {minimoCajones} cajones</p>}
+              </div>
+            )
+          }
+
+          const bajoMinimo = p.stock_minimo_maple != null && p.stock_maple < p.stock_minimo_maple
           return (
-            <div key={p.producto_id} className="rounded-xl bg-white p-4 shadow-sm">
+            <div key={p.id} className="rounded-xl bg-white p-4 shadow-sm">
               <div className="mb-2 flex items-start justify-between">
                 <h2 className="font-medium text-marca">{p.nombre}</h2>
                 {bajoMinimo && (
@@ -85,17 +118,11 @@ export default function StockActual() {
                   </Badge>
                 )}
               </div>
-              <div className="mb-3 flex items-baseline gap-4">
-                <p className="font-mono text-2xl text-yema">
-                  {p.cajones} <span className="text-sm text-marca/50">cajones</span>
+              <p className="font-mono text-2xl text-yema">{etiquetaCantidadUnidad(p.stock_maple, p.unidad_base)}</p>
+              {p.stock_minimo_maple != null && (
+                <p className="mt-3 text-xs text-marca/50">
+                  Mínimo: {etiquetaCantidadUnidad(p.stock_minimo_maple, p.unidad_base)}
                 </p>
-                <p className="font-mono text-2xl text-yema">
-                  {p.cajas} <span className="text-sm text-marca/50">cajas</span>
-                </p>
-              </div>
-              <GrillaCajon stockMaple={p.maples_sueltos} />
-              {p.minimo_cajones != null && (
-                <p className="mt-3 text-xs text-marca/50">Mínimo: {p.minimo_cajones} cajones</p>
               )}
             </div>
           )

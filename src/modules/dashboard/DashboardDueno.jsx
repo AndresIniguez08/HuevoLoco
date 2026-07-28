@@ -6,6 +6,7 @@ import { obtenerProductosConStock } from '../../lib/productos'
 import { obtenerMovimientosCaja, totalesPorMedio } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { formatearMoneda } from '../../lib/formato'
+import { UNIDADES, etiquetaCantidadUnidad } from '../../lib/constantes'
 
 const ETIQUETA_MEDIO = { efectivo: 'Efectivo', mercado_pago: 'Mercado Pago', transferencia: 'Transferencia' }
 
@@ -121,7 +122,8 @@ export default function DashboardDueno({ contadores = {} }) {
           <ul className="text-sm text-marca/70">
             {kpis.productosBajoMinimo.map((p) => (
               <li key={p.id}>
-                {p.nombre}: {p.stock_maple} maples (mínimo {p.stock_minimo_maple})
+                {p.nombre}: {etiquetaCantidadUnidad(p.stock_maple, p.es_huevo === false ? p.unidad_base : UNIDADES.MAPLE)}{' '}
+                (mínimo {etiquetaCantidadUnidad(p.stock_minimo_maple, p.es_huevo === false ? p.unidad_base : UNIDADES.MAPLE)})
               </li>
             ))}
           </ul>

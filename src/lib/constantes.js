@@ -55,10 +55,35 @@ export const UNIDADES = {
   CAJON: 'cajon',
 }
 
+// Unidades de venta/stock de productos que NO son huevo (producto.unidad_base
+// cuando es_huevo = false) — lista cerrada a propósito: así cualquier valor
+// real de unidad_base cae siempre en ETIQUETA_UNIDAD de abajo, sin necesitar
+// un fallback para "unidad desconocida" en ningún lugar de la app.
+export const UNIDADES_BASE_GENERALES = [
+  { value: 'kg', label: 'Kilogramo (kg)' },
+  { value: 'litro', label: 'Litro' },
+  { value: 'unidad', label: 'Unidad' },
+  { value: 'paquete', label: 'Paquete' },
+]
+
 export const ETIQUETA_UNIDAD = {
   [UNIDADES.MAPLE]: { singular: 'maple', plural: 'maples' },
   [UNIDADES.CAJA]: { singular: 'caja', plural: 'cajas' },
   [UNIDADES.CAJON]: { singular: 'cajón', plural: 'cajones' },
+  kg: { singular: 'kg', plural: 'kg' },
+  litro: { singular: 'litro', plural: 'litros' },
+  unidad: { singular: 'unidad', plural: 'unidades' },
+  paquete: { singular: 'paquete', plural: 'paquetes' },
+}
+
+// Arma "3 maples" / "45 kg" / "1 unidad" a partir de una cantidad + unidad
+// cruda. Si la unidad no está en ETIQUETA_UNIDAD (no debería pasar, ya que
+// unidad_base sale siempre de UNIDADES_BASE_GENERALES o de 'maple'), se
+// muestra tal cual en vez de romper.
+export function etiquetaCantidadUnidad(cantidad, unidad) {
+  const etiqueta = ETIQUETA_UNIDAD[unidad]
+  const nombreUnidad = etiqueta ? (Number(cantidad) === 1 ? etiqueta.singular : etiqueta.plural) : unidad
+  return `${cantidad} ${nombreUnidad}`
 }
 
 // compra_items guarda la unidad/cantidad real de la transacción (unidad_transaccion,
@@ -68,16 +93,9 @@ export function formatearCantidadItemCompra(item) {
   const cantidadUnidad = item.cantidad_unidad
   const unidadTransaccion = item.unidad_transaccion
   if (cantidadUnidad != null && unidadTransaccion) {
-    const etiqueta = ETIQUETA_UNIDAD[unidadTransaccion]
-    const nombreUnidad = etiqueta
-      ? Number(cantidadUnidad) === 1
-        ? etiqueta.singular
-        : etiqueta.plural
-      : unidadTransaccion
-    return `${cantidadUnidad} ${nombreUnidad}`
+    return etiquetaCantidadUnidad(cantidadUnidad, unidadTransaccion)
   }
-  const cantidadMaple = item.cantidad_maple
-  return `${cantidadMaple} ${Number(cantidadMaple) === 1 ? 'maple' : 'maples'}`
+  return etiquetaCantidadUnidad(item.cantidad_maple, UNIDADES.MAPLE)
 }
 
 // pedidos.estado: pendiente | confirmado | entregado | cancelado

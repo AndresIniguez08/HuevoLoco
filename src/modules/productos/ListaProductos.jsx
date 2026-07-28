@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { listarProductosGestion, actualizarEstadoProducto } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
-import { ROLES } from '../../lib/constantes'
+import { ROLES, UNIDADES, etiquetaCantidadUnidad } from '../../lib/constantes'
 import { formatearMoneda } from '../../lib/formato'
 import { useAuthStore } from '../../stores/authStore'
 import Badge from '../../components/ui/Badge'
@@ -96,7 +96,8 @@ export default function ListaProductos() {
             {productos.map((p) => {
               const detalle = [
                 p.admite_caja && 'admite caja',
-                p.stock_minimo_maple != null && `mínimo ${p.stock_minimo_maple} maples`,
+                p.stock_minimo_maple != null &&
+                  `mínimo ${etiquetaCantidadUnidad(p.stock_minimo_maple, p.es_huevo === false ? p.unidad_base : UNIDADES.MAPLE)}`,
               ]
                 .filter(Boolean)
                 .join(' · ')

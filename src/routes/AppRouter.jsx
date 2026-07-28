@@ -10,7 +10,7 @@ import RutaProtegida from '../components/RutaProtegida'
 import AppShell from '../components/AppShell'
 import Login from '../modules/auth/Login'
 import DashboardDueno from '../modules/dashboard/DashboardDueno'
-import StockActual from '../modules/stock/StockActual'
+import StockGeneral from '../modules/stock/StockGeneral'
 import ReporteStock from '../modules/stock/ReporteStock'
 import ConteoStock from '../modules/stock/ConteoStock'
 import DetalleConteo from '../modules/stock/DetalleConteo'
@@ -306,7 +306,7 @@ export default function AppRouter() {
           }
         >
           <Route index element={<DashboardDueno contadores={contadores} />} />
-          <Route path="stock" element={<StockActual />} />
+          <Route path="stock" element={<StockGeneral />} />
           <Route path="reporte-stock" element={<ReporteStock />} />
           <Route path="conteo" element={<ConteoStock />} />
           <Route path="conteo/:id" element={<DetalleConteo />} />
@@ -398,7 +398,7 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.DEPOSITO]}>
               <div className="p-4 sm:p-6">
-                <StockActual />
+                <StockGeneral />
               </div>
             </RutaProtegida>
           }

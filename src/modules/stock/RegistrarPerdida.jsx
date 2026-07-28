@@ -2,9 +2,23 @@ import { useEffect, useState } from 'react'
 import { obtenerProductosConStock, obtenerProductosConStockSucursal } from '../../lib/productos'
 import { registrarPerdida as registrarPerdidaRpc } from '../../lib/perdidas'
 import { traducirError } from '../../lib/errores'
+import { etiquetaCantidadUnidad } from '../../lib/constantes'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import BotonVolverInicio from '../../components/BotonVolverInicio'
 import Button from '../../components/ui/Button'
+
+// Mismo criterio que StockGeneral.jsx: huevo se sigue mostrando desglosado
+// (cajones/cajas/maples sueltos, como siempre), pero un producto que no es
+// huevo no tiene ese desglose — se muestra su cantidad simple en unidad_base.
+function etiquetaStockDisponible(p, sucursalId) {
+  if (p.es_huevo === false) {
+    const cantidad = sucursalId ? p.stock_maples_sueltos : p.stock_maple
+    return `${etiquetaCantidadUnidad(cantidad, p.unidad_base)} disponibles`
+  }
+  return sucursalId
+    ? `${p.stock_cajones} cajones, ${p.stock_cajas} cajas, ${p.stock_maples_sueltos} maples sueltos`
+    : `${p.stock_maple} maples disponibles`
+}
 
 // sucursalId opcional: cuando se abre desde una sucursal (PerdidaSucursal),
 // tiene que mostrar el stock de ESA sucursal, no el del depósito central.
@@ -67,11 +81,7 @@ export default function RegistrarPerdida({ sucursalId = null }) {
             <option value="">Elegir...</option>
             {productos.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.nombre} (
-                {sucursalId
-                  ? `${p.stock_cajones} cajones, ${p.stock_cajas} cajas, ${p.stock_maples_sueltos} maples sueltos`
-                  : `${p.stock_maple} maples disponibles`}
-                )
+                {p.nombre} ({etiquetaStockDisponible(p, sucursalId)})
               </option>
             ))}
           </select>

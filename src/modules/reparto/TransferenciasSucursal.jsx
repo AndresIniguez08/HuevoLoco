@@ -10,7 +10,13 @@ import {
 } from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
-import { ETIQUETA_UNIDAD, ETIQUETA_ESTADO_REMITO, TONO_ESTADO_REMITO, formatearCantidadItemCompra } from '../../lib/constantes'
+import {
+  ETIQUETA_ESTADO_REMITO,
+  TONO_ESTADO_REMITO,
+  formatearCantidadItemCompra,
+  etiquetaCantidadUnidad,
+  UNIDADES,
+} from '../../lib/constantes'
 import { formatearFecha } from '../../lib/formato'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
@@ -230,7 +236,9 @@ export default function TransferenciasSucursal() {
                 <p className="font-medium text-marca">{it.nombre}</p>
                 <div className="flex items-center gap-3">
                   <span className="text-marca/60">
-                    {it.cantidad} {ETIQUETA_UNIDAD[it.unidad].plural} ({it.cantidad_maple} maples)
+                    {etiquetaCantidadUnidad(it.cantidad, it.unidad)}
+                    {it.cantidad_maple !== it.cantidad &&
+                      ` (${etiquetaCantidadUnidad(it.cantidad_maple, UNIDADES.MAPLE)})`}
                   </span>
                   <button onClick={() => quitarItem(it.id)} className="text-perdida">
                     <Trash2 size={16} />

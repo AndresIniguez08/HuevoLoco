@@ -3,7 +3,7 @@ import { Trash2 } from 'lucide-react'
 import { obtenerProductosConStock } from '../../lib/productos'
 import { registrarRecepcionCompra, listarRecepcionesRecientes } from '../../lib/compras'
 import { traducirError } from '../../lib/errores'
-import { formatearCantidadItemCompra } from '../../lib/constantes'
+import { formatearCantidadItemCompra, etiquetaCantidadUnidad, UNIDADES } from '../../lib/constantes'
 import { formatearFecha } from '../../lib/formato'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import ProveedorSelector from '../compras/ProveedorSelector'
@@ -170,7 +170,9 @@ export default function RecepcionCompra() {
                 <div>
                   <p className="font-medium text-marca">{it.nombre}</p>
                   <p className="text-marca/50">
-                    {it.cantidad} {it.unidad} ({it.cantidad_maple} maples)
+                    {etiquetaCantidadUnidad(it.cantidad, it.unidad)}
+                    {it.cantidad_maple !== it.cantidad &&
+                      ` (${etiquetaCantidadUnidad(it.cantidad_maple, UNIDADES.MAPLE)})`}
                   </p>
                 </div>
                 <button onClick={() => quitarItem(it.id)} className="text-perdida">

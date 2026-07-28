@@ -6,7 +6,7 @@ import { obtenerPreciosLista } from '../../lib/precios'
 import { buscarClientes, obtenerFechaInicioSaldoPendiente } from '../../lib/clientes'
 import { obtenerSaldoCliente } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
-import { ETIQUETA_UNIDAD, TIPOS_ENTREGA } from '../../lib/constantes'
+import { ETIQUETA_UNIDAD, TIPOS_ENTREGA, etiquetaCantidadUnidad, UNIDADES } from '../../lib/constantes'
 import { formatearMoneda } from '../../lib/formato'
 import { usePedidoStore } from '../../stores/pedidoStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -293,7 +293,10 @@ export default function TomarPedido() {
                 <div>
                   <p className="font-medium text-marca">{it.nombre}</p>
                   <p className="text-marca/50">
-                    {it.cantidad} {it.unidad} ({it.cantidad_maple} maples) · {formatearMoneda(it.precio_aplicado)} c/
+                    {etiquetaCantidadUnidad(it.cantidad, it.unidad)}
+                    {it.cantidad_maple !== it.cantidad &&
+                      ` (${etiquetaCantidadUnidad(it.cantidad_maple, UNIDADES.MAPLE)})`}{' '}
+                    · {formatearMoneda(it.precio_aplicado)} c/
                     {ETIQUETA_UNIDAD[it.unidad].singular}
                     {it.precio_especial && (
                       <Badge tono="neutro" className="ml-2">
