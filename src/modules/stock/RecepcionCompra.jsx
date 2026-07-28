@@ -51,6 +51,15 @@ export default function RecepcionCompra() {
 
   function agregarItem() {
     if (!productoSeleccionado || cantidadSeleccion.cantidad_maple <= 0) return
+    // productoSeleccionado sale de un .find() sobre lo que devolvió
+    // productos_publico — si esa vista no trae `id` como se espera, esto
+    // corta acá en vez de sumar un producto_id undefined al carrito que
+    // recién explotaría como uuid inválido al confirmar la recepción.
+    if (!productoSeleccionado.id) {
+      setError('Este producto no se cargó bien (falta su identificador). Recargá la página e intentá de nuevo.')
+      return
+    }
+    setError(null)
     setItems([
       ...items,
       {
@@ -72,6 +81,19 @@ export default function RecepcionCompra() {
 
   async function registrar() {
     if (!proveedorId || items.length === 0) return
+    // Corta acá con un mensaje claro en vez de dejar que un proveedor_id o
+    // producto_id vacío le llegue al RPC y vuelva como un error de uuid
+    // inentendible para quien está registrando la recepción.
+    if (typeof proveedorId !== 'string' || proveedorId.trim() === '') {
+      setError('Elegí un proveedor antes de registrar la recepción.')
+      return
+    }
+    const itemsSinProducto = items.filter((it) => !it.producto_id)
+    if (itemsSinProducto.length > 0) {
+      const nombres = itemsSinProducto.map((it) => it.nombre).join(', ')
+      setError(`Estos productos no se cargaron bien: ${nombres}. Quitalos de la lista y agregalos de nuevo.`)
+      return
+    }
     setEnviando(true)
     setError(null)
     setMensaje(null)
