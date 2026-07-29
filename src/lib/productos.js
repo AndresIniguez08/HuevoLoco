@@ -59,22 +59,53 @@ export async function obtenerStockDesgloseSucursal(sucursalId) {
   return data
 }
 
-// Stock para StockGeneral.jsx: TODOS los productos activos (huevo y no),
-// con su stock resuelto según corresponda. Huevo sigue viniendo del
-// desglose por sucursal (cajones/cajas/maples_sueltos, igual que siempre en
+// Stock para StockGeneral.jsx: TODOS los productos activos (huevo y no), con
+// su stock resuelto según corresponda, en UNA sucursal puntual (sucursalId)
+// o en TODAS (sucursalId null — sin filtrar, para el selector "Todas").
+// stock_actual y stock_desglose tienen sucursal_id cada una, con una fila
+// por producto+sucursal — de ahí sale directo qué productos "existen" en
+// cada sucursal, sin necesidad de otra tabla. Huevo sigue viniendo del
+// desglose (cajones/cajas/maples_sueltos, igual que siempre en
 // StockSucursal/StockActual) — no-huevo no tiene ese desglose, así que se
 // queda con el total simple de stock_actual (stock_maple, reutilizado acá
-// como "cantidad en unidad_base") que ya trae obtenerProductosConStock.
-export async function obtenerStockGeneral(sucursalId) {
-  const [productos, desglose] = await Promise.all([
-    obtenerProductosConStock(),
-    obtenerStockDesgloseSucursal(sucursalId),
+// como "cantidad en unidad_base"). Devuelve una fila por (producto,
+// sucursal) — agrupar por sucursal_id queda del lado de la pantalla.
+export async function obtenerStockGeneralPorSucursal(sucursalId = null) {
+  let queryStockActual = supabase.from('stock_actual').select('*')
+  let queryDesglose = supabase.from('stock_desglose').select('*')
+  if (sucursalId) {
+    queryStockActual = queryStockActual.eq('sucursal_id', sucursalId)
+    queryDesglose = queryDesglose.eq('sucursal_id', sucursalId)
+  }
+
+  const [
+    { data: productos, error: errorProductos },
+    { data: stockActual, error: errorStockActual },
+    { data: desglose, error: errorDesglose },
+  ] = await Promise.all([
+    supabase.from('productos_publico').select('*').eq('activo', true),
+    queryStockActual,
+    queryDesglose,
   ])
-  const desglosePorProducto = Object.fromEntries(desglose.map((d) => [d.producto_id, d]))
-  return productos.map((p) => ({
-    ...p,
-    desglose: desglosePorProducto[p.id] || null,
-  }))
+  if (errorProductos) throw errorProductos
+  if (errorStockActual) throw errorStockActual
+  if (errorDesglose) throw errorDesglose
+
+  const productosPorId = Object.fromEntries((productos || []).map((p) => [p.id, p]))
+  const filas = []
+
+  for (const d of desglose || []) {
+    const producto = productosPorId[d.producto_id]
+    if (!producto || producto.es_huevo === false) continue
+    filas.push({ ...producto, sucursal_id: d.sucursal_id, desglose: d })
+  }
+  for (const s of stockActual || []) {
+    const producto = productosPorId[s.producto_id]
+    if (!producto || producto.es_huevo !== false) continue
+    filas.push({ ...producto, sucursal_id: s.sucursal_id, stock_maple: s.stock_maple })
+  }
+
+  return filas
 }
 
 // Catálogo de una sucursal: solo los productos que Central habilitó para
