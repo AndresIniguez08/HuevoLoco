@@ -173,6 +173,7 @@ function crearNavAdmin(contadores) {
     grupo: 'Stock',
     icono: Package,
     items: [
+      { to: '/admin/stock', label: 'Stock actual' },
       { to: '/admin/reporte-stock', label: 'Reporte de stock' },
       { to: '/admin/conteo', label: 'Conteo de stock', contador: contadores.conteos_abiertos },
       { to: '/admin/auditorias', label: 'Auditorías' },
@@ -351,6 +352,7 @@ export default function AppRouter() {
           }
         >
           <Route index element={<Navigate to="pedidos" replace />} />
+          <Route path="stock" element={<StockGeneral />} />
           <Route path="reporte-stock" element={<ReporteStock />} />
           <Route path="conteo" element={<ConteoStock />} />
           <Route path="conteo/:id" element={<DetalleConteo />} />
