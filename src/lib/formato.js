@@ -37,3 +37,11 @@ export function formatearFecha(valor) {
   const fecha = new Date(valor)
   return fecha.toLocaleDateString('es-AR')
 }
+
+// Para donde solo se necesita hora, sin fecha (ej. "mis ventas de hoy", que
+// ya acota el listado al día en curso)
+export function formatearHora(valor) {
+  if (!valor) return '—'
+  const fecha = new Date(valor)
+  return fecha.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+}

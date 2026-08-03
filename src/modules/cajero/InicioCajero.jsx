@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, ShoppingCart, Wallet } from 'lucide-react'
+import { ClipboardList, LogOut, ShoppingCart, Wallet } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import Modal from '../../components/ui/Modal'
 import VentaMostrador from './VentaMostrador'
@@ -37,6 +37,13 @@ export default function InicioCajero() {
         >
           <Wallet size={32} />
           Caja
+        </button>
+        <button
+          onClick={() => navigate('/cajero/mis-ventas')}
+          className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-2xl bg-fresco px-3 text-xl font-medium text-white shadow-sm active:opacity-90"
+        >
+          <ClipboardList size={32} />
+          Mis ventas de hoy
         </button>
       </div>
 

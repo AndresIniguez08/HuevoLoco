@@ -29,6 +29,7 @@ import ImprimirArqueo from '../modules/caja/ImprimirArqueo'
 import HistorialMovimientos from '../modules/caja/HistorialMovimientos'
 import RegistrarCompra from '../modules/compras/RegistrarCompra'
 import CargarCostoCompra from '../modules/compras/CargarCostoCompra'
+import HistorialCompras from '../modules/compras/HistorialCompras'
 import ListasDePrecio from '../modules/precios/ListasDePrecio'
 import AsignarReparto from '../modules/reparto/AsignarReparto'
 import VistaChofer from '../modules/reparto/VistaChofer'
@@ -61,6 +62,7 @@ import StockSucursal from '../modules/sucursal/StockSucursal'
 import PerdidaSucursal from '../modules/sucursal/PerdidaSucursal'
 import CajaSucursal from '../modules/sucursal/CajaSucursal'
 import ConteoSucursal from '../modules/sucursal/ConteoSucursal'
+import MisVentasSucursal from '../modules/sucursal/MisVentas'
 import GestionSucursales from '../modules/administracion/GestionSucursales'
 import RendicionesEfectivo from '../modules/caja/RendicionesEfectivo'
 import ImprimirRendicion from '../modules/caja/ImprimirRendicion'
@@ -71,6 +73,7 @@ import MovimientosCaja from '../modules/caja/MovimientosCaja'
 import GestionCategorias from '../modules/catalogo/GestionCategorias'
 import InicioCajero from '../modules/cajero/InicioCajero'
 import CajaMostrador from '../modules/cajero/CajaMostrador'
+import MisVentasCajero from '../modules/cajero/MisVentas'
 
 function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
   const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
@@ -119,6 +122,7 @@ function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
     items: [
       { to: '/dueno/compras', label: 'Recepción de compra' },
       { to: '/dueno/cargar-costo', label: 'Cargar costo', contador: contadorComprasPendientesCosteo },
+      { to: '/dueno/historial-compras', label: 'Historial de compras' },
       { to: '/dueno/proveedores', label: 'Proveedores' },
       { to: '/dueno/cuenta-corriente-proveedores', label: 'Cuenta corriente' },
     ],
@@ -327,6 +331,7 @@ export default function AppRouter() {
           <Route path="rendiciones" element={<RendicionesEfectivo />} />
           <Route path="compras" element={<RegistrarCompra />} />
           <Route path="cargar-costo" element={<CargarCostoCompra />} />
+          <Route path="historial-compras" element={<HistorialCompras />} />
           <Route path="perdidas" element={<RegistrarPerdida />} />
           <Route path="precios" element={<ListasDePrecio />} />
           <Route path="reparto" element={<AsignarReparto />} />
@@ -664,6 +669,15 @@ export default function AppRouter() {
         />
 
         <Route
+          path="/sucursal/mis-ventas"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
+              <MisVentasSucursal />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
           path="/sucursal/stock"
           element={
             <RutaProtegida rolesPermitidos={[ROLES.ENCARGADO_SUCURSAL]}>
@@ -724,6 +738,15 @@ export default function AppRouter() {
           element={
             <RutaProtegida rolesPermitidos={[ROLES.CAJERO_MOSTRADOR]}>
               <CajaMostrador />
+            </RutaProtegida>
+          }
+        />
+
+        <Route
+          path="/cajero/mis-ventas"
+          element={
+            <RutaProtegida rolesPermitidos={[ROLES.CAJERO_MOSTRADOR]}>
+              <MisVentasCajero />
             </RutaProtegida>
           }
         />

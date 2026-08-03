@@ -1,10 +1,11 @@
-import { LogOut, PackageCheck, PackageSearch, Receipt, ShoppingCart, Wallet } from 'lucide-react'
+import { ClipboardList, LogOut, PackageCheck, PackageSearch, Receipt, ShoppingCart, Wallet } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
 import BadgeContador from '../../components/ui/BadgeContador'
 
 const BOTONES = [
   { to: '/sucursal/vender', label: 'Vender', icono: ShoppingCart, clase: 'bg-marca' },
+  { to: '/sucursal/mis-ventas', label: 'Mis ventas de hoy', icono: ClipboardList, clase: 'bg-marca' },
   { to: '/sucursal/aceptar-mercaderia', label: 'Aceptar mercadería', icono: PackageCheck, clase: 'bg-fresco' },
   { to: '/sucursal/stock', label: 'Stock', icono: PackageSearch, clase: 'bg-yema' },
   { to: '/sucursal/caja', label: 'Caja', icono: Wallet, clase: 'bg-marca-claro' },

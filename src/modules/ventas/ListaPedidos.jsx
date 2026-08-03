@@ -22,6 +22,7 @@ import Modal from '../../components/ui/Modal'
 import Input from '../../components/ui/Input'
 import AvisoSaldoCliente from '../../components/AvisoSaldoCliente'
 import ModalExcepcionConfirmar from '../../components/ModalExcepcionConfirmar'
+import ModalCancelarPedido from '../../components/ModalCancelarPedido'
 import BotonVolverInicio from '../../components/BotonVolverInicio'
 
 // fn_confirmar_pedido devuelve estos mensajes en lenguaje claro cuando la
@@ -48,12 +49,21 @@ export default function ListaPedidos({ soloPropios = false }) {
   // badges, pero ni un botón de acción ni información extra (saldo del
   // cliente, excepciones) en toda la pantalla.
   const esVendedor = perfil?.rol === ROLES.VENDEDOR
+  // Mismos roles que gestionan ventas/cobros en esta pantalla — ver
+  // puedeVerComprobantePago/puedeCargarExcepcion más arriba para el mismo
+  // criterio aplicado a otras acciones.
+  const puedeCancelarPedido =
+    perfil?.rol === ROLES.DUENO ||
+    perfil?.rol === ROLES.ADMINISTRATIVO ||
+    perfil?.rol === ROLES.ENCARGADO_SUCURSAL ||
+    perfil?.rol === ROLES.CAJERO_MOSTRADOR
   const [pedidos, setPedidos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [accionando, setAccionando] = useState(null)
   const [bloqueoPedidoId, setBloqueoPedidoId] = useState(null)
   const [pedidoPago, setPedidoPago] = useState(null)
+  const [pedidoCancelar, setPedidoCancelar] = useState(null)
   const [pedidoExcepcion, setPedidoExcepcion] = useState(null)
   const [ultimaExcepcionId, setUltimaExcepcionId] = useState(null)
   const [imprimiendoId, setImprimiendoId] = useState(null)
@@ -142,6 +152,11 @@ export default function ListaPedidos({ soloPropios = false }) {
     }
   }
 
+  function pedidoCancelado() {
+    setPedidoCancelar(null)
+    cargar()
+  }
+
   function excepcionCargada(excepcionId) {
     setPedidoExcepcion(null)
     setBloqueoPedidoId(null)
@@ -175,6 +190,7 @@ export default function ListaPedidos({ soloPropios = false }) {
   const otros = pedidos.filter((p) => p.estado !== 'pendiente')
 
   function renderPedido(p, { mostrarFecha = false } = {}) {
+    const cancelado = p.estado === 'cancelado'
     return (
       <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-sm">
         <div>
@@ -189,7 +205,7 @@ export default function ListaPedidos({ soloPropios = false }) {
           </Badge>
           <Badge tono={TONO_ESTADO_PEDIDO[p.estado] || 'neutro'}>{ETIQUETA_ESTADO_PEDIDO[p.estado] || p.estado}</Badge>
           <Badge tono={TONO_ESTADO_PAGO[p.estado_pago] || 'neutro'}>{ETIQUETA_ESTADO_PAGO[p.estado_pago] || p.estado_pago}</Badge>
-          {!esVendedor && (
+          {!esVendedor && !cancelado && (
             <>
               {p.estado === 'pendiente' && (
                 <Button
@@ -211,7 +227,7 @@ export default function ListaPedidos({ soloPropios = false }) {
                   Marcar como retirado
                 </Button>
               )}
-              {p.estado !== 'cancelado' && p.estado_pago !== 'pagado' && (
+              {p.estado_pago !== 'pagado' && (
                 <Button tamano="sm" onClick={() => setPedidoPago(p)}>
                   Registrar pago
                 </Button>
@@ -233,6 +249,11 @@ export default function ListaPedidos({ soloPropios = false }) {
               >
                 Imprimir remito
               </Button>
+              {puedeCancelarPedido && (
+                <Button tamano="sm" variante="peligro" onClick={() => setPedidoCancelar(p)}>
+                  {p.estado === 'entregado' ? 'Anular pedido' : 'Cancelar pedido'}
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -312,6 +333,7 @@ export default function ListaPedidos({ soloPropios = false }) {
       </div>
 
       <ModalPago pedido={pedidoPago} onCerrar={() => setPedidoPago(null)} onPagado={cargar} />
+      <ModalCancelarPedido pedido={pedidoCancelar} onCerrar={() => setPedidoCancelar(null)} onCancelado={pedidoCancelado} />
       <ModalExcepcionConfirmar pedido={pedidoExcepcion} onCerrar={() => setPedidoExcepcion(null)} onConfirmado={excepcionCargada} />
     </div>
   )
@@ -471,3 +493,4 @@ function ModalPago({ pedido, onCerrar, onPagado }) {
     </Modal>
   )
 }
+

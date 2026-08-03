@@ -160,6 +160,19 @@ export const TONO_ESTADO_RENDICION = {
   confirmada_con_diferencia: 'alerta',
 }
 
+// compras.estado: recibida | costeada | anulada
+export const ETIQUETA_ESTADO_COMPRA = {
+  recibida: 'Recibida',
+  costeada: 'Costeada',
+  anulada: 'Anulada',
+}
+
+export const TONO_ESTADO_COMPRA = {
+  recibida: 'neutro',
+  costeada: 'exito',
+  anulada: 'error',
+}
+
 export const TIPOS_CLIENTE = [
   { value: 'mayorista', label: 'Mayorista' },
   { value: 'minorista', label: 'Minorista' },

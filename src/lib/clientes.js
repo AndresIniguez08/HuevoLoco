@@ -36,14 +36,22 @@ export async function crearCliente(datos) {
   return data
 }
 
+// Un update sin .select() no reporta error cuando 0 filas matchean (RLS o
+// filtro que no matchea) - la promesa se resuelve igual y el frontend lo
+// toma como éxito sin haber cambiado nada. Pedimos la fila de vuelta para
+// poder distinguir "no se guardó nada" de un error real.
 export async function actualizarCliente(id, datos) {
-  const { error } = await supabase.from('clientes').update(datos).eq('id', id)
+  const { data, error } = await supabase.from('clientes').update(datos).eq('id', id).select()
   if (error) throw error
+  if (!data || data.length === 0) throw new Error('actualizacion_sin_filas_afectadas')
+  return data[0]
 }
 
 export async function actualizarEstadoCliente(id, activo) {
-  const { error } = await supabase.from('clientes').update({ activo }).eq('id', id)
+  const { data, error } = await supabase.from('clientes').update({ activo }).eq('id', id).select()
   if (error) throw error
+  if (!data || data.length === 0) throw new Error('actualizacion_sin_filas_afectadas')
+  return data[0]
 }
 
 export async function autorizarCuentaCorriente(clienteId, limiteCredito) {

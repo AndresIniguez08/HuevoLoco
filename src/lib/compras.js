@@ -125,3 +125,24 @@ export async function cargarCostoCompra(compraId, items) {
   })
   if (error) throw error
 }
+
+// A diferencia de listarComprasPendientesCosteo, no filtra por estado — es
+// el historial completo (recibida/costeada/anulada) para la pantalla de
+// anulación, donde lo relevante suele ser una compra ya costeada (la que
+// generó deuda real con el proveedor).
+export async function listarHistorialCompras(limite = 50) {
+  const { data, error } = await supabase
+    .from('compras')
+    .select(
+      '*, proveedores(nombre), compra_items(id, producto_id, cantidad_maple, unidad_transaccion, cantidad_unidad, costo_unitario, productos(nombre))'
+    )
+    .order('creado_at', { ascending: false })
+    .limit(limite)
+  if (error) throw error
+  return data
+}
+
+export async function anularCompra(compraId, motivo) {
+  const { error } = await supabase.rpc('fn_anular_compra', { p_compra_id: compraId, p_motivo: motivo })
+  if (error) throw error
+}

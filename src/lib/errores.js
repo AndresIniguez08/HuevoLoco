@@ -4,6 +4,7 @@ const PATRONES = [
   { test: /stock.*(insuficiente|not enough|negative)/i, mensaje: 'No hay stock suficiente para esta operación.' },
   { test: /cantidad.*(negativ|mayor a cero|greater than)/i, mensaje: 'La cantidad tiene que ser mayor a cero.' },
   { test: /permission denied|rls|policy/i, mensaje: 'No tenés permiso para hacer esta acción.' },
+  { test: /actualizacion_sin_filas_afectadas/, mensaje: 'No se guardaron los cambios: el registro no se encontró o no tenés permiso para editarlo.' },
   { test: /duplicate key/i, mensaje: 'Ese registro ya existe.' },
   { test: /violates foreign key/i, mensaje: 'Falta seleccionar un dato relacionado (cliente, producto o proveedor).' },
   { test: /jwt|not authenticated|invalid login/i, mensaje: 'Tu sesión expiró, iniciá sesión de nuevo.' },
