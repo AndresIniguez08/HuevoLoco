@@ -7,7 +7,7 @@ import { obtenerPreciosLista } from '../../lib/precios'
 import { buscarClientes, crearCliente, obtenerClienteConsumidorFinal } from '../../lib/clientes'
 import { crearVentaSucursal, completarVentaSucursal } from '../../lib/ventaSucursal'
 import { traducirError } from '../../lib/errores'
-import { ETIQUETA_UNIDAD, MEDIOS_PAGO } from '../../lib/constantes'
+import { MEDIOS_PAGO, etiquetaUnidad } from '../../lib/constantes'
 import { formatearMoneda } from '../../lib/formato'
 import SelectorUnidad from '../../components/SelectorUnidad'
 import Button from '../../components/ui/Button'
@@ -390,7 +390,7 @@ export default function VentaSucursal() {
             <SelectorUnidad producto={productoSeleccionado} onCambio={setCantidadSeleccion} />
             <label className="flex flex-col gap-1 text-sm">
               <span className="font-medium text-marca">
-                Precio x {ETIQUETA_UNIDAD[cantidadSeleccion.unidad].singular}
+                Precio x {etiquetaUnidad(cantidadSeleccion.unidad).singular}
               </span>
               <input
                 type="number"
@@ -423,8 +423,8 @@ export default function VentaSucursal() {
                 <div>
                   <p className="text-lg font-medium text-marca">{it.nombre}</p>
                   <p className="text-sm text-marca/60">
-                    {it.cantidad} {ETIQUETA_UNIDAD[it.unidad].plural} · {formatearMoneda(it.precio_aplicado)} c/
-                    {ETIQUETA_UNIDAD[it.unidad].singular}
+                    {it.cantidad} {etiquetaUnidad(it.unidad).plural} · {formatearMoneda(it.precio_aplicado)} c/
+                    {etiquetaUnidad(it.unidad).singular}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">

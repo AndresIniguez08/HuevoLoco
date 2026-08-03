@@ -56,14 +56,20 @@ export const UNIDADES = {
 }
 
 // Unidades de venta/stock de productos que NO son huevo (producto.unidad_base
-// cuando es_huevo = false) — lista cerrada a propósito: así cualquier valor
-// real de unidad_base cae siempre en ETIQUETA_UNIDAD de abajo, sin necesitar
-// un fallback para "unidad desconocida" en ningún lugar de la app.
+// cuando es_huevo = false), ofrecidas en el formulario de alta/edición de
+// producto. No es una lista cerrada: productos cargados directo en la base
+// (fuera del formulario) pueden traer unidad_base con cualquier otro valor,
+// por eso etiquetaUnidad() de abajo siempre tiene un fallback defensivo.
 export const UNIDADES_BASE_GENERALES = [
   { value: 'kg', label: 'Kilogramo (kg)' },
   { value: 'litro', label: 'Litro' },
   { value: 'unidad', label: 'Unidad' },
   { value: 'paquete', label: 'Paquete' },
+  { value: 'caja', label: 'Caja' },
+  { value: 'bolsa', label: 'Bolsa' },
+  { value: 'garrafa', label: 'Garrafa' },
+  { value: 'cajon', label: 'Cajón' },
+  { value: 'pack', label: 'Pack' },
 ]
 
 export const ETIQUETA_UNIDAD = {
@@ -74,15 +80,22 @@ export const ETIQUETA_UNIDAD = {
   litro: { singular: 'litro', plural: 'litros' },
   unidad: { singular: 'unidad', plural: 'unidades' },
   paquete: { singular: 'paquete', plural: 'paquetes' },
+  bolsa: { singular: 'bolsa', plural: 'bolsas' },
+  garrafa: { singular: 'garrafa', plural: 'garrafas' },
+  pack: { singular: 'pack', plural: 'packs' },
 }
 
-// Arma "3 maples" / "45 kg" / "1 unidad" a partir de una cantidad + unidad
-// cruda. Si la unidad no está en ETIQUETA_UNIDAD (no debería pasar, ya que
-// unidad_base sale siempre de UNIDADES_BASE_GENERALES o de 'maple'), se
-// muestra tal cual en vez de romper.
+// Lookup defensivo: producto.unidad_base puede venir de datos cargados fuera
+// del formulario (SQL directo) con un valor que no está en ETIQUETA_UNIDAD.
+// En vez de romper (undefined.singular), se muestra la unidad tal cual.
+export function etiquetaUnidad(unidad) {
+  return ETIQUETA_UNIDAD[unidad] ?? { singular: unidad, plural: unidad }
+}
+
+// Arma "3 maples" / "45 kg" / "1 unidad" a partir de una cantidad + unidad cruda.
 export function etiquetaCantidadUnidad(cantidad, unidad) {
-  const etiqueta = ETIQUETA_UNIDAD[unidad]
-  const nombreUnidad = etiqueta ? (Number(cantidad) === 1 ? etiqueta.singular : etiqueta.plural) : unidad
+  const etiqueta = etiquetaUnidad(unidad)
+  const nombreUnidad = Number(cantidad) === 1 ? etiqueta.singular : etiqueta.plural
   return `${cantidad} ${nombreUnidad}`
 }
 

@@ -6,7 +6,7 @@ import { obtenerPreciosLista } from '../../lib/precios'
 import { buscarClientes, obtenerFechaInicioSaldoPendiente } from '../../lib/clientes'
 import { obtenerSaldoCliente } from '../../lib/cobranzas'
 import { traducirError } from '../../lib/errores'
-import { ETIQUETA_UNIDAD, TIPOS_ENTREGA, etiquetaCantidadUnidad, UNIDADES } from '../../lib/constantes'
+import { TIPOS_ENTREGA, etiquetaCantidadUnidad, etiquetaUnidad, UNIDADES } from '../../lib/constantes'
 import { formatearMoneda } from '../../lib/formato'
 import { usePedidoStore } from '../../stores/pedidoStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -249,7 +249,7 @@ export default function TomarPedido() {
                 <SelectorUnidad producto={productoSeleccionado} onCambio={setCantidadSeleccion} />
                 <label className="flex flex-col gap-1 text-sm">
                   <span className="font-medium text-marca">
-                    Precio x {ETIQUETA_UNIDAD[cantidadSeleccion.unidad].singular}
+                    Precio x {etiquetaUnidad(cantidadSeleccion.unidad).singular}
                   </span>
                   <input
                     type="number"
@@ -297,7 +297,7 @@ export default function TomarPedido() {
                     {it.cantidad_maple !== it.cantidad &&
                       ` (${etiquetaCantidadUnidad(it.cantidad_maple, UNIDADES.MAPLE)})`}{' '}
                     · {formatearMoneda(it.precio_aplicado)} c/
-                    {ETIQUETA_UNIDAD[it.unidad].singular}
+                    {etiquetaUnidad(it.unidad).singular}
                     {it.precio_especial && (
                       <Badge tono="neutro" className="ml-2">
                         Precio especial
