@@ -29,7 +29,6 @@ const esquema = z.object({
 })
 
 export default function EditarCliente({ cliente, onActualizado, onCancelar }) {
-  console.log('EditarCliente recibió:', cliente.id, cliente.lista_precio_id)
   const perfil = useAuthStore((s) => s.perfil)
   const puedeGestionarCC = perfil?.rol === ROLES.DUENO || perfil?.rol === ROLES.ADMINISTRATIVO
   const [listasPrecio, setListasPrecio] = useState([])

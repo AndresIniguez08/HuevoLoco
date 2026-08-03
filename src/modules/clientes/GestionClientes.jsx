@@ -60,7 +60,7 @@ export default function GestionClientes() {
       {cliente && (
         <div className="flex flex-col gap-4">
           <div className="rounded-xl bg-white p-4 shadow-sm">
-            <EditarCliente cliente={cliente} onActualizado={edicionOk} onCancelar={() => setCliente(null)} />
+            <EditarCliente key={cliente.id} cliente={cliente} onActualizado={edicionOk} onCancelar={() => setCliente(null)} />
           </div>
 
           <div className="rounded-xl bg-white p-4 shadow-sm">
