@@ -41,6 +41,7 @@ export default function EditarCliente({ cliente, onActualizado, onCancelar }) {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(esquema),
@@ -54,8 +55,22 @@ export default function EditarCliente({ cliente, onActualizado, onCancelar }) {
     },
   })
 
+  // El <select> de lista de precio arranca con un solo <option> ("Sin lista
+  // asignada") mientras listarListasPrecio todavía no resolvió — el
+  // defaultValue de react-hook-form se aplica al <select> en ese momento, así
+  // que si cliente.lista_precio_id no matchea ningún <option> todavía, el
+  // navegador lo ignora y el campo queda mostrando "Sin lista asignada" para
+  // siempre (aunque el valor guardado en el form y en la base sea el
+  // correcto). setValue() una vez que las listas ya están en el DOM fuerza a
+  // que el <select> se sincronice con la opción real.
   useEffect(() => {
-    listarListasPrecio().then(setListasPrecio).catch(() => {})
+    listarListasPrecio()
+      .then((listas) => {
+        setListasPrecio(listas)
+        setValue('lista_precio_id', cliente.lista_precio_id || '')
+      })
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
