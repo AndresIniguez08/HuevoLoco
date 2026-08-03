@@ -21,6 +21,7 @@ import RecepcionCompra from '../modules/stock/RecepcionCompra'
 import TomarPedido from '../modules/ventas/TomarPedido'
 import ListaPedidos from '../modules/ventas/ListaPedidos'
 import AprobarPrecioEspecial from '../modules/ventas/AprobarPrecioEspecial'
+import HistorialPreciosEspeciales from '../modules/ventas/HistorialPreciosEspeciales'
 import GestionClientes from '../modules/clientes/GestionClientes'
 import CuentaCorriente from '../modules/clientes/CuentaCorriente'
 import CajaDiaria from '../modules/caja/CajaDiaria'
@@ -76,7 +77,7 @@ import CajaMostrador from '../modules/cajero/CajaMostrador'
 import MisVentasCajero from '../modules/cajero/MisVentas'
 
 function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
-  const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
+  const contadorAprobaciones = contadores.pedidos_bloqueados_sucursal || 0
   return [
   { to: '/dueno', label: 'Dashboard', end: true },
   {
@@ -97,6 +98,7 @@ function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
       { to: '/dueno/ventas', label: 'Tomar pedido' },
       { to: '/dueno/pedidos', label: 'Cobrar pedidos', contador: contadores.pedidos_pendientes },
       { to: '/dueno/aprobaciones', label: 'Aprobaciones', contador: contadorAprobaciones },
+      { to: '/dueno/historial-precios-especiales', label: 'Historial de precios especiales' },
     ],
   },
   {
@@ -171,7 +173,7 @@ function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
 }
 
 function crearNavAdmin(contadores) {
-  const contadorAprobaciones = (contadores.precios_especiales_pendientes || 0) + (contadores.pedidos_bloqueados_sucursal || 0)
+  const contadorAprobaciones = contadores.pedidos_bloqueados_sucursal || 0
   return [
   {
     grupo: 'Stock',
@@ -190,6 +192,7 @@ function crearNavAdmin(contadores) {
       { to: '/admin/ventas', label: 'Tomar pedido' },
       { to: '/admin/pedidos', label: 'Cobrar pedidos', end: true, contador: contadores.pedidos_pendientes },
       { to: '/admin/aprobaciones', label: 'Aprobaciones', contador: contadorAprobaciones },
+      { to: '/admin/historial-precios-especiales', label: 'Historial de precios especiales' },
     ],
   },
   {
@@ -319,6 +322,7 @@ export default function AppRouter() {
           <Route path="ventas" element={<TomarPedido />} />
           <Route path="pedidos" element={<ListaPedidos />} />
           <Route path="aprobaciones" element={<AprobarPrecioEspecial />} />
+          <Route path="historial-precios-especiales" element={<HistorialPreciosEspeciales />} />
           <Route path="clientes-gestion" element={<GestionClientes />} />
           <Route path="cuenta-corriente" element={<CuentaCorriente />} />
           <Route path="cobranzas/cobrar" element={<CobrarCuentaCorriente />} />
@@ -365,6 +369,7 @@ export default function AppRouter() {
           <Route path="ventas" element={<TomarPedido />} />
           <Route path="pedidos" element={<ListaPedidos />} />
           <Route path="aprobaciones" element={<AprobarPrecioEspecial />} />
+          <Route path="historial-precios-especiales" element={<HistorialPreciosEspeciales />} />
           <Route path="clientes-gestion" element={<GestionClientes />} />
           <Route path="cuenta-corriente" element={<CuentaCorriente />} />
           <Route path="cobranzas/cobrar" element={<CobrarCuentaCorriente />} />

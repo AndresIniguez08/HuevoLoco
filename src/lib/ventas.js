@@ -23,3 +23,26 @@ export async function obtenerPedidoParaImprimir(pedidoId) {
     pedido_items: (data.pedido_items || []).map((it) => ({ ...it, productos: nombresPorId.get(it.producto_id) })),
   }
 }
+
+// Auditoría de precios especiales: todo pedido_item cargado con un precio
+// distinto al de lista queda acá. aprobado_por/aprobado_at ya no significan
+// una aprobación posterior (el backend audita el precio especial solo, en
+// el momento de cargarse) — son simplemente quién lo cargó y cuándo.
+// productos(nombre) se resuelve aparte por la misma razón que en
+// obtenerPedidoParaImprimir: RLS de `productos` es exclusiva de dueño.
+export async function listarHistorialPreciosEspeciales({ desde, hasta } = {}) {
+  let query = supabase
+    .from('pedido_items')
+    .select(
+      'id, producto_id, precio_lista, precio_aplicado, aprobado_por, aprobado_at, pedidos(clientes(nombre)), perfiles(nombre)'
+    )
+    .eq('es_precio_especial', true)
+    .order('aprobado_at', { ascending: false })
+  if (desde) query = query.gte('aprobado_at', desde)
+  if (hasta) query = query.lte('aprobado_at', hasta)
+  const { data, error } = await query
+  if (error) throw error
+
+  const nombresPorId = await obtenerNombresProductos((data || []).map((it) => it.producto_id))
+  return (data || []).map((it) => ({ ...it, productos: nombresPorId.get(it.producto_id) }))
+}

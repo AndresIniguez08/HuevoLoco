@@ -1,22 +1,17 @@
 import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { obtenerNombresProductos } from '../../lib/productos'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { formatearMoneda } from '../../lib/formato'
 import Button from '../../components/ui/Button'
-import Badge from '../../components/ui/Badge'
 import ModalExcepcionConfirmar from '../../components/ModalExcepcionConfirmar'
 
 export default function AprobarPrecioEspecial() {
-  const usuario = useAuthStore((s) => s.usuario)
   const perfil = useAuthStore((s) => s.perfil)
-  const [pedidosPrecio, setPedidosPrecio] = useState([])
   const [pedidosBloqueados, setPedidosBloqueados] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
-  const [accionando, setAccionando] = useState(null)
   const [pedidoExcepcion, setPedidoExcepcion] = useState(null)
   const [ultimaExcepcionId, setUltimaExcepcionId] = useState(null)
 
@@ -28,84 +23,27 @@ export default function AprobarPrecioEspecial() {
   async function cargar() {
     setCargando(true)
     try {
-      // Precios especiales pendientes de aprobar (de cualquier pedido) y,
-      // en paralelo, la cola de pedidos de sucursales que quedaron
-      // bloqueados por cuenta corriente/límite (estado sigue 'pendiente'
-      // porque fn_completar_venta_sucursal falló después de crear el
-      // pedido) — dos colas distintas, ambas cosas que solo Central decide.
-      const [itemsRes, bloqueadosRes] = await Promise.all([
-        supabase
-          .from('pedido_items')
-          .select('*, pedidos(id, estado, clientes(nombre))')
-          .eq('es_precio_especial', true)
-          .is('aprobado_por', null),
-        perfil?.sucursal_id
-          ? supabase
-              .from('pedidos')
-              .select('*, clientes(nombre), sucursales(nombre)')
-              .eq('estado', 'pendiente')
-              .neq('sucursal_id', perfil.sucursal_id)
-              .order('creado_at', { ascending: false })
-          : Promise.resolve({ data: [], error: null }),
-      ])
-      if (itemsRes.error) throw itemsRes.error
-      if (bloqueadosRes.error) throw bloqueadosRes.error
-
-      // Accesible por administrativo (no solo dueño): productos(nombre) no se
-      // embebe por la RLS de `productos`, se pega acá desde productos_publico.
-      const nombresPorId = await obtenerNombresProductos(itemsRes.data.map((it) => it.producto_id))
-      const itemsConProducto = itemsRes.data.map((it) => ({ ...it, productos: nombresPorId.get(it.producto_id) }))
-
-      const porPedido = new Map()
-      for (const item of itemsConProducto) {
-        if (!item.pedidos || item.pedidos.estado === 'cancelado') continue
-        const pedidoId = item.pedidos.id
-        if (!porPedido.has(pedidoId)) {
-          porPedido.set(pedidoId, { id: pedidoId, cliente: item.pedidos.clientes?.nombre, items: [] })
-        }
-        porPedido.get(pedidoId).items.push(item)
-      }
-      setPedidosPrecio(Array.from(porPedido.values()))
-      setPedidosBloqueados(bloqueadosRes.data || [])
+      // Pedidos de sucursales que quedaron bloqueados por cuenta
+      // corriente/límite (estado sigue 'pendiente' porque
+      // fn_completar_venta_sucursal falló después de crear el pedido) — algo
+      // que solo Central decide. Los precios especiales ya no pasan por acá:
+      // el backend los audita solo en el momento de cargarse (ver
+      // HistorialPreciosEspeciales para la auditoría).
+      const { data, error: errorBloqueados } = perfil?.sucursal_id
+        ? await supabase
+            .from('pedidos')
+            .select('*, clientes(nombre), sucursales(nombre)')
+            .eq('estado', 'pendiente')
+            .neq('sucursal_id', perfil.sucursal_id)
+            .order('creado_at', { ascending: false })
+        : { data: [], error: null }
+      if (errorBloqueados) throw errorBloqueados
+      setPedidosBloqueados(data || [])
       setError(null)
     } catch (e) {
       setError(traducirError(e))
     } finally {
       setCargando(false)
-    }
-  }
-
-  async function aprobar(pedido) {
-    setAccionando(pedido.id)
-    setError(null)
-    try {
-      const { error: errorUpdate } = await supabase
-        .from('pedido_items')
-        .update({ aprobado_por: usuario.id, aprobado_at: new Date().toISOString() })
-        .in(
-          'id',
-          pedido.items.map((it) => it.id)
-        )
-      if (errorUpdate) throw errorUpdate
-      await cargar()
-    } catch (e) {
-      setError(traducirError(e))
-    } finally {
-      setAccionando(null)
-    }
-  }
-
-  async function rechazar(pedido) {
-    setAccionando(pedido.id)
-    setError(null)
-    try {
-      const { error: errorUpdate } = await supabase.from('pedidos').update({ estado: 'cancelado' }).eq('id', pedido.id)
-      if (errorUpdate) throw errorUpdate
-      await cargar()
-    } catch (e) {
-      setError(traducirError(e))
-    } finally {
-      setAccionando(null)
     }
   }
 
@@ -138,39 +76,7 @@ export default function AprobarPrecioEspecial() {
         </div>
       )}
 
-      <h2 className="mb-3 text-sm font-medium text-marca">Precios especiales pendientes</h2>
-      {pedidosPrecio.length === 0 ? (
-        <p className="text-sm text-marca/50">No hay pedidos pendientes de aprobación.</p>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {pedidosPrecio.map((p) => (
-            <li key={p.id} className="rounded-xl bg-white p-4 shadow-sm">
-              <div className="mb-2 flex items-center justify-between">
-                <p className="font-medium text-marca">{p.cliente || 'Cliente'}</p>
-                <Badge tono="neutro">Pendiente</Badge>
-              </div>
-              <ul className="mb-3 divide-y divide-marca/10 text-sm">
-                {p.items.map((it) => (
-                  <li key={it.id} className="flex justify-between py-1.5">
-                    <span>{it.productos?.nombre}</span>
-                    <span className="font-mono">{formatearMoneda(it.precio_aplicado)}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex justify-end gap-2">
-                <Button tamano="sm" variante="peligro" cargando={accionando === p.id} onClick={() => rechazar(p)}>
-                  Rechazar pedido
-                </Button>
-                <Button tamano="sm" variante="confirmar" cargando={accionando === p.id} onClick={() => aprobar(p)}>
-                  Aprobar precios
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <h2 className="mb-3 mt-6 text-sm font-medium text-marca">Pedidos bloqueados de sucursales</h2>
+      <h2 className="mb-3 text-sm font-medium text-marca">Pedidos bloqueados de sucursales</h2>
       {pedidosBloqueados.length === 0 ? (
         <p className="text-sm text-marca/50">No hay pedidos de sucursal esperando autorización.</p>
       ) : (

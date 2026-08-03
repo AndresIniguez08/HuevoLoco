@@ -119,7 +119,7 @@ export default function TomarPedido() {
     setCantidadSeleccion({ unidad: 'maple', cantidad: 0, cantidad_maple: 0 })
   }
 
-  const requiereAprobacion = items.some((it) => it.precio_especial)
+  const tienePrecioEspecial = items.some((it) => it.precio_especial)
 
   async function guardarPedido() {
     if (!cliente || items.length === 0) return
@@ -154,11 +154,7 @@ export default function TomarPedido() {
       const { error: errorItems } = await supabase.from('pedido_items').insert(filas)
       if (errorItems) throw errorItems
 
-      setMensaje(
-        requiereAprobacion
-          ? 'Pedido guardado. Tiene precios especiales: necesitan aprobación antes de poder confirmarse.'
-          : 'Pedido guardado. Confirmalo desde "Mis pedidos".'
-      )
+      setMensaje('Pedido guardado. Confirmalo desde "Mis pedidos".')
       limpiar()
       setBusquedaCliente('')
       setTipoEntrega('reparto')
@@ -337,10 +333,8 @@ export default function TomarPedido() {
         </select>
       </div>
 
-      {requiereAprobacion && items.length > 0 && (
-        <p className="mb-3 text-sm text-marca">
-          Este pedido tiene precios especiales y va a necesitar aprobación antes de poder confirmarse.
-        </p>
+      {tienePrecioEspecial && items.length > 0 && (
+        <p className="mb-3 text-sm text-marca/70">Precio distinto al de lista — queda registrado.</p>
       )}
       {error && <p className="mb-3 text-sm text-perdida">{error}</p>}
       {mensaje && <p className="mb-3 text-sm text-fresco">{mensaje}</p>}

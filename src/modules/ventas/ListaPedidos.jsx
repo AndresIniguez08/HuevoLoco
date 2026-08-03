@@ -125,9 +125,8 @@ export default function ListaPedidos({ soloPropios = false }) {
     setBloqueoPedidoId(null)
     try {
       const { error: errorRpc } = await supabase.rpc('fn_confirmar_pedido', { p_pedido_id: pedidoId })
-      // fn_confirmar_pedido ya devuelve el mensaje en lenguaje claro
-      // (por ejemplo cuando hay precios especiales sin aprobar, o cuando
-      // choca con el límite de cuenta corriente del cliente).
+      // fn_confirmar_pedido ya devuelve el mensaje en lenguaje claro cuando
+      // choca con el límite de cuenta corriente del cliente.
       if (errorRpc) throw new Error(errorRpc.message)
       await cargar()
     } catch (e) {
