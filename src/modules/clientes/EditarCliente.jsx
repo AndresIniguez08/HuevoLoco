@@ -55,23 +55,27 @@ export default function EditarCliente({ cliente, onActualizado, onCancelar }) {
     },
   })
 
-  // El <select> de lista de precio arranca con un solo <option> ("Sin lista
-  // asignada") mientras listarListasPrecio todavía no resolvió — el
-  // defaultValue de react-hook-form se aplica al <select> en ese momento, así
-  // que si cliente.lista_precio_id no matchea ningún <option> todavía, el
-  // navegador lo ignora y el campo queda mostrando "Sin lista asignada" para
-  // siempre (aunque el valor guardado en el form y en la base sea el
-  // correcto). setValue() una vez que las listas ya están en el DOM fuerza a
-  // que el <select> se sincronice con la opción real.
   useEffect(() => {
     listarListasPrecio()
-      .then((listas) => {
-        setListasPrecio(listas)
-        setValue('lista_precio_id', cliente.lista_precio_id || '')
-      })
+      .then(setListasPrecio)
       .catch(() => {})
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // El <select> de lista de precio arranca con un solo <option> ("Sin lista
+  // asignada") mientras listarListasPrecio todavía no resolvió. setValue()
+  // escribe directamente sobre el <select> del DOM (register lo deja como
+  // campo no controlado), así que si se llama en el mismo tick en que recién
+  // se pidió el setListasPrecio de arriba, todavía no existe en el DOM el
+  // <option> real — React no llegó a renderizar los nuevos <option> todavía,
+  // así que el navegador ignora el value y el campo queda en "Sin lista
+  // asignada" para siempre, aunque el dato guardado sea correcto. Por eso
+  // este setValue vive en su propio efecto con [listasPrecio] como
+  // dependencia: recién corre después de que React ya commiteó el render
+  // con los <option> nuevos en el DOM.
+  useEffect(() => {
+    setValue('lista_precio_id', cliente.lista_precio_id || '')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listasPrecio])
 
   useEffect(() => {
     setAutorizadorNombre(null)
