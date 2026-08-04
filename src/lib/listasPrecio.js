@@ -6,6 +6,13 @@ export async function listarListasPrecio() {
   return data
 }
 
+// Todos los clientes nuevos arrancan con esta lista — ver AltaCliente.jsx.
+export async function obtenerListaPrecioPorNombre(nombre) {
+  const { data, error } = await supabase.from('listas_precio').select('id').eq('nombre', nombre).single()
+  if (error) throw error
+  return data.id
+}
+
 export async function crearListaPrecio(nombre) {
   const { data, error } = await supabase.from('listas_precio').insert({ nombre }).select('id, nombre').single()
   if (error) throw error

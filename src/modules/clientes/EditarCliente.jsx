@@ -155,10 +155,14 @@ export default function EditarCliente({ cliente, onActualizado, onCancelar }) {
         </select>
       </label>
 
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium text-marca">Lista de precios</span>
+      <Input label="Teléfono" error={errors.telefono?.message} {...register('telefono')} />
+      <Input label="Dirección" error={errors.direccion?.message} {...register('direccion')} />
+      <Input label="Email" tipo="email" error={errors.email?.message} {...register('email')} />
+
+      <label className="flex flex-col gap-1 text-xs text-marca/50">
+        <span>Lista de precios (excepción puntual, normalmente no hace falta tocarla)</span>
         <select
-          className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
+          className="rounded-lg border border-marca/10 px-2 py-1 text-xs outline-none focus:border-marca-claro"
           {...register('lista_precio_id')}
         >
           <option value="">Sin lista asignada</option>
@@ -169,10 +173,6 @@ export default function EditarCliente({ cliente, onActualizado, onCancelar }) {
           ))}
         </select>
       </label>
-
-      <Input label="Teléfono" error={errors.telefono?.message} {...register('telefono')} />
-      <Input label="Dirección" error={errors.direccion?.message} {...register('direccion')} />
-      <Input label="Email" tipo="email" error={errors.email?.message} {...register('email')} />
 
       <div className="rounded-lg border border-marca/10 p-3">
         <h4 className="mb-2 text-sm font-medium text-marca">Cuenta corriente</h4>

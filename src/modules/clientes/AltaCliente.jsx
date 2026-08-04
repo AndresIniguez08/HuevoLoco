@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { CheckCircle } from 'lucide-react'
 import { crearCliente } from '../../lib/clientes'
-import { listarListasPrecio } from '../../lib/listasPrecio'
+import { obtenerListaPrecioPorNombre } from '../../lib/listasPrecio'
 import { traducirError } from '../../lib/errores'
 import { TIPOS_CLIENTE } from '../../lib/constantes'
 import { useAuthStore } from '../../stores/authStore'
@@ -14,7 +14,6 @@ import Input from '../../components/ui/Input'
 const esquema = z.object({
   nombre: z.string().min(1, 'Ingresá un nombre'),
   tipo: z.string().min(1, 'Elegí un tipo'),
-  lista_precio_id: z.string().optional(),
   telefono: z.string().optional(),
   direccion: z.string().optional(),
   email: z.string().email('Ingresá un email válido').optional().or(z.literal('')),
@@ -22,7 +21,6 @@ const esquema = z.object({
 
 export default function AltaCliente({ onCreado, onCancelar }) {
   const perfil = useAuthStore((s) => s.perfil)
-  const [listasPrecio, setListasPrecio] = useState([])
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState(null)
   const [creado, setCreado] = useState(null)
@@ -32,21 +30,18 @@ export default function AltaCliente({ onCreado, onCancelar }) {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(esquema),
-    defaultValues: { tipo: 'minorista', lista_precio_id: '', telefono: '', direccion: '', email: '' },
+    defaultValues: { tipo: 'minorista', telefono: '', direccion: '', email: '' },
   })
-
-  useEffect(() => {
-    listarListasPrecio().then(setListasPrecio).catch(() => {})
-  }, [])
 
   async function onSubmit(datos) {
     setEnviando(true)
     setError(null)
     try {
+      const listaMayoristaId = await obtenerListaPrecioPorNombre('Lista MAYORISTA')
       await crearCliente({
         nombre: datos.nombre,
         tipo: datos.tipo,
-        lista_precio_id: datos.lista_precio_id || null,
+        lista_precio_id: listaMayoristaId,
         telefono: datos.telefono || null,
         direccion: datos.direccion || null,
         email: datos.email || null,
@@ -85,21 +80,6 @@ export default function AltaCliente({ onCreado, onCancelar }) {
           {TIPOS_CLIENTE.map((t) => (
             <option key={t.value} value={t.value}>
               {t.label}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium text-marca">Lista de precios</span>
-        <select
-          className="rounded-lg border border-marca/20 px-3 py-2 outline-none focus:border-marca-claro"
-          {...register('lista_precio_id')}
-        >
-          <option value="">Sin lista asignada</option>
-          {listasPrecio.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.nombre}
             </option>
           ))}
         </select>
