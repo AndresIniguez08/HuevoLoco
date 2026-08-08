@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { listarSucursales, configurarCCSucursal, obtenerResumenSucursales } from '../../lib/transferencias'
+import {
+  listarSucursales,
+  configurarCCSucursal,
+  obtenerResumenSucursales,
+  actualizarPermiteVentaSinStock,
+} from '../../lib/transferencias'
 import { traducirError } from '../../lib/errores'
 import { useAuthStore } from '../../stores/authStore'
 import { ROLES } from '../../lib/constantes'
@@ -166,10 +171,23 @@ function TarjetaSucursal({ sucursal, onGuardado }) {
   const [sinGuardar, setSinGuardar] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState(null)
+  const [ventaSinStock, setVentaSinStock] = useState(!!sucursal.permite_venta_sin_stock)
+  const [errorVentaSinStock, setErrorVentaSinStock] = useState(null)
 
   function alternar(valor) {
     setHabilitada(valor)
     setSinGuardar(true)
+  }
+
+  async function alternarVentaSinStock(valor) {
+    setVentaSinStock(valor)
+    setErrorVentaSinStock(null)
+    try {
+      await actualizarPermiteVentaSinStock(sucursal.id, valor)
+    } catch (e) {
+      setVentaSinStock(!valor)
+      setErrorVentaSinStock(traducirError(e))
+    }
   }
 
   function cambiarLimite(valor) {
@@ -199,6 +217,15 @@ function TarjetaSucursal({ sucursal, onGuardado }) {
         <span className="text-sm text-marca/70">Activar cuenta corriente para esta sucursal</span>
         <Toggle checked={habilitada} onChange={alternar} />
       </div>
+
+      <div className="mb-1 flex items-center justify-between gap-4">
+        <span className="text-sm text-marca/70">Permitir vender sin stock suficiente</span>
+        <Toggle checked={ventaSinStock} onChange={alternarVentaSinStock} />
+      </div>
+      <p className="mb-3 text-xs text-marca/50">
+        Si está activado, se puede confirmar una venta aunque no haya stock suficiente registrado en el sistema.
+      </p>
+      {errorVentaSinStock && <p className="mb-3 text-sm text-perdida">{errorVentaSinStock}</p>}
 
       <label className="mb-3 flex flex-col gap-1 text-sm">
         <span className="font-medium text-marca">Disponible por cliente</span>
