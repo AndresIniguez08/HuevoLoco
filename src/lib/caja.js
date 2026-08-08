@@ -2,12 +2,19 @@ import { supabase } from './supabase'
 import { formatearMoneda } from './formato'
 
 export async function obtenerMovimientosCaja({ desde, hasta, sucursalId } = {}) {
-  const hoy = new Date().toISOString().slice(0, 10)
-  let query = supabase
-    .from('caja_movimientos')
-    .select('*')
-    .order('creado_at', { ascending: false })
-    .gte('creado_at', `${desde || hoy}T00:00:00`)
+  let query = supabase.from('caja_movimientos').select('*').order('creado_at', { ascending: false })
+  if (desde) {
+    query = query.gte('creado_at', `${desde}T00:00:00`)
+  } else {
+    // Medianoche LOCAL convertida a instante UTC explícito, no la fecha UTC
+    // de hoy (mismo bug y mismo fix que en PanelMisVentas.jsx: en Argentina,
+    // desde las 21hs hasta medianoche la fecha UTC ya es "mañana", así que
+    // un filtro basado en la fecha UTC dejaba afuera los movimientos de más
+    // temprano ese mismo día — de ahí que Caja no reflejara ventas de hoy).
+    const inicioHoy = new Date()
+    inicioHoy.setHours(0, 0, 0, 0)
+    query = query.gte('creado_at', inicioHoy.toISOString())
+  }
   if (hasta) query = query.lte('creado_at', `${hasta}T23:59:59`)
   if (sucursalId) query = query.eq('sucursal_id', sucursalId)
   const { data, error } = await query

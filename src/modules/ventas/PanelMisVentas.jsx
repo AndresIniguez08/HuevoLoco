@@ -24,12 +24,18 @@ export default function PanelMisVentas() {
   async function cargar() {
     if (!usuario) return
     try {
-      const hoy = new Date().toISOString().slice(0, 10)
+      // Medianoche LOCAL convertida a instante UTC explícito — no la fecha
+      // UTC de hoy. new Date().toISOString().slice(0,10) da el día en UTC,
+      // que en Argentina (UTC-3) adelanta 3hs: desde las 21hs hasta
+      // medianoche, "hoy" ya apuntaba al día siguiente en UTC y esta
+      // consulta dejaba afuera las ventas de más temprano ese mismo día.
+      const inicioHoy = new Date()
+      inicioHoy.setHours(0, 0, 0, 0)
       const { data, error: errorPedidos } = await supabase
         .from('pedidos')
         .select('*, clientes(nombre)')
         .eq('vendedor_id', usuario.id)
-        .gte('creado_at', `${hoy}T00:00:00`)
+        .gte('creado_at', inicioHoy.toISOString())
         .order('creado_at', { ascending: false })
       if (errorPedidos) throw errorPedidos
       setPedidos(data)
