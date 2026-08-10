@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { obtenerMovimientosCaja, totalesPorMedio, formatearDiferencia } from '../../lib/caja'
+import { obtenerEsperadoCaja, formatearDiferencia } from '../../lib/caja'
 import { traducirError } from '../../lib/errores'
 import { DENOMINACIONES_BILLETE } from '../../lib/constantes'
-import { formatearMoneda } from '../../lib/formato'
+import { formatearMoneda, formatearFechaHora } from '../../lib/formato'
 import { useAuthStore } from '../../stores/authStore'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -25,6 +25,7 @@ export default function Arqueo() {
   const usuario = useAuthStore((s) => s.usuario)
   const perfil = useAuthStore((s) => s.perfil)
   const [esperados, setEsperados] = useState({ efectivo: 0, mercado_pago: 0, transferencia: 0 })
+  const [desde, setDesde] = useState(null)
   const [cantidadesBilletes, setCantidadesBilletes] = useState({})
   const [mpContado, setMpContado] = useState('')
   const [transferenciaContado, setTransferenciaContado] = useState('')
@@ -35,17 +36,13 @@ export default function Arqueo() {
 
   useEffect(() => {
     if (!perfil?.sucursal_id) return
-    // Filtrado por sucursal_id de quien está haciendo el arqueo: con más de
-    // una sucursal generando caja_movimientos, sin este filtro Central vería
-    // plata que en realidad es de las sucursales (y viceversa).
-    obtenerMovimientosCaja({ sucursalId: perfil.sucursal_id })
-      .then((movimientos) => {
-        const totales = totalesPorMedio(movimientos)
-        setEsperados({
-          efectivo: totales['efectivo'] || 0,
-          mercado_pago: totales['mercado_pago'] || 0,
-          transferencia: totales['transferencia'] || 0,
-        })
+    // fn_calcular_esperado_caja ya filtra por sucursal server-side: con más
+    // de una sucursal generando caja_movimientos, sin ese filtro Central
+    // vería plata que en realidad es de las sucursales (y viceversa).
+    obtenerEsperadoCaja(perfil.sucursal_id)
+      .then(({ esperados, desde }) => {
+        setEsperados(esperados)
+        setDesde(desde)
       })
       .catch((e) => setError(traducirError(e)))
       .finally(() => setCargando(false))
@@ -107,9 +104,21 @@ export default function Arqueo() {
   return (
     <div className="mx-auto max-w-md">
       <h1 className="mb-4 font-display text-xl text-marca">Arqueo de caja</h1>
+
+      <p className="mb-4 rounded-lg bg-marca/5 p-3 text-sm text-marca/70">
+        {desde ? (
+          <>
+            Este arqueo incluye todos los movimientos desde el <b className="text-marca">{formatearFechaHora(desde)}</b>{' '}
+            (último cierre) hasta ahora.
+          </>
+        ) : (
+          'Este es el primer arqueo de esta sucursal — incluye todo el historial de movimientos.'
+        )}
+      </p>
+
       <div className="flex flex-col gap-4 rounded-xl bg-white p-4 shadow-sm">
         <div>
-          <p className="text-xs text-marca/50">Efectivo esperado según movimientos de hoy</p>
+          <p className="text-xs text-marca/50">Efectivo esperado</p>
           <p className="font-mono text-2xl text-marca">{formatearMoneda(esperados.efectivo)}</p>
         </div>
 
@@ -152,9 +161,7 @@ export default function Arqueo() {
 
         <div className="rounded-lg border border-marca/10 p-3">
           <p className="mb-2 text-sm font-medium text-marca">Mercado Pago</p>
-          <p className="mb-2 text-xs text-marca/50">
-            Esperado según movimientos de hoy: {formatearMoneda(esperados.mercado_pago)}
-          </p>
+          <p className="mb-2 text-xs text-marca/50">Esperado: {formatearMoneda(esperados.mercado_pago)}</p>
           <Input
             label="Contado / verificado"
             tipo="number"
@@ -171,9 +178,7 @@ export default function Arqueo() {
 
         <div className="rounded-lg border border-marca/10 p-3">
           <p className="mb-2 text-sm font-medium text-marca">Transferencia</p>
-          <p className="mb-2 text-xs text-marca/50">
-            Esperado según movimientos de hoy: {formatearMoneda(esperados.transferencia)}
-          </p>
+          <p className="mb-2 text-xs text-marca/50">Esperado: {formatearMoneda(esperados.transferencia)}</p>
           <Input
             label="Contado / verificado"
             tipo="number"
