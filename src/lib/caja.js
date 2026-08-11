@@ -92,6 +92,27 @@ export async function listarMovimientosManualesHoy(sucursalId) {
   return movimientos.filter((m) => m.referencia_tipo === 'manual')
 }
 
+// fn_calcular_esperado_caja ya resuelve, por medio de pago, todo lo
+// acumulado (ingresos - egresos) desde el último arqueo cerrado de la
+// sucursal — o el historial completo si todavía no se cerró ninguno. Esto
+// reemplaza el viejo criterio de "esperado según movimientos de hoy", que
+// dejaba afuera caja no arqueada de días anteriores (ej. si se saltearon un
+// día). `desde` viene igual en las 3 filas (mismo último cierre para toda la
+// sucursal), así que alcanza con tomarlo de cualquiera.
+export async function obtenerEsperadoCaja(sucursalId) {
+  const { data, error } = await supabase.rpc('fn_calcular_esperado_caja', { p_sucursal_id: sucursalId })
+  if (error) throw error
+  const porMedio = Object.fromEntries((data || []).map((fila) => [fila.medio, Number(fila.monto_esperado)]))
+  return {
+    esperados: {
+      efectivo: porMedio.efectivo || 0,
+      mercado_pago: porMedio.mercado_pago || 0,
+      transferencia: porMedio.transferencia || 0,
+    },
+    desde: data?.[0]?.desde || null,
+  }
+}
+
 export function totalesPorMedio(movimientos) {
   const totales = {}
   for (const m of movimientos) {

@@ -3,40 +3,44 @@ import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { traducirError } from '../../lib/errores'
 import { ETIQUETA_ESTADO_PEDIDO, TONO_ESTADO_PEDIDO } from '../../lib/constantes'
-import { formatearMoneda, formatearHora } from '../../lib/formato'
+import { formatearMoneda, formatearFecha, formatearHora } from '../../lib/formato'
+import { PERIODOS } from '../../lib/periodos'
 import { useRefrescoPeriodico } from '../../hooks/useRefrescoPeriodico'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import ModalCancelarPedido from '../../components/ModalCancelarPedido'
 
 // Compartido entre sucursal (MisVentas de encargado_sucursal) y cajero
-// (MisVentas de cajero_mostrador) — mismo criterio: los propios pedidos de
-// hoy (vendedor_id = usuario logueado), con la opción de anularlos. Ninguno
-// de los dos roles pasa props: ambos leen perfil/usuario del store, igual
-// que PanelCajaDiaria.
+// (MisVentas de cajero_mostrador) — mismo criterio: los propios pedidos
+// (vendedor_id = usuario logueado), con la opción de anularlos. Ninguno de
+// los dos roles pasa props: ambos leen perfil/usuario del store, igual que
+// PanelCajaDiaria.
 export default function PanelMisVentas() {
   const usuario = useAuthStore((s) => s.usuario)
   const [pedidos, setPedidos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [pedidoCancelar, setPedidoCancelar] = useState(null)
+  const [periodoId, setPeriodoId] = useState('hoy')
 
-  async function cargar() {
+  async function cargar(periodo = periodoId) {
     if (!usuario) return
     try {
-      // Medianoche LOCAL convertida a instante UTC explícito — no la fecha
-      // UTC de hoy. new Date().toISOString().slice(0,10) da el día en UTC,
-      // que en Argentina (UTC-3) adelanta 3hs: desde las 21hs hasta
-      // medianoche, "hoy" ya apuntaba al día siguiente en UTC y esta
-      // consulta dejaba afuera las ventas de más temprano ese mismo día.
-      const inicioHoy = new Date()
-      inicioHoy.setHours(0, 0, 0, 0)
-      const { data, error: errorPedidos } = await supabase
+      // desde/hasta ya vienen como Date en hora LOCAL (setHours(0,0,0,0) opera
+      // sobre el reloj local) — al pasarlos por toISOString() quedan como
+      // instante UTC explícito. Si se usara la fecha UTC de "hoy" a secas,
+      // en Argentina (UTC-3) adelantaría 3hs: desde las 21hs hasta
+      // medianoche, "hoy" ya apuntaría al día siguiente en UTC y la consulta
+      // dejaría afuera ventas de más temprano ese mismo día.
+      const { desde, hasta } = PERIODOS.find((p) => p.id === periodo).rango()
+      let query = supabase
         .from('pedidos')
         .select('*, clientes(nombre)')
         .eq('vendedor_id', usuario.id)
-        .gte('creado_at', inicioHoy.toISOString())
         .order('creado_at', { ascending: false })
+      if (desde) query = query.gte('creado_at', desde.toISOString())
+      if (hasta) query = query.lte('creado_at', hasta.toISOString())
+      const { data, error: errorPedidos } = await query
       if (errorPedidos) throw errorPedidos
       setPedidos(data)
       setError(null)
@@ -47,6 +51,11 @@ export default function PanelMisVentas() {
     }
   }
 
+  function cambiarPeriodo(id) {
+    setPeriodoId(id)
+    cargar(id)
+  }
+
   useRefrescoPeriodico(cargar, { activo: !pedidoCancelar })
 
   function pedidoCancelado() {
@@ -54,15 +63,29 @@ export default function PanelMisVentas() {
     cargar()
   }
 
-  if (cargando) return <p className="text-center text-lg text-marca/60">Cargando ventas de hoy...</p>
+  if (cargando) return <p className="text-center text-lg text-marca/60">Cargando ventas...</p>
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        {PERIODOS.map((p) => (
+          <Button
+            key={p.id}
+            type="button"
+            tamano="sm"
+            variante={p.id === periodoId ? 'primario' : 'secundario'}
+            onClick={() => cambiarPeriodo(p.id)}
+          >
+            {p.label}
+          </Button>
+        ))}
+      </div>
+
       {error && <p className="text-center text-base text-perdida">{error}</p>}
 
       {pedidos.length === 0 ? (
         <p className="rounded-2xl bg-white p-5 text-center text-lg text-marca/60 shadow-sm">
-          Todavía no registraste ninguna venta hoy.
+          Todavía no registraste ninguna venta en este período.
         </p>
       ) : (
         <ul className="flex flex-col gap-3">
@@ -76,7 +99,10 @@ export default function PanelMisVentas() {
               </div>
               <div className="flex items-center justify-between text-marca/70">
                 <span className="font-mono text-xl text-marca">{formatearMoneda(p.total)}</span>
-                <span className="text-base">{formatearHora(p.creado_at)}</span>
+                <span className="text-base">
+                  {periodoId !== 'hoy' && `${formatearFecha(p.creado_at)} `}
+                  {formatearHora(p.creado_at)}
+                </span>
               </div>
               {p.estado !== 'cancelado' && (
                 <Button
