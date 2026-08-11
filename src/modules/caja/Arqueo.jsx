@@ -203,24 +203,6 @@ export default function Arqueo() {
             />
           </div>
         )}
-        <div className="rounded-lg border border-marca/10 p-3">
-          <p className="mb-2 text-sm font-medium text-marca">Mercado Pago</p>
-          <p className="mb-2 text-xs text-marca/50">
-            Esperado: {formatearMoneda(esperados.mercado_pago)}
-          </p>
-          <Input
-            label="Contado / verificado"
-            tipo="number"
-            numerico
-            min="0"
-            step="0.01"
-            value={mpContado}
-            onChange={(e) => {
-              setMpContado(e.target.value);
-              marcarSinGuardar();
-            }}
-          />
-        </div>
 
         <div className="rounded-lg border border-marca/10 p-3">
           <p className="mb-2 text-sm font-medium text-marca">Transferencia</p>
