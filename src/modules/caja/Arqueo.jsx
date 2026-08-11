@@ -3,7 +3,6 @@ import { supabase } from "../../lib/supabase";
 import { obtenerEsperadoCaja, formatearDiferencia } from "../../lib/caja";
 import { traducirError } from "../../lib/errores";
 import { DENOMINACIONES_BILLETE, ROLES } from "../../lib/constantes";
-import { formatearMoneda } from "../../lib/formato";
 import { DENOMINACIONES_BILLETE } from "../../lib/constantes";
 import { formatearMoneda, formatearFechaHora } from "../../lib/formato";
 import { useAuthStore } from "../../stores/authStore";
