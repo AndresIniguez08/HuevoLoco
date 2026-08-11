@@ -139,6 +139,7 @@ export default function VentaMostrador() {
   const [productos, setProductos] = useState([])
   const [preciosLista, setPreciosLista] = useState({})
   const [productoId, setProductoId] = useState('')
+  const [busquedaProducto, setBusquedaProducto] = useState('')
   const [precioManual, setPrecioManual] = useState('')
   const [cantidadSeleccion, setCantidadSeleccion] = useState(cantidadVacia())
   const [items, setItems] = useState([])
@@ -191,6 +192,24 @@ export default function VentaMostrador() {
     ? preciosLista[productoSeleccionado.id]?.[`precio_${cantidadSeleccion.unidad}`] ?? null
     : null
 
+  // Buscador en vez de desplegable: con todo el catálogo listado, encontrar
+  // un producto puntual significaba scrollear una lista larga. Coincidencia
+  // simple por texto contenido en el nombre, tope de 6 sugerencias para no
+  // saturar la pantalla táctil.
+  const sugerenciasProducto = productoSeleccionado
+    ? []
+    : productos.filter((p) => p.nombre.toLowerCase().includes(busquedaProducto.trim().toLowerCase())).slice(0, 6)
+
+  function seleccionarProducto(p) {
+    setProductoId(p.id)
+    setBusquedaProducto('')
+  }
+
+  function cambiarProducto() {
+    setProductoId('')
+    setBusquedaProducto('')
+  }
+
   useEffect(() => {
     setPrecioManual('')
   }, [productoId, cantidadSeleccion.unidad])
@@ -214,6 +233,7 @@ export default function VentaMostrador() {
       },
     ])
     setProductoId('')
+    setBusquedaProducto('')
     setPrecioManual('')
     setCantidadSeleccion(cantidadVacia())
   }
@@ -238,6 +258,7 @@ export default function VentaMostrador() {
   function resetearTodo() {
     setItems([])
     setProductoId('')
+    setBusquedaProducto('')
     setPrecioManual('')
     setCantidadSeleccion(cantidadVacia())
     setMedio('efectivo')
@@ -332,18 +353,45 @@ export default function VentaMostrador() {
 
       <div className="rounded-2xl border border-marca/10 p-4">
         <p className="mb-2 text-sm font-medium text-marca">Agregar producto</p>
-        <select
-          value={productoId}
-          onChange={(e) => setProductoId(e.target.value)}
-          className="w-full rounded-xl border border-marca/20 px-4 py-3 text-lg outline-none focus:border-marca-claro"
-        >
-          <option value="">Elegir producto...</option>
-          {productos.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.nombre}
-            </option>
-          ))}
-        </select>
+
+        {productoSeleccionado ? (
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-marca/20 px-4 py-3">
+            <span className="text-lg font-medium text-marca">{productoSeleccionado.nombre}</span>
+            <button
+              type="button"
+              onClick={cambiarProducto}
+              className="shrink-0 text-sm font-medium text-marca-claro underline"
+            >
+              Cambiar
+            </button>
+          </div>
+        ) : (
+          <div className="relative">
+            <input
+              type="text"
+              value={busquedaProducto}
+              onChange={(e) => setBusquedaProducto(e.target.value)}
+              placeholder="Buscar producto..."
+              autoComplete="off"
+              className="w-full rounded-xl border border-marca/20 px-4 py-3 text-lg outline-none focus:border-marca-claro"
+            />
+            {busquedaProducto.trim() !== '' && sugerenciasProducto.length > 0 && (
+              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-marca/20 bg-white shadow-lg">
+                {sugerenciasProducto.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      onClick={() => seleccionarProducto(p)}
+                      className="flex min-h-[48px] w-full items-center px-4 text-left text-lg text-marca hover:bg-marca/5"
+                    >
+                      {p.nombre}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {productoSeleccionado && (
           <div className="mt-3 flex flex-col gap-3">
