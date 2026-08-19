@@ -45,12 +45,12 @@ export async function crearClientesMasivo(filas) {
   return data
 }
 
-// Trae id/nombre/teléfono de TODOS los clientes (activos e inactivos: un
-// cliente desactivado sigue siendo un duplicado real si se reimporta) para
-// que ImportarClientes.jsx cruce el archivo completo contra la base una sola
-// vez, en vez de una consulta por fila.
+// Trae id/nombre/teléfono/dirección de TODOS los clientes (activos e
+// inactivos: un cliente desactivado sigue siendo un duplicado real si se
+// reimporta) para que ImportarClientes.jsx cruce el archivo completo contra
+// la base una sola vez, en vez de una consulta por fila.
 export async function obtenerClientesParaValidacionImportacion() {
-  const { data, error } = await supabase.from('clientes').select('id, nombre, telefono')
+  const { data, error } = await supabase.from('clientes').select('id, nombre, telefono, direccion')
   if (error) throw error
   return data
 }

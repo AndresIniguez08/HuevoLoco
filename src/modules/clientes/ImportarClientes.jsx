@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
-import { Upload, CheckCircle, AlertTriangle, Ban, RotateCcw } from 'lucide-react'
+import { Upload, CheckCircle, Ban, RotateCcw } from 'lucide-react'
 import {
   obtenerClientesParaValidacionImportacion,
   crearClientesMasivo,
@@ -29,7 +29,7 @@ function normalizarTelefono(valor) {
 }
 
 // Ordena las palabras del nombre para que "Cuello Javier" y "Javier Cuello"
-// den la misma clave — es una alerta de posible duplicado, no un bloqueo.
+// den la misma clave.
 function normalizarNombre(valor) {
   return String(valor ?? '')
     .trim()
@@ -38,6 +38,17 @@ function normalizarNombre(valor) {
     .filter(Boolean)
     .sort()
     .join(' ')
+}
+
+// Saca acentos y colapsa espacios múltiples para que "Av. San Martín  123" y
+// "av san martin 123" comparen igual.
+function normalizarDireccion(valor) {
+  return String(valor ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
 }
 
 function adivinarMapeo(encabezados) {
@@ -69,23 +80,33 @@ function validarFilas(filasCrudas, mapeo, clientesExistentes) {
       email,
       telefonoNorm: normalizarTelefono(telefono),
       nombreNorm: normalizarNombre(nombre),
+      direccionNorm: normalizarDireccion(direccion),
     })
   })
 
   const existentesPorTelefono = new Map()
   const existentesPorNombre = new Map()
+  const existentesPorDireccion = new Map()
   for (const c of clientesExistentes) {
     const tNorm = normalizarTelefono(c.telefono)
     if (tNorm && !existentesPorTelefono.has(tNorm)) existentesPorTelefono.set(tNorm, c)
     const nNorm = normalizarNombre(c.nombre)
     if (nNorm && !existentesPorNombre.has(nNorm)) existentesPorNombre.set(nNorm, c)
+    const dNorm = normalizarDireccion(c.direccion)
+    if (dNorm && !existentesPorDireccion.has(dNorm)) existentesPorDireccion.set(dNorm, c)
   }
 
   const archivoPorTelefono = new Map()
+  const archivoPorDireccion = new Map()
   for (const f of filasBase) {
-    if (!f.telefonoNorm) continue
-    if (!archivoPorTelefono.has(f.telefonoNorm)) archivoPorTelefono.set(f.telefonoNorm, [])
-    archivoPorTelefono.get(f.telefonoNorm).push(f)
+    if (f.telefonoNorm) {
+      if (!archivoPorTelefono.has(f.telefonoNorm)) archivoPorTelefono.set(f.telefonoNorm, [])
+      archivoPorTelefono.get(f.telefonoNorm).push(f)
+    }
+    if (f.direccionNorm) {
+      if (!archivoPorDireccion.has(f.direccionNorm)) archivoPorDireccion.set(f.direccionNorm, [])
+      archivoPorDireccion.get(f.direccionNorm).push(f)
+    }
   }
 
   const filas = filasBase.map((f) => {
@@ -110,29 +131,51 @@ function validarFilas(filasCrudas, mapeo, clientesExistentes) {
     const posible_duplicado_nombre = !!existenteNombre
     const refNombre = existenteNombre ? existenteNombre.nombre : null
 
+    let duplicado_direccion = false
+    let refDireccion = null
+
+    if (f.direccionNorm) {
+      const existente = existentesPorDireccion.get(f.direccionNorm)
+      if (existente) {
+        duplicado_direccion = true
+        refDireccion = `Ya existe en la base: "${existente.nombre}"`
+      } else {
+        const otras = archivoPorDireccion.get(f.direccionNorm).filter((o) => o.idx !== f.idx)
+        if (otras.length > 0) {
+          duplicado_direccion = true
+          refDireccion = `Misma dirección que "${otras[0].nombre}" en este archivo`
+        }
+      }
+    }
+
     return {
       ...f,
       duplicado_telefono,
       refTelefono,
       posible_duplicado_nombre,
       refNombre,
-      // Bloqueado por default cuando hay coincidencia de teléfono O de
-      // nombre — el usuario tiene que confirmarlo a mano fila por fila si
-      // igual quiere importarla (ej. dos locales del mismo dueño con el
-      // mismo teléfono, o dos personas distintas que comparten nombre).
-      importar: !duplicado_telefono && !posible_duplicado_nombre,
+      duplicado_direccion,
+      refDireccion,
+      // Bloqueada por default si coincide teléfono, nombre O dirección — el
+      // usuario tiene que confirmarlo a mano fila por fila si igual quiere
+      // importarla (ej. dos locales del mismo dueño con el mismo teléfono,
+      // dos personas que comparten nombre, o un edificio con varios clientes).
+      importar: !duplicado_telefono && !posible_duplicado_nombre && !duplicado_direccion,
     }
   })
 
   return { filas, omitidasSinNombre }
 }
 
-// Motivo legible para una fila bloqueada, sea por teléfono o por nombre —
-// usado tanto en la previsualización como en el resumen final.
-function motivoOmision(f) {
-  if (f.duplicado_telefono) return f.refTelefono
-  if (f.posible_duplicado_nombre) return `Nombre parecido a "${f.refNombre}" ya existente`
-  return null
+// Motivos legibles de bloqueo de una fila — puede tener más de uno a la vez
+// (ej. mismo teléfono Y misma dirección). Usado tanto en la previsualización
+// como en el resumen final.
+function motivosOmision(f) {
+  const motivos = []
+  if (f.duplicado_telefono) motivos.push({ etiqueta: 'Teléfono', texto: f.refTelefono })
+  if (f.posible_duplicado_nombre) motivos.push({ etiqueta: 'Nombre', texto: `ya existe como "${f.refNombre}"` })
+  if (f.duplicado_direccion) motivos.push({ etiqueta: 'Dirección', texto: f.refDireccion })
+  return motivos
 }
 
 export default function ImportarClientes() {
@@ -210,19 +253,22 @@ export default function ImportarClientes() {
     setFilasPrevia((prev) => prev.map((f) => (f.idx === idx ? { ...f, importar: !f.importar } : f)))
   }
 
-  const rojas = useMemo(() => filasPrevia.filter((f) => f.duplicado_telefono), [filasPrevia])
-  const amarillas = useMemo(
-    () => filasPrevia.filter((f) => !f.duplicado_telefono && f.posible_duplicado_nombre),
+  // Un solo grupo de bloqueadas: una fila puede coincidir por más de un
+  // motivo a la vez (teléfono, nombre, dirección), así que separar en 3
+  // secciones la duplicaba visualmente — motivosOmision(f) lista cuáles
+  // motivos aplican en cada caso.
+  const bloqueadas = useMemo(
+    () => filasPrevia.filter((f) => f.duplicado_telefono || f.posible_duplicado_nombre || f.duplicado_direccion),
     [filasPrevia]
   )
   const verdes = useMemo(
-    () => filasPrevia.filter((f) => !f.duplicado_telefono && !f.posible_duplicado_nombre),
+    () => filasPrevia.filter((f) => !f.duplicado_telefono && !f.posible_duplicado_nombre && !f.duplicado_direccion),
     [filasPrevia]
   )
   const aImportar = useMemo(() => filasPrevia.filter((f) => f.importar), [filasPrevia])
-  // Un solo contador de omitidos: teléfono duplicado y nombre parecido se
-  // bloquean con el mismo checkbox "Importar igual", así que se suman en vez
-  // de mostrarse por separado en el botón.
+  // Un solo contador de omitidos: los 3 motivos se bloquean con el mismo
+  // checkbox "Importar igual", así que se suman en vez de mostrarse por
+  // separado en el botón.
   const omitidasPorDuplicado = filasPrevia.filter((f) => !f.importar).length
 
   async function confirmarImportacion() {
@@ -375,43 +421,28 @@ export default function ImportarClientes() {
 
       {paso === PASOS.PREVISUALIZAR && (
         <div className="flex flex-col gap-4">
-          {rojas.length > 0 && (
+          {bloqueadas.length > 0 && (
             <div className="rounded-xl border border-perdida/30 bg-perdida/5 p-4">
               <div className="mb-3 flex items-center gap-2">
                 <Ban size={18} className="text-perdida" />
-                <p className="text-sm font-medium text-perdida">Bloqueados por teléfono duplicado ({rojas.length})</p>
+                <p className="text-sm font-medium text-perdida">Bloqueados por posible duplicado ({bloqueadas.length})</p>
               </div>
               <ul className="flex flex-col gap-2">
-                {rojas.map((f) => (
+                {bloqueadas.map((f) => (
                   <li key={f.idx} className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 shadow-sm">
                     <div className="min-w-0">
                       <p className="truncate font-medium text-marca">{f.nombre}</p>
-                      <p className="text-xs text-marca/50">{f.telefono || 'Sin teléfono'}</p>
-                      <p className="mt-0.5 text-xs text-perdida">{f.refTelefono}</p>
-                    </div>
-                    <label className="flex shrink-0 items-center gap-2 text-xs font-medium text-marca">
-                      <input type="checkbox" checked={f.importar} onChange={() => alternarImportar(f.idx)} />
-                      Importar igual
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {amarillas.length > 0 && (
-            <div className="rounded-xl border border-yema/30 bg-yema/5 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <AlertTriangle size={18} className="text-yema" />
-                <p className="text-sm font-medium text-yema">Nombre parecido a uno existente ({amarillas.length})</p>
-              </div>
-              <ul className="flex flex-col gap-2">
-                {amarillas.map((f) => (
-                  <li key={f.idx} className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 shadow-sm">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-marca">{f.nombre}</p>
-                      <p className="text-xs text-marca/50">{f.telefono || 'Sin teléfono'}</p>
-                      <p className="mt-0.5 text-xs text-yema">Ya existe como "{f.refNombre}"</p>
+                      <p className="text-xs text-marca/50">
+                        {f.telefono || 'Sin teléfono'}
+                        {f.direccion ? ` · ${f.direccion}` : ''}
+                      </p>
+                      <div className="mt-1 flex flex-col gap-0.5">
+                        {motivosOmision(f).map((m) => (
+                          <p key={m.etiqueta} className="text-xs text-perdida">
+                            <span className="font-medium">{m.etiqueta}:</span> {m.texto}
+                          </p>
+                        ))}
+                      </div>
                     </div>
                     <label className="flex shrink-0 items-center gap-2 text-xs font-medium text-marca">
                       <input type="checkbox" checked={f.importar} onChange={() => alternarImportar(f.idx)} />
@@ -489,7 +520,10 @@ export default function ImportarClientes() {
               <ul className="flex flex-col gap-1">
                 {resultado.omitidosPorDuplicado.map((f) => (
                   <li key={f.idx} className="text-sm text-marca/70">
-                    <span className="font-medium text-marca">{f.nombre}</span> — {motivoOmision(f)}
+                    <span className="font-medium text-marca">{f.nombre}</span> —{' '}
+                    {motivosOmision(f)
+                      .map((m) => `${m.etiqueta}: ${m.texto}`)
+                      .join(' · ')}
                   </li>
                 ))}
               </ul>
