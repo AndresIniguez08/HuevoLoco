@@ -36,6 +36,25 @@ export async function crearCliente(datos) {
   return data
 }
 
+// Alta masiva para ImportarClientes.jsx: un solo insert con todas las filas
+// aprobadas en vez de una por una (evita 13+ round-trips y deja un único
+// punto de fallo si algo sale mal).
+export async function crearClientesMasivo(filas) {
+  const { data, error } = await supabase.from('clientes').insert(filas).select()
+  if (error) throw error
+  return data
+}
+
+// Trae id/nombre/teléfono de TODOS los clientes (activos e inactivos: un
+// cliente desactivado sigue siendo un duplicado real si se reimporta) para
+// que ImportarClientes.jsx cruce el archivo completo contra la base una sola
+// vez, en vez de una consulta por fila.
+export async function obtenerClientesParaValidacionImportacion() {
+  const { data, error } = await supabase.from('clientes').select('id, nombre, telefono')
+  if (error) throw error
+  return data
+}
+
 // Un update sin .select() no reporta error cuando 0 filas matchean (RLS o
 // filtro que no matchea) - la promesa se resuelve igual y el frontend lo
 // toma como éxito sin haber cambiado nada. Pedimos la fila de vuelta para

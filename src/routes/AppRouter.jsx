@@ -23,6 +23,7 @@ import ListaPedidos from '../modules/ventas/ListaPedidos'
 import AprobarPrecioEspecial from '../modules/ventas/AprobarPrecioEspecial'
 import HistorialPreciosEspeciales from '../modules/ventas/HistorialPreciosEspeciales'
 import GestionClientes from '../modules/clientes/GestionClientes'
+import ImportarClientes from '../modules/clientes/ImportarClientes'
 import CuentaCorriente from '../modules/clientes/CuentaCorriente'
 import CajaDiaria from '../modules/caja/CajaDiaria'
 import Arqueo from '../modules/caja/Arqueo'
@@ -106,6 +107,7 @@ function crearNavDueno(contadores, contadorComprasPendientesCosteo) {
     icono: Users,
     items: [
       { to: '/dueno/clientes-gestion', label: 'Gestión de clientes' },
+      { to: '/dueno/clientes-importar', label: 'Importar desde Excel' },
       { to: '/dueno/cuenta-corriente', label: 'Cuenta corriente' },
     ],
   },
@@ -200,6 +202,7 @@ function crearNavAdmin(contadores) {
     icono: Users,
     items: [
       { to: '/admin/clientes-gestion', label: 'Gestión de clientes' },
+      { to: '/admin/clientes-importar', label: 'Importar desde Excel' },
       { to: '/admin/cuenta-corriente', label: 'Cuenta corriente' },
     ],
   },
@@ -324,6 +327,7 @@ export default function AppRouter() {
           <Route path="aprobaciones" element={<AprobarPrecioEspecial />} />
           <Route path="historial-precios-especiales" element={<HistorialPreciosEspeciales />} />
           <Route path="clientes-gestion" element={<GestionClientes />} />
+          <Route path="clientes-importar" element={<ImportarClientes />} />
           <Route path="cuenta-corriente" element={<CuentaCorriente />} />
           <Route path="cobranzas/cobrar" element={<CobrarCuentaCorriente />} />
           <Route path="cobranzas/deuda" element={<ReporteDeuda />} />
@@ -371,6 +375,7 @@ export default function AppRouter() {
           <Route path="aprobaciones" element={<AprobarPrecioEspecial />} />
           <Route path="historial-precios-especiales" element={<HistorialPreciosEspeciales />} />
           <Route path="clientes-gestion" element={<GestionClientes />} />
+          <Route path="clientes-importar" element={<ImportarClientes />} />
           <Route path="cuenta-corriente" element={<CuentaCorriente />} />
           <Route path="cobranzas/cobrar" element={<CobrarCuentaCorriente />} />
           <Route path="cobranzas/deuda" element={<ReporteDeuda />} />
