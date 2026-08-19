@@ -116,14 +116,23 @@ function validarFilas(filasCrudas, mapeo, clientesExistentes) {
       refTelefono,
       posible_duplicado_nombre,
       refNombre,
-      // Bloqueado por default cuando hay coincidencia de teléfono — el
-      // usuario tiene que confirmarlo a mano fila por fila si igual quiere
-      // importarlo (ej. dos locales del mismo dueño con el mismo teléfono).
-      importar: !duplicado_telefono,
+      // Bloqueado por default cuando hay coincidencia de teléfono O de
+      // nombre — el usuario tiene que confirmarlo a mano fila por fila si
+      // igual quiere importarla (ej. dos locales del mismo dueño con el
+      // mismo teléfono, o dos personas distintas que comparten nombre).
+      importar: !duplicado_telefono && !posible_duplicado_nombre,
     }
   })
 
   return { filas, omitidasSinNombre }
+}
+
+// Motivo legible para una fila bloqueada, sea por teléfono o por nombre —
+// usado tanto en la previsualización como en el resumen final.
+function motivoOmision(f) {
+  if (f.duplicado_telefono) return f.refTelefono
+  if (f.posible_duplicado_nombre) return `Nombre parecido a "${f.refNombre}" ya existente`
+  return null
 }
 
 export default function ImportarClientes() {
@@ -211,7 +220,10 @@ export default function ImportarClientes() {
     [filasPrevia]
   )
   const aImportar = useMemo(() => filasPrevia.filter((f) => f.importar), [filasPrevia])
-  const omitidasPorTelefono = rojas.filter((f) => !f.importar).length
+  // Un solo contador de omitidos: teléfono duplicado y nombre parecido se
+  // bloquean con el mismo checkbox "Importar igual", así que se suman en vez
+  // de mostrarse por separado en el botón.
+  const omitidasPorDuplicado = filasPrevia.filter((f) => !f.importar).length
 
   async function confirmarImportacion() {
     setImportando(true)
@@ -231,7 +243,7 @@ export default function ImportarClientes() {
       const creados = filasParaInsertar.length > 0 ? await crearClientesMasivo(filasParaInsertar) : []
       setResultado({
         importados: creados.length,
-        omitidosTelefono: rojas.filter((f) => !f.importar),
+        omitidosPorDuplicado: filasPrevia.filter((f) => !f.importar),
         omitidasSinNombre,
       })
       setPaso(PASOS.RESULTADO)
@@ -395,10 +407,16 @@ export default function ImportarClientes() {
               </div>
               <ul className="flex flex-col gap-2">
                 {amarillas.map((f) => (
-                  <li key={f.idx} className="rounded-lg bg-white p-3 shadow-sm">
-                    <p className="font-medium text-marca">{f.nombre}</p>
-                    <p className="text-xs text-marca/50">{f.telefono || 'Sin teléfono'}</p>
-                    <p className="mt-0.5 text-xs text-yema">Ya existe como "{f.refNombre}"</p>
+                  <li key={f.idx} className="flex items-center justify-between gap-3 rounded-lg bg-white p-3 shadow-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-marca">{f.nombre}</p>
+                      <p className="text-xs text-marca/50">{f.telefono || 'Sin teléfono'}</p>
+                      <p className="mt-0.5 text-xs text-yema">Ya existe como "{f.refNombre}"</p>
+                    </div>
+                    <label className="flex shrink-0 items-center gap-2 text-xs font-medium text-marca">
+                      <input type="checkbox" checked={f.importar} onChange={() => alternarImportar(f.idx)} />
+                      Importar igual
+                    </label>
                   </li>
                 ))}
               </ul>
@@ -445,8 +463,8 @@ export default function ImportarClientes() {
               onClick={confirmarImportacion}
             >
               Importar {aImportar.length} cliente{aImportar.length === 1 ? '' : 's'}
-              {omitidasPorTelefono > 0
-                ? ` (${omitidasPorTelefono} omitido${omitidasPorTelefono === 1 ? '' : 's'} por teléfono duplicado)`
+              {omitidasPorDuplicado > 0
+                ? ` (${omitidasPorDuplicado} omitido${omitidasPorDuplicado === 1 ? '' : 's'} por posible duplicado)`
                 : ''}
             </Button>
           </div>
@@ -463,15 +481,15 @@ export default function ImportarClientes() {
             </p>
           </div>
 
-          {resultado.omitidosTelefono.length > 0 && (
+          {resultado.omitidosPorDuplicado.length > 0 && (
             <div className="rounded-xl border border-perdida/30 bg-perdida/5 p-4">
               <p className="mb-2 text-sm font-medium text-perdida">
-                Omitidos por teléfono duplicado ({resultado.omitidosTelefono.length})
+                Omitidos por posible duplicado ({resultado.omitidosPorDuplicado.length})
               </p>
               <ul className="flex flex-col gap-1">
-                {resultado.omitidosTelefono.map((f) => (
+                {resultado.omitidosPorDuplicado.map((f) => (
                   <li key={f.idx} className="text-sm text-marca/70">
-                    <span className="font-medium text-marca">{f.nombre}</span> — {f.refTelefono}
+                    <span className="font-medium text-marca">{f.nombre}</span> — {motivoOmision(f)}
                   </li>
                 ))}
               </ul>
